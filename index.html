@@ -403,6 +403,7 @@
 
     <script>
         const WEBHOOK_URL = "https://ruda1a.app.n8n.cloud/webhook/baccd3b2-b253-4f4c-a567-4f9cd09c50ec";
+        const HISTORY_WEBHOOK_URL = "https://ruda1a.app.n8n.cloud/webhook/f3c652e0-4334-4a91-b552-af52a75d3020";
 
         const form = document.getElementById('queryForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -465,6 +466,18 @@
                     count++;
                     addHistoryCard(company, question, data.answer, timeStr);
                     questionInput.value = '';
+
+                    // 상담 이력 Google Sheets 저장
+                    fetch(HISTORY_WEBHOOK_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            company: company.toLowerCase(),
+                            question,
+                            answer: data.answer,
+                            datetime: now.toLocaleString('ko-KR')
+                        })
+                    }).catch(() => {});
                 } else {
                     addErrorCard(company, question, '해당 업체 정보를 찾을 수 없습니다. 업체명을 확인해주세요.', timeStr);
                 }
