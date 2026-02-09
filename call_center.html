@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>콜센터 AI 답변 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        /* 상단 헤더 */
+        .top-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+
+        .top-bar h1 {
+            font-size: 20px;
+        }
+
+        .top-bar .status {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        /* 메인 레이아웃 */
+        .main-layout {
+            display: flex;
+            height: calc(100vh - 56px);
+        }
+
+        /* 왼쪽: 입력 패널 */
+        .input-panel {
+            width: 360px;
+            min-width: 360px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 자주 쓰는 질문 버튼 */
+        .quick-buttons {
+            margin-bottom: 20px;
+        }
+
+        .quick-buttons label {
+            margin-bottom: 10px;
+        }
+
+        .quick-btn-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .quick-btn {
+            padding: 7px 14px;
+            border: 1px solid #667eea;
+            border-radius: 20px;
+            background: white;
+            color: #667eea;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: none;
+            font-weight: 500;
+        }
+
+        .quick-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-btn {
+            flex: 2;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .search-btn:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .reset-btn {
+            flex: 1;
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .reset-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .clear-history-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 8px;
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .clear-history-btn:hover {
+            border-color: #f44;
+            color: #f44;
+        }
+
+        /* 오른쪽: 상담 이력 */
+        .history-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .history-header {
+            padding: 15px 25px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-count {
+            font-size: 12px;
+            color: #999;
+            font-weight: 400;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 25px;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: #bbb;
+            padding: 60px 20px;
+            font-size: 14px;
+        }
+
+        /* 상담 카드 */
+        .history-card {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            animation: slideIn 0.3s ease;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .company-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .card-time {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .copy-btn {
+            padding: 4px 10px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .copy-btn.copied {
+            background: #4caf50;
+            color: white;
+        }
+
+        .card-question {
+            background: #f0f2f5;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .card-question strong {
+            color: #333;
+        }
+
+        .card-answer {
+            line-height: 1.7;
+            color: #333;
+            font-size: 14px;
+            white-space: pre-wrap;
+            border-left: 3px solid #667eea;
+            padding-left: 14px;
+        }
+
+        /* 로딩 카드 */
+        .history-card.loading-card {
+            text-align: center;
+            color: #667eea;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .error-text {
+            color: #e53935;
+            font-size: 14px;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column;
+                height: auto;
+            }
+            .input-panel {
+                width: 100%;
+                min-width: auto;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            .history-list {
+                min-height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h1>콜센터 AI 답변 시스템</h1>
+        <span class="status" id="statusText">대기 중</span>
+    </div>
+
+    <div class="main-layout">
+        <!-- 왼쪽 입력 패널 -->
+        <div class="input-panel">
+            <form id="queryForm">
+                <div class="form-group">
+                    <label>업체명</label>
+                    <input type="text" id="company" placeholder="예: a업체" required>
+                </div>
+
+                <div class="quick-buttons">
+                    <label>자주 묻는 질문</label>
+                    <div class="quick-btn-grid">
+                        <button type="button" class="quick-btn" data-q="반품하고 싶어요">반품</button>
+                        <button type="button" class="quick-btn" data-q="교환하고 싶어요">교환</button>
+                        <button type="button" class="quick-btn" data-q="배송이 언제 오나요?">배송</button>
+                        <button type="button" class="quick-btn" data-q="환불은 언제 되나요?">환불</button>
+                        <button type="button" class="quick-btn" data-q="담당자 연결해주세요">담당자</button>
+                        <button type="button" class="quick-btn" data-q="영업시간이 어떻게 되나요?">영업시간</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>고객 질문</label>
+                    <input type="text" id="question" placeholder="직접 입력 또는 위 버튼 클릭" required>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="search-btn" id="submitBtn">답변 생성</button>
+                    <button type="reset" class="reset-btn">초기화</button>
+                </div>
+            </form>
+
+            <button class="clear-history-btn" id="clearHistoryBtn">상담 이력 전체 삭제</button>
+        </div>
+
+        <!-- 오른쪽 상담 이력 -->
+        <div class="history-panel">
+            <div class="history-header">
+                <span>상담 이력</span>
+                <span class="history-count" id="historyCount">0건</span>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="history-empty" id="emptyState">
+                    아직 상담 이력이 없습니다.<br>업체명과 질문을 입력하고 답변을 생성해보세요.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WEBHOOK_URL = "https://ruda1a.app.n8n.cloud/webhook/baccd3b2-b253-4f4c-a567-4f9cd09c50ec";
+
+        const form = document.getElementById('queryForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const historyList = document.getElementById('historyList');
+        const historyCount = document.getElementById('historyCount');
+        const emptyState = document.getElementById('emptyState');
+        const statusText = document.getElementById('statusText');
+        const questionInput = document.getElementById('question');
+        const companyInput = document.getElementById('company');
+
+        let count = 0;
+
+        // 자주 쓰는 질문 버튼
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                questionInput.value = btn.dataset.q;
+                questionInput.focus();
+            });
+        });
+
+        // 답변 생성
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const company = companyInput.value.trim();
+            const question = questionInput.value.trim();
+
+            if (!company || !question) {
+                alert('업체명과 질문을 모두 입력해주세요.');
+                return;
+            }
+
+            // 로딩 카드 추가
+            emptyState.style.display = 'none';
+            const loadingCard = document.createElement('div');
+            loadingCard.className = 'history-card loading-card';
+            loadingCard.innerHTML = '<div class="spinner"></div><div>AI가 답변을 생성하고 있습니다...</div>';
+            historyList.prepend(loadingCard);
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = '생성 중...';
+            statusText.textContent = '답변 생성 중...';
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ company: company.toLowerCase(), question })
+                });
+
+                if (!response.ok) throw new Error("서버 응답 오류: " + response.status);
+
+                const data = await response.json();
+                loadingCard.remove();
+
+                if (data.answer) {
+                    count++;
+                    addHistoryCard(company, question, data.answer, timeStr);
+                    questionInput.value = '';
+                } else {
+                    addErrorCard(company, question, '해당 업체 정보를 찾을 수 없습니다. 업체명을 확인해주세요.', timeStr);
+                }
+            } catch (err) {
+                loadingCard.remove();
+                addErrorCard(company, question, '답변 생성 실패: ' + err.message, timeStr);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '답변 생성';
+                statusText.textContent = '대기 중';
+            }
+        });
+
+        function addHistoryCard(company, question, answer, time) {
+            const card = document.createElement('div');
+            card.className = 'history-card';
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-meta">
+                        <span class="company-badge">${escapeHtml(company)}</span>
+                        <span class="card-time">${time}</span>
+                    </div>
+                    <button class="copy-btn" onclick="copyAnswer(this)">복사</button>
+                </div>
+                <div class="card-question"><strong>Q.</strong> ${escapeHtml(question)}</div>
+                <div class="card-answer">${escapeHtml(answer)}</div>
+            `;
+            historyList.prepend(card);
+            historyCount.textContent = count + '건';
+        }
+
+        function addErrorCard(company, question, errorMsg, time) {
+            count++;
+            const card = document.createElement('div');
+            card.className = 'history-card';
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-meta">
+                        <span class="company-badge">${escapeHtml(company)}</span>
+                        <span class="card-time">${time}</span>
+                    </div>
+                </div>
+                <div class="card-question"><strong>Q.</strong> ${escapeHtml(question)}</div>
+                <div class="card-answer error-text">${escapeHtml(errorMsg)}</div>
+            `;
+            historyList.prepend(card);
+            historyCount.textContent = count + '건';
+        }
+
+        function copyAnswer(btn) {
+            const answer = btn.closest('.history-card').querySelector('.card-answer').textContent;
+            navigator.clipboard.writeText(answer).then(() => {
+                btn.textContent = '복사됨';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '복사';
+                    btn.classList.remove('copied');
+                }, 1500);
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 초기화
+        form.addEventListener('reset', function() {
+            // 폼만 초기화, 이력은 유지
+        });
+
+        // 이력 전체 삭제
+        document.getElementById('clearHistoryBtn').addEventListener('click', function() {
+            if (confirm('상담 이력을 전체 삭제하시겠습니까?')) {
+                historyList.innerHTML = '';
+                emptyState.style.display = '';
+                historyList.appendChild(emptyState);
+                count = 0;
+                historyCount.textContent = '0건';
+            }
+        });
+    </script>
+</body>
+</html>
