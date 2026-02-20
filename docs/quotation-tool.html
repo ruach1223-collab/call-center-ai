@@ -336,16 +336,18 @@
         .type-card .type-desc { font-size: 11px; color: #718096; margin-top: 4px; }
 
         /* 유형별 표시/숨김 */
-        .for-outsource, .for-labor, .for-cs-agent, .for-cs-share { display: none; }
+        .for-outsource, .for-labor, .for-cs-agent, .for-cs-share, .for-recruit { display: none; }
         body.qt-outsource .for-outsource { display: block; }
         body.qt-labor .for-labor { display: block; }
         body.qt-cs-agent .for-cs-agent { display: block; }
         body.qt-cs-share .for-cs-share { display: block; }
+        body.qt-recruit .for-recruit { display: block; }
         /* flex 복원 */
         body.qt-outsource .for-outsource.d-flex { display: flex; }
         body.qt-labor .for-labor.d-flex { display: flex; }
         body.qt-cs-agent .for-cs-agent.d-flex { display: flex; }
         body.qt-cs-share .for-cs-share.d-flex { display: flex; }
+        body.qt-recruit .for-recruit.d-flex { display: flex; }
         /* 공통 표시 (정액/일반 도급 공유) */
         .for-dogup { display: none; }
         body.qt-outsource .for-dogup, body.qt-labor .for-dogup { display: block; }
@@ -424,6 +426,11 @@
                     <div class="type-icon">📊</div>
                     <div class="type-name">CS쉐어링</div>
                     <div class="type-desc">콜 구간별 과금<br>(공유 상담)</div>
+                </div>
+                <div class="type-card" onclick="switchQuoteType('recruit', this)">
+                    <div class="type-icon">🤝</div>
+                    <div class="type-name">채용대행</div>
+                    <div class="type-desc">인력 소개 수수료<br>(직무별 단가)</div>
                 </div>
             </div>
         </div>
@@ -672,6 +679,101 @@
             </div>
         </div>
 
+        <!-- ===== 채용대행 전용: 직무별 인건비 ===== -->
+        <div class="for-recruit">
+            <div class="card">
+                <div class="card-title">채용대행 조건</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">운영시간</label>
+                        <input type="text" id="recruitOpTime" value="09:00~18:00" oninput="autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">인력 근무조건</label>
+                        <input type="text" id="recruitWorkCond" value="주5일 / 일 8시간 근무" oninput="autoSave();">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">업무범위</label>
+                    <textarea id="recruitWorkScope" rows="2" oninput="autoSave();">채용대행(구인 및 지원자 이력서 전달)</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">소개수수료율 (%)</label>
+                    <input type="number" id="recruitFeeRate" value="8" step="1" min="1" max="30" onchange="calcRecruit(); autoSave();">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">최소 수수료 청구기간 (개월)</label>
+                    <input type="number" id="recruitMinMonth" value="3" step="1" min="1" max="12" onchange="autoSave();">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">직무별 인건비 <button class="rate-toggle" onclick="addRecruitRow()">+ 직무 추가</button></div>
+
+                <table class="data-table" id="recruitTable">
+                    <thead>
+                        <tr>
+                            <th>직무명</th>
+                            <th style="text-align:center;">경력구분</th>
+                            <th style="text-align:right;">월 급여 (원)</th>
+                            <th style="text-align:right;">인원</th>
+                            <th style="text-align:right;">합계</th>
+                            <th style="width:40px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="recruitRows">
+                        <tr>
+                            <td><input type="text" value="대리점관리파트" style="width:100%;padding:4px;" onchange="calcRecruit(); autoSave();"></td>
+                            <td style="text-align:center;"><select style="padding:4px;" onchange="calcRecruit(); autoSave();"><option>신입</option><option>경력</option></select></td>
+                            <td><input type="number" value="2500000" step="100000" style="width:100%;text-align:right;padding:4px;" onchange="calcRecruit(); autoSave();"></td>
+                            <td><input type="number" value="1" min="1" max="50" style="width:60px;text-align:center;padding:4px;" onchange="calcRecruit(); autoSave();"></td>
+                            <td class="num" style="font-weight:600;">-</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" value="통화품질 담당" style="width:100%;padding:4px;" onchange="calcRecruit(); autoSave();"></td>
+                            <td style="text-align:center;"><select style="padding:4px;" onchange="calcRecruit(); autoSave();"><option>신입</option><option selected>경력</option></select></td>
+                            <td><input type="number" value="2670000" step="100000" style="width:100%;text-align:right;padding:4px;" onchange="calcRecruit(); autoSave();"></td>
+                            <td><input type="number" value="1" min="1" max="50" style="width:60px;text-align:center;padding:4px;" onchange="calcRecruit(); autoSave();"></td>
+                            <td class="num" style="font-weight:600;">-</td>
+                            <td><button onclick="removeRecruitRow(this)" style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:16px;">&times;</button></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3"><strong>① 인건비 소계</strong></td>
+                            <td class="num" id="recruitTotalPeople">-</td>
+                            <td class="num" id="recruitLaborTotal" style="font-size:15px;">-</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4"><strong>② 소개수수료 (<span id="recruitFeeRateDisplay">8</span>%)</strong></td>
+                            <td class="num" id="recruitFeeTotal">-</td>
+                            <td></td>
+                        </tr>
+                        <tr style="background:#f0f5ff;">
+                            <td colspan="4"><strong>합계 (①+②) (VAT 별도)</strong></td>
+                            <td class="num" id="recruitGrandTotal" style="font-size:16px;font-weight:700;color:#1a365d;">-</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="result-box" style="margin-top:16px;">
+                    <div class="result-title">최종 제안가</div>
+                    <div style="display:flex;gap:16px;align-items:center;">
+                        <input type="number" id="recruitFinalPrice" value="0" step="10000" style="width:180px;font-size:18px;font-weight:700;text-align:right;" onchange="autoSave();">
+                        <span style="font-size:14px;color:#4a5568;">원/월 (VAT별도)</span>
+                    </div>
+                    <div class="result-sub" id="recruitDiscount"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- ===== 도급 공통 (정액제/일반): 현장조건 ===== -->
         <div class="for-dogup">
         <div class="card">
@@ -828,12 +930,23 @@
     <!-- ==================== 탭3: 원가계산 ==================== -->
     <div class="tab-content" id="tab2">
 
-        <!-- CS대행/쉐어링은 Tab2에서 비용 산출까지 완료 → Tab3은 건너뜀 안내 -->
+        <!-- CS대행/쉐어링/채용대행은 Tab2에서 비용 산출까지 완료 → Tab3은 건너뜀 안내 -->
         <div class="for-cs">
             <div class="card">
                 <div class="alert alert-info">
                     <span>&#128161;</span>
-                    <span>CS 견적은 이전 탭에서 비용 산출이 완료되었습니다. <strong>견적시뮬</strong> 또는 <strong>견적서생성</strong>으로 이동하세요.</span>
+                    <span>CS 견적은 이전 탭에서 비용 산출이 완료되었습니다. <strong>견적서생성</strong>으로 이동하세요.</span>
+                </div>
+                <div class="btn-group" style="justify-content:center;">
+                    <button class="btn btn-primary" onclick="switchTab(4)">견적서 생성으로 이동 &rarr;</button>
+                </div>
+            </div>
+        </div>
+        <div class="for-recruit">
+            <div class="card">
+                <div class="alert alert-info">
+                    <span>&#128161;</span>
+                    <span>채용대행 견적은 이전 탭에서 비용 산출이 완료되었습니다. <strong>견적서생성</strong>으로 이동하세요.</span>
                 </div>
                 <div class="btn-group" style="justify-content:center;">
                     <button class="btn btn-primary" onclick="switchTab(4)">견적서 생성으로 이동 &rarr;</button>
@@ -1217,7 +1330,8 @@ function switchQuoteType(type, card) {
         outsource: ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트'],
         labor:     ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트'],
         'cs-agent':['고객정보','상담사구성','(건너뜀)','(건너뜀)','견적서생성','체크리스트'],
-        'cs-share':['고객정보','콜조건','(건너뜀)','(건너뜀)','견적서생성','체크리스트']
+        'cs-share':['고객정보','콜조건','(건너뜀)','(건너뜀)','견적서생성','체크리스트'],
+        recruit:   ['고객정보','직무구성','(건너뜀)','(건너뜀)','견적서생성','체크리스트']
     };
     const labels = tabLabels[type] || tabLabels.outsource;
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
@@ -1291,6 +1405,77 @@ function calcCSShare() {
     if (!state._csShareManual) fp.value = baseFee;
 
     state.csShareBaseFee = baseFee;
+}
+
+// ===== 채용대행 비용 계산 =====
+function calcRecruit() {
+    const rows = document.getElementById('recruitRows').querySelectorAll('tr');
+    const feeRate = parseFloat(document.getElementById('recruitFeeRate').value) || 8;
+    let totalPeople = 0;
+    let totalLabor = 0;
+
+    rows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        if (inputs.length < 3) return;
+        const salary = parseInt(inputs[1].value) || 0;
+        const count = parseInt(inputs[2].value) || 0;
+        const subtotal = salary * count;
+        totalPeople += count;
+        totalLabor += subtotal;
+        // 합계 셀 업데이트
+        const tds = row.querySelectorAll('td');
+        tds[4].textContent = fmt(subtotal);
+    });
+
+    const fee = Math.round(totalLabor * feeRate / 100);
+    const grandTotal = totalLabor + fee;
+
+    document.getElementById('recruitTotalPeople').textContent = totalPeople;
+    document.getElementById('recruitLaborTotal').textContent = fmt(totalLabor);
+    document.getElementById('recruitFeeRateDisplay').textContent = feeRate;
+    document.getElementById('recruitFeeTotal').textContent = fmt(fee);
+    document.getElementById('recruitGrandTotal').textContent = fmt(grandTotal);
+
+    // 최종 제안가 자동 세팅
+    const fp = document.getElementById('recruitFinalPrice');
+    if (!state._recruitManual) {
+        fp.value = grandTotal;
+    }
+
+    const finalP = parseInt(fp.value) || 0;
+    document.getElementById('recruitDiscount').textContent =
+        finalP < grandTotal ? '할인: ' + fmt(grandTotal - finalP) + '원' :
+        finalP > grandTotal ? '마진: +' + fmt(finalP - grandTotal) + '원' : '원가 동일';
+
+    state.recruitTotal = grandTotal;
+}
+
+function addRecruitRow(job, career, salary, count) {
+    const tbody = document.getElementById('recruitRows');
+    const tr = document.createElement('tr');
+    const jobVal = job || '';
+    const careerVal = career || '신입';
+    const salaryVal = salary || '2500000';
+    const countVal = count || '1';
+    tr.innerHTML = `<td><input type="text" value="${jobVal}" placeholder="직무명" style="width:100%;padding:4px;" onchange="calcRecruit(); autoSave();"></td>
+        <td style="text-align:center;"><select style="padding:4px;" onchange="calcRecruit(); autoSave();"><option${careerVal==='신입'?' selected':''}>신입</option><option${careerVal==='경력'?' selected':''}>경력</option></select></td>
+        <td><input type="number" value="${salaryVal}" step="100000" style="width:100%;text-align:right;padding:4px;" onchange="calcRecruit(); autoSave();"></td>
+        <td><input type="number" value="${countVal}" min="1" max="50" style="width:60px;text-align:center;padding:4px;" onchange="calcRecruit(); autoSave();"></td>
+        <td class="num" style="font-weight:600;">-</td>
+        <td><button onclick="removeRecruitRow(this)" style="background:none;border:none;color:#e53e3e;cursor:pointer;font-size:16px;">&times;</button></td>`;
+    tbody.appendChild(tr);
+    calcRecruit();
+}
+
+function removeRecruitRow(btn) {
+    const tbody = document.getElementById('recruitRows');
+    if (tbody.querySelectorAll('tr').length <= 1) {
+        alert('최소 1개 직무는 필요합니다.');
+        return;
+    }
+    btn.closest('tr').remove();
+    calcRecruit();
+    autoSave();
 }
 
 // ===== 업종 선택 시 팁 =====
@@ -1629,6 +1814,7 @@ function generateQuote() {
     if (type === 'labor') return generateQuoteLabor();
     if (type === 'cs-agent') return generateQuoteCSAgent();
     if (type === 'cs-share') return generateQuoteCSShare();
+    if (type === 'recruit') return generateQuoteRecruit();
     return generateQuoteOutsource(); // fallback
 }
 
@@ -1901,6 +2087,8 @@ function generateQuoteOutsource() {
             </div>
         </div>
 
+        ${getServiceDescription('outsource')}
+
         ${noteLines.length > 0 ? `
         <div class="section">
             <div class="section-title"><span class="num">4</span>특기사항</div>
@@ -2033,6 +2221,8 @@ ${getQuoteParties(client, site || '-', contact)}
     </table>
 </div>
 
+${getServiceDescription('labor')}
+
 <div class="section">
     <div class="section-title"><span class="num">3</span>기타사항</div>
     <div class="note-box">
@@ -2128,6 +2318,8 @@ ${getQuoteParties(client, site || '-', contact)}
     </table>
 </div>
 
+${getServiceDescription('cs-agent')}
+
 <div class="section">
     <div class="section-title"><span class="num">3</span>기타사항</div>
     <div class="note-box">
@@ -2208,6 +2400,193 @@ ${getQuoteParties(client, site || '-', contact)}
         </tfoot>
     </table>
 </div>
+
+${getServiceDescription('cs-share')}
+
+<div class="section">
+    <div class="section-title"><span class="num">3</span>기타사항</div>
+    <div class="note-box">
+        ${noteLines.map((l,i) => '<p>'+(i+1)+'. '+l.trim()+'</p>').join('')}
+    </div>
+</div>
+</div>
+<div class="footer">워크위드 | 본 견적서는 견적일로부터 30일간 유효합니다.</div>
+</div></body></html>`;
+
+    showQuotePreview(quoteHTML);
+}
+
+// ===== 유형별 제공 서비스 설명 HTML =====
+function getServiceDescription(type) {
+    const services = {
+        outsource: {
+            title: '워크위드 위탁도급 서비스 안내',
+            items: [
+                { name: '자체 인력 채용·배치', desc: '당사 자체 채용 프로세스를 통한 적합 인력 선발 및 배치' },
+                { name: '현장관리자 상시 배치', desc: '품질·근태·안전 관리를 위한 전담 관리자 상주' },
+                { name: '교육·훈련 운영', desc: '신입 교육, 서비스 교육, 정기 직무 교육 자체 실시' },
+                { name: '결원 즉시 충원', desc: '퇴사·결근 발생 시 당일 대체인력 투입 보장' },
+                { name: '4대보험·급여 관리', desc: '근로자 4대보험 가입, 급여 지급, 노무관리 일체 처리' },
+                { name: '적법 도급 운영', desc: '독립적 지휘체계·공정분리로 불법파견 리스크 원천 차단' }
+            ]
+        },
+        labor: {
+            title: '워크위드 인력 도급 서비스 안내',
+            items: [
+                { name: '전문 인력 선발', desc: '직무 적합성 평가를 거친 경험 인력 우선 배치' },
+                { name: '현장관리자 상시 배치', desc: '품질·근태·안전 관리를 위한 전담 관리자 상주' },
+                { name: '4대보험 완비', desc: '국민연금, 건강보험, 고용보험, 산재보험 전원 가입' },
+                { name: '결원 즉시 충원', desc: '퇴사·결근 시 당일 대체인력 투입 보장' },
+                { name: '자체 교육 체계', desc: '안전교육, 직무교육, 서비스 교육 정기 실시' },
+                { name: '적법 도급 운영', desc: '대법원 판례 기준 7대 요소 충족, 8년 무사고 운영' }
+            ]
+        },
+        'cs-agent': {
+            title: '위드콜 CS대행 서비스 안내',
+            items: [
+                { name: '전문 상담사 배치', desc: '서비스 교육 이수 전문 상담사 전담 배치' },
+                { name: 'ASP 시스템 제공', desc: 'CTI, 녹취, 통계 등 콜센터 인프라 일체 포함' },
+                { name: 'AI 답변 시스템', desc: 'AI 기반 매뉴얼 검색으로 빠르고 정확한 상담 지원' },
+                { name: '품질 관리 (QA)', desc: '통화품질 모니터링, 정기 평가, 개선 피드백' },
+                { name: '실시간 리포트', desc: '일간/주간/월간 상담 통계 및 VOC 리포트 제공' },
+                { name: '유연한 운영', desc: '운영시간·인원 변경 시 협의를 통한 탄력적 대응' }
+            ]
+        },
+        'cs-share': {
+            title: '위드콜 CS쉐어링 서비스 안내',
+            items: [
+                { name: '전문 상담 인프라', desc: '숙련 상담사가 복수 업체를 효율적으로 공유 대응' },
+                { name: 'AI 답변 지원', desc: '업체별 매뉴얼 기반 AI 답변 시스템으로 품질 유지' },
+                { name: '녹취·DB 제공', desc: '60일 녹취 보관, 주간/월간 상담 리포트 제공' },
+                { name: '초과콜 유연 대응', desc: '기본 콜수 초과 시 건당 과금으로 비용 효율적 운영' },
+                { name: '소규모 최적화', desc: '전담 상담사 대비 70% 이상 비용 절감 가능' },
+                { name: '빠른 시작', desc: '계약 후 1주 이내 운영 시작, 초기 구축 지원' }
+            ]
+        },
+        recruit: {
+            title: '워크위드 채용대행 서비스 안내',
+            items: [
+                { name: '직무분석·공고 작성', desc: '채용 요건 분석 및 맞춤형 채용공고 작성·게시' },
+                { name: '이력서 스크리닝', desc: '적합 지원자 1차 서류 심사 및 추천 리스트 제공' },
+                { name: '면접 일정 조율', desc: '지원자·담당자 간 면접 스케줄 조율 대행' },
+                { name: '수수료 청구 기간', desc: '채용 확정 후 최소 계약기간 동안 월 수수료 청구' },
+                { name: '인력풀 보유', desc: '자체 인력 DB 활용으로 빠른 후보자 매칭' },
+                { name: '도급 전환 지원', desc: '채용대행 → 인력 도급 전환 시 원스톱 지원 가능' }
+            ]
+        }
+    };
+
+    const svc = services[type];
+    if (!svc) return '';
+
+    return `
+<div class="section">
+    <div class="section-title"><span class="num">&#9733;</span>${svc.title}</div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;width:180px;">서비스 항목</th><th style="text-align:left;">내용</th></tr></thead>
+        <tbody>
+            ${svc.items.map(item => '<tr><td style="text-align:left;font-weight:600;">' + item.name + '</td><td style="text-align:left;">' + item.desc + '</td></tr>').join('')}
+        </tbody>
+    </table>
+    <div class="note-box" style="margin-top:8px;">
+        <p style="font-size:11px;color:#888;">주식회사 워크위드 | 근로자파견사업 허가업체 | 8년 무사고 운영 | TEL 1600-9878</p>
+    </div>
+</div>`;
+}
+
+// ===== 채용대행 견적서 =====
+function generateQuoteRecruit() {
+    const client = document.getElementById('clientName').value || '(업체명)';
+    const site = document.getElementById('siteName').value || '';
+    const contact = document.getElementById('contactName').value || '';
+    const quoteNum = document.getElementById('quoteNumber').value || 'WW-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-001';
+    const quoteDate = document.getElementById('quoteDate').value || formatKoreanDate(new Date());
+
+    const opTime = document.getElementById('recruitOpTime').value || '';
+    const workCond = document.getElementById('recruitWorkCond').value || '';
+    const workScope = document.getElementById('recruitWorkScope').value || '';
+    const feeRate = parseFloat(document.getElementById('recruitFeeRate').value) || 8;
+    const minMonth = parseInt(document.getElementById('recruitMinMonth').value) || 3;
+    const finalPrice = parseInt(document.getElementById('recruitFinalPrice').value) || 0;
+
+    // 직무 행 수집
+    const rows = document.getElementById('recruitRows').querySelectorAll('tr');
+    let peopleRows = '';
+    let totalPeople = 0;
+    let totalLabor = 0;
+    let rowIdx = 0;
+
+    rows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        const selects = row.querySelectorAll('select');
+        if (inputs.length < 3) return;
+        const jobName = inputs[0].value || '(직무)';
+        const career = selects.length > 0 ? selects[0].value : '신입';
+        const salary = parseInt(inputs[1].value) || 0;
+        const count = parseInt(inputs[2].value) || 0;
+        const subtotal = salary * count;
+        totalPeople += count;
+        totalLabor += subtotal;
+
+        const rowspanAttr = rowIdx === 0 ? ' rowspan="' + rows.length + '"' : '';
+        const labelCell = rowIdx === 0 ? '<td style="text-align:left;"' + rowspanAttr + '><strong>인건비</strong></td>' : '';
+
+        peopleRows += `<tr>${labelCell}<td style="text-align:left;">${jobName}(${career})</td><td>${fmt(salary)}</td><td>${count}</td><td style="text-align:right;">${fmt(subtotal)}</td></tr>`;
+        rowIdx++;
+    });
+
+    const fee = Math.round(totalLabor * feeRate / 100);
+    const calcTotal = totalLabor + fee;
+
+    const noteLines = (document.getElementById('quoteNotes').value || '').split('\n').filter(l => l.trim());
+    if (noteLines.length === 0) {
+        noteLines.push('위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.');
+        noteLines.push('각 직무별 근로자 인건비의 ' + feeRate + '%를 채용대행 수수료로 책정함.');
+        noteLines.push('채용대행 수수료 청구기간: 최소 ' + minMonth + '개월 (협의가능).');
+        noteLines.push('부가세 별도 청구함.');
+    }
+
+    const quoteHTML = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>채용대행 견적서 - ${client}</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>${getQuoteCSS()}</style></head><body>
+<div class="document">
+${getQuoteHeader('채용대행 견적서', quoteNum, quoteDate, '채용대행 서비스', '월 ' + fmt(finalPrice || calcTotal) + '원')}
+<div class="body">
+${getQuoteParties(client, site || '-', contact)}
+
+<div class="section">
+    <div class="section-title"><span class="num">1</span>견적 내용</div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;">항목</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td style="text-align:left;">운영형태</td><td>채용대행</td></tr>
+            <tr><td style="text-align:left;">운영시간</td><td>${opTime}</td></tr>
+            <tr><td style="text-align:left;">운영장소</td><td>귀사 지정 장소</td></tr>
+            <tr><td style="text-align:left;">인력 근무조건</td><td>${workCond}</td></tr>
+            <tr><td style="text-align:left;">업무범위</td><td>${workScope}</td></tr>
+        </tbody>
+    </table>
+    <p style="font-size:11px;color:#888;margin-top:6px;">※ 운영 및 업무관련 범위 설정은 상호 합의 하에 추가되거나 변경될 수 있음.</p>
+</div>
+
+<div class="section">
+    <div class="section-title"><span class="num">2</span>운영 예산안 <span style="font-size:11px;font-weight:400;color:#888;">(단위: 원)</span></div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;">계정과목</th><th style="text-align:left;">항목</th><th>단가</th><th>인원</th><th style="text-align:right;">합계</th></tr></thead>
+        <tbody>
+            ${peopleRows}
+            <tr style="background:#f7fafc;"><td style="text-align:left;" colspan="3"><strong>① 소계</strong></td><td>${totalPeople}</td><td style="text-align:right;font-weight:600;">${fmt(totalLabor)}</td></tr>
+            <tr><td style="text-align:left;"><strong>수수료</strong></td><td style="text-align:left;">소개수수료</td><td>${feeRate}%</td><td></td><td style="text-align:right;">${fmt(fee)}</td></tr>
+            <tr style="background:#f7fafc;"><td style="text-align:left;" colspan="3"><strong>② 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(fee)}</td></tr>
+        </tbody>
+        <tfoot>
+            <tr><td style="text-align:left;" colspan="3"><strong>합계 (①+②) (VAT 별도)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(calcTotal)}</td></tr>
+            ${(finalPrice && finalPrice !== calcTotal) ? '<tr><td style="text-align:left;" colspan="3"><strong style="color:#e53e3e;">최종 제안가</strong></td><td></td><td style="text-align:right;font-size:16px;font-weight:700;color:#e53e3e;">' + fmt(finalPrice) + '</td></tr>' : ''}
+        </tfoot>
+    </table>
+</div>
+
+${getServiceDescription('recruit')}
 
 <div class="section">
     <div class="section-title"><span class="num">3</span>기타사항</div>
@@ -2324,6 +2703,31 @@ function autoSave() {
         laborLeaderPay: document.getElementById('laborLeaderPay')?.value || '100000',
         laborBizTax: document.getElementById('laborBizTax')?.value || '0.5',
         laborLongCare: document.getElementById('laborLongCare')?.value || '13.14',
+        // 채용대행 필드
+        recruitOpTime: document.getElementById('recruitOpTime')?.value || '',
+        recruitWorkCond: document.getElementById('recruitWorkCond')?.value || '',
+        recruitWorkScope: document.getElementById('recruitWorkScope')?.value || '',
+        recruitFeeRate: document.getElementById('recruitFeeRate')?.value || '8',
+        recruitMinMonth: document.getElementById('recruitMinMonth')?.value || '3',
+        recruitFinalPrice: document.getElementById('recruitFinalPrice')?.value || '',
+        // 채용대행 직무 행 데이터
+        recruitRowsData: (() => {
+            const rows = document.getElementById('recruitRows')?.querySelectorAll('tr') || [];
+            const arr = [];
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const selects = row.querySelectorAll('select');
+                if (inputs.length >= 3) {
+                    arr.push({
+                        job: inputs[0].value,
+                        career: selects.length > 0 ? selects[0].value : '신입',
+                        salary: inputs[1].value,
+                        count: inputs[2].value
+                    });
+                }
+            });
+            return arr;
+        })(),
         state: state,
         savedAt: new Date().toISOString()
     };
@@ -2351,12 +2755,22 @@ function loadSaved() {
         'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice',
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
-        'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare'];
+        'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare',
+        'recruitOpTime','recruitWorkCond','recruitWorkScope','recruitFeeRate','recruitMinMonth','recruitFinalPrice'];
 
     fields.forEach(id => {
         const el = document.getElementById(id);
         if (el && data[id] !== undefined) el.value = data[id];
     });
+
+    // 채용대행 직무 행 복원
+    if (data.recruitRowsData && data.recruitRowsData.length > 0) {
+        const tbody = document.getElementById('recruitRows');
+        if (tbody) {
+            tbody.innerHTML = '';
+            data.recruitRowsData.forEach(r => addRecruitRow(r.job, r.career, r.salary, r.count));
+        }
+    }
 
     // 상태 복원
     if (data.state) {
@@ -2372,7 +2786,7 @@ function loadSaved() {
         if (state.quoteType) {
             switchQuoteType(state.quoteType, null);
             document.querySelectorAll('.type-card').forEach(c => {
-                const types = { outsource: '정액제 도급', labor: '일반 도급', 'cs-agent': 'CS대행', 'cs-share': 'CS쉐어링' };
+                const types = { outsource: '정액제 도급', labor: '일반 도급', 'cs-agent': 'CS대행', 'cs-share': 'CS쉐어링', recruit: '채용대행' };
                 if (c.querySelector('.type-name').textContent === types[state.quoteType]) c.classList.add('selected');
                 else c.classList.remove('selected');
             });
@@ -2401,6 +2815,7 @@ function loadSaved() {
     calcCost();
     if (state.quoteType === 'cs-agent') calcCSAgent();
     if (state.quoteType === 'cs-share') calcCSShare();
+    if (state.quoteType === 'recruit') calcRecruit();
 
     alert('불러왔습니다. (저장 시간: ' + new Date(data.savedAt).toLocaleString('ko-KR') + ')');
 }
@@ -2634,12 +3049,22 @@ function loadFromHistory(idx) {
         'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice',
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
-        'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare'];
+        'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare',
+        'recruitOpTime','recruitWorkCond','recruitWorkScope','recruitFeeRate','recruitMinMonth','recruitFinalPrice'];
 
     fields.forEach(id => {
         const el = document.getElementById(id);
         if (el && data[id] !== undefined) el.value = data[id];
     });
+
+    // 채용대행 직무 행 복원
+    if (data.recruitRowsData && data.recruitRowsData.length > 0) {
+        const tbody = document.getElementById('recruitRows');
+        if (tbody) {
+            tbody.innerHTML = '';
+            data.recruitRowsData.forEach(r => addRecruitRow(r.job, r.career, r.salary, r.count));
+        }
+    }
 
     // 상태 복원
     if (data.state) {
@@ -2649,6 +3074,16 @@ function loadFromHistory(idx) {
         restoreOptions('opDays', state.opDays);
         restoreOptions('manager', state.manager);
         restoreOptions('result', state.result);
+
+        // 견적 유형 복원
+        if (state.quoteType) {
+            switchQuoteType(state.quoteType, null);
+            document.querySelectorAll('.type-card').forEach(c => {
+                const types = { outsource: '정액제 도급', labor: '일반 도급', 'cs-agent': 'CS대행', 'cs-share': 'CS쉐어링', recruit: '채용대행' };
+                if (c.querySelector('.type-name').textContent === types[state.quoteType]) c.classList.add('selected');
+                else c.classList.remove('selected');
+            });
+        }
 
         // 3교대 행 표시 복원
         if (state.shiftPreset) {
@@ -2668,6 +3103,9 @@ function loadFromHistory(idx) {
 
     calcPersonnel();
     calcCost();
+    if (state.quoteType === 'cs-agent') calcCSAgent();
+    if (state.quoteType === 'cs-share') calcCSShare();
+    if (state.quoteType === 'recruit') calcRecruit();
     closeHistory();
     switchTab(0);
 
