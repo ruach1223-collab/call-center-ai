@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>견적 시뮬레이터 - 워크위드 내부용</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #f5f7fa; color: #333;
+            font-size: 14px; line-height: 1.6;
+            letter-spacing: -0.02em;
+        }
+
+        /* 상단 헤더 */
+        .app-header {
+            background: #1a365d; color: #fff;
+            padding: 16px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+        .app-header h1 { font-size: 18px; font-weight: 600; letter-spacing: 1px; }
+        .app-header .sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-left: 12px; }
+        .header-actions { display: flex; gap: 10px; }
+        .header-actions button {
+            background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+            padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer;
+            font-family: inherit; transition: all 0.2s;
+        }
+        .header-actions button:hover { background: rgba(255,255,255,0.25); }
+
+        /* 탭 네비게이션 */
+        .tab-nav {
+            background: #fff; border-bottom: 1px solid #e2e8f0;
+            padding: 0 30px; display: flex; gap: 0;
+            position: sticky; top: 54px; z-index: 99;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .tab-btn {
+            padding: 14px 20px; border: none; background: none;
+            font-family: inherit; font-size: 13px; color: #718096;
+            cursor: pointer; border-bottom: 3px solid transparent;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .tab-btn:hover { color: #1a365d; background: #f7fafc; }
+        .tab-btn.active {
+            color: #1a365d; font-weight: 600;
+            border-bottom-color: #1a365d;
+        }
+        .tab-btn .tab-num {
+            display: inline-block; background: #e2e8f0; color: #718096;
+            width: 20px; height: 20px; border-radius: 50%; text-align: center;
+            line-height: 20px; font-size: 10px; margin-right: 6px;
+            font-weight: 600;
+        }
+        .tab-btn.active .tab-num { background: #1a365d; color: #fff; }
+        .tab-btn.done .tab-num { background: #38a169; color: #fff; }
+
+        /* 메인 콘텐츠 */
+        .main { max-width: 900px; margin: 0 auto; padding: 30px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* 카드 */
+        .card {
+            background: #fff; border-radius: 10px;
+            padding: 28px; margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid #e8ecf1;
+        }
+        .card-title {
+            font-size: 16px; font-weight: 600; color: #1a365d;
+            margin-bottom: 20px; padding-bottom: 12px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        /* 폼 요소 */
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            display: block; font-size: 12px; font-weight: 600;
+            color: #4a5568; margin-bottom: 6px;
+        }
+        .form-label .hint { font-weight: 400; color: #a0aec0; margin-left: 6px; }
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0;
+            border-radius: 8px; font-family: inherit; font-size: 14px;
+            color: #333; background: #fff; transition: border-color 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: #1a365d;
+            box-shadow: 0 0 0 3px rgba(26,54,93,0.1);
+        }
+        textarea { resize: vertical; min-height: 60px; }
+
+        .form-row { display: flex; gap: 16px; }
+        .form-row .form-group { flex: 1; }
+
+        /* 라디오/체크박스 그룹 */
+        .option-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .option-btn {
+            padding: 8px 16px; border: 1px solid #e2e8f0; border-radius: 8px;
+            background: #fff; cursor: pointer; font-size: 13px;
+            transition: all 0.2s; font-family: inherit;
+        }
+        .option-btn:hover { border-color: #1a365d; }
+        .option-btn.selected {
+            background: #1a365d; color: #fff; border-color: #1a365d;
+        }
+
+        /* 결과 박스 */
+        .result-box {
+            background: #f0f5ff; border: 1px solid #bee3f8;
+            border-radius: 10px; padding: 20px; margin-top: 16px;
+        }
+        .result-box.warning {
+            background: #fffaf0; border-color: #fbd38d;
+        }
+        .result-box.success {
+            background: #f0fff4; border-color: #9ae6b4;
+        }
+        .result-title {
+            font-size: 13px; font-weight: 600; color: #2b6cb0;
+            margin-bottom: 10px;
+        }
+        .result-box.warning .result-title { color: #c05621; }
+        .result-box.success .result-title { color: #276749; }
+        .result-value {
+            font-size: 28px; font-weight: 700; color: #1a365d;
+        }
+        .result-sub { font-size: 12px; color: #718096; margin-top: 4px; }
+
+        /* 테이블 */
+        .data-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        .data-table th {
+            background: #f7fafc; padding: 10px 14px; text-align: left;
+            font-size: 12px; font-weight: 600; color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .data-table td {
+            padding: 10px 14px; border-bottom: 1px solid #edf2f7;
+            font-size: 13px;
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+        .data-table .highlight { color: #1a365d; font-weight: 600; }
+        .data-table .danger { color: #e53e3e; }
+        .data-table .safe { color: #38a169; }
+        .data-table tfoot td {
+            font-weight: 600; border-top: 2px solid #1a365d;
+            background: #f7fafc;
+        }
+
+        /* 시뮬레이션 시나리오 카드 */
+        .scenario-cards { display: flex; gap: 16px; margin-top: 16px; }
+        .scenario-card {
+            flex: 1; border-radius: 10px; padding: 20px;
+            border: 2px solid #e2e8f0; text-align: center;
+            transition: all 0.2s;
+        }
+        .scenario-card.primary { border-color: #1a365d; background: #f0f5ff; }
+        .scenario-card.secondary { border-color: #ed8936; background: #fffaf0; }
+        .scenario-card.danger { border-color: #e53e3e; background: #fff5f5; }
+        .scenario-label { font-size: 11px; font-weight: 600; color: #718096; margin-bottom: 8px; letter-spacing: 1px; }
+        .scenario-card.primary .scenario-label { color: #1a365d; }
+        .scenario-card.secondary .scenario-label { color: #c05621; }
+        .scenario-card.danger .scenario-label { color: #e53e3e; }
+        .scenario-amount { font-size: 24px; font-weight: 700; color: #333; margin-bottom: 4px; }
+        .scenario-detail { font-size: 12px; color: #718096; }
+        .scenario-input {
+            width: 80px; text-align: center; border: 1px solid #e2e8f0;
+            border-radius: 6px; padding: 4px; font-size: 14px; font-weight: 600;
+            margin: 0 4px; font-family: inherit;
+        }
+
+        /* 체크리스트 */
+        .checklist { list-style: none; }
+        .checklist li {
+            padding: 14px 16px; border-bottom: 1px solid #edf2f7;
+            display: flex; align-items: center; gap: 12px;
+            cursor: pointer; transition: background 0.15s; border-radius: 6px;
+        }
+        .checklist li:hover { background: #f7fafc; }
+        .checklist li.checked { opacity: 0.6; }
+        .checklist li.checked .check-text { text-decoration: line-through; }
+        .check-box {
+            width: 22px; height: 22px; border: 2px solid #cbd5e0;
+            border-radius: 6px; display: flex; align-items: center;
+            justify-content: center; flex-shrink: 0; transition: all 0.2s;
+        }
+        .checklist li.checked .check-box {
+            background: #38a169; border-color: #38a169; color: #fff;
+        }
+        .check-text { font-size: 14px; }
+        .check-step {
+            font-size: 11px; font-weight: 600; color: #1a365d;
+            background: #edf2f7; padding: 2px 8px; border-radius: 4px;
+            margin-right: 4px;
+        }
+
+        /* 버튼 */
+        .btn {
+            padding: 12px 24px; border-radius: 8px; border: none;
+            font-family: inherit; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; display: inline-flex;
+            align-items: center; gap: 8px;
+        }
+        .btn-primary { background: #1a365d; color: #fff; }
+        .btn-primary:hover { background: #2d4a7a; }
+        .btn-secondary { background: #edf2f7; color: #4a5568; }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .btn-success { background: #38a169; color: #fff; }
+        .btn-success:hover { background: #2f855a; }
+        .btn-danger { background: #e53e3e; color: #fff; }
+        .btn-danger:hover { background: #c53030; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+
+        /* 진행 표시 */
+        .progress-bar {
+            height: 4px; background: #e2e8f0; border-radius: 2px;
+            margin: 8px 0; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: #38a169; border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* 알림 */
+        .alert {
+            padding: 12px 16px; border-radius: 8px; font-size: 13px;
+            margin-bottom: 16px; display: flex; align-items: flex-start; gap: 8px;
+        }
+        .alert-info { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+        .alert-warning { background: #fffaf0; color: #c05621; border: 1px solid #fbd38d; }
+        .alert-danger { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+
+        /* 견적서 미리보기 */
+        .preview-frame {
+            background: #fff; border: 1px solid #e2e8f0;
+            border-radius: 4px; padding: 0;
+            max-height: 600px; overflow-y: auto;
+        }
+        .preview-frame iframe {
+            width: 100%; height: 800px; border: none;
+        }
+
+        /* 저장 상태 표시 */
+        .save-indicator {
+            font-size: 11px; color: rgba(255,255,255,0.6);
+            display: flex; align-items: center; gap: 4px;
+        }
+        .save-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #38a169;
+        }
+
+        /* 인쇄 숨김 */
+        @media print { body > *:not(.print-target) { display: none !important; } }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .form-row { flex-direction: column; gap: 0; }
+            .scenario-cards { flex-direction: column; }
+            .tab-nav { overflow-x: auto; }
+            .main { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== 상단 헤더 ===== -->
+<div class="app-header">
+    <div style="display:flex; align-items:center;">
+        <h1>견적 시뮬레이터</h1>
+        <span class="sub">워크위드 내부용 v1.0</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+        <div class="save-indicator">
+            <span class="save-dot"></span>
+            <span id="saveStatus">자동 저장됨</span>
+        </div>
+        <div class="header-actions">
+            <button onclick="resetAll()">새 견적</button>
+            <button onclick="loadSaved()">불러오기</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 탭 네비게이션 ===== -->
+<div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab(0)"><span class="tab-num">1</span>고객정보</button>
+    <button class="tab-btn" onclick="switchTab(1)"><span class="tab-num">2</span>인원산출</button>
+    <button class="tab-btn" onclick="switchTab(2)"><span class="tab-num">3</span>원가계산</button>
+    <button class="tab-btn" onclick="switchTab(3)"><span class="tab-num">4</span>견적시뮬</button>
+    <button class="tab-btn" onclick="switchTab(4)"><span class="tab-num">5</span>견적서생성</button>
+    <button class="tab-btn" onclick="switchTab(5)"><span class="tab-num">6</span>체크리스트</button>
+</div>
+
+<!-- ===== 메인 ===== -->
+<div class="main">
+
+    <!-- ==================== 탭1: 고객정보 ==================== -->
+    <div class="tab-content active" id="tab0">
+        <div class="card">
+            <div class="card-title">고객 / 사업장 정보</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">업체명</label>
+                    <input type="text" id="clientName" placeholder="예: 오토스테이" oninput="autoSave()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">사업장명</label>
+                    <input type="text" id="siteName" placeholder="예: 성수점" oninput="autoSave()">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">업종</label>
+                    <select id="industry" onchange="onIndustryChange(); autoSave();">
+                        <option value="">선택</option>
+                        <option value="세차/주차">세차/주차</option>
+                        <option value="물류/택배">물류/택배</option>
+                        <option value="제조라인">제조 라인</option>
+                        <option value="사무/CS">사무/CS</option>
+                        <option value="경비/시설">경비/시설관리</option>
+                        <option value="호텔/숙박">호텔/숙박</option>
+                        <option value="식품제조">식품 제조</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">담당자</label>
+                    <input type="text" id="contactName" placeholder="이름" oninput="autoSave()">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">연락처</label>
+                    <input type="text" id="contactPhone" placeholder="010-0000-0000" oninput="autoSave()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">이메일</label>
+                    <input type="text" id="contactEmail" placeholder="email@example.com" oninput="autoSave()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">유입 경로</label>
+                <div class="option-group">
+                    <button class="option-btn" onclick="selectOption(this,'source')">크몽</button>
+                    <button class="option-btn" onclick="selectOption(this,'source')">소개</button>
+                    <button class="option-btn" onclick="selectOption(this,'source')">직접문의</button>
+                    <button class="option-btn" onclick="selectOption(this,'source')">기타</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">현재 운영 방식</label>
+                <div class="option-group">
+                    <button class="option-btn" onclick="selectOption(this,'currentOps')">직접고용</button>
+                    <button class="option-btn" onclick="selectOption(this,'currentOps')">타사 아웃소싱</button>
+                    <button class="option-btn" onclick="selectOption(this,'currentOps')">신규 사업장</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">아웃소싱 검토 이유 <span class="hint">(추정)</span></label>
+                <textarea id="reason" placeholder="관리 부담, 인력 수급 어려움, 신규 매장 등" oninput="autoSave()"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">특이사항 / 메모</label>
+                <textarea id="memo" placeholder="채용공고 시급, 경쟁사 정보, 기타 참고사항" oninput="autoSave()"></textarea>
+            </div>
+        </div>
+
+        <div id="industryTip" class="alert alert-info" style="display:none;"></div>
+
+        <div class="btn-group" style="justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="switchTab(1)">다음: 인원산출 &rarr;</button>
+        </div>
+    </div>
+
+    <!-- ==================== 탭2: 인원산출 ==================== -->
+    <div class="tab-content" id="tab1">
+        <div class="card">
+            <div class="card-title">현장 조건 입력</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">영업 시작 시간</label>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <input type="number" id="openTime" value="8" min="0" max="23" style="width:80px; text-align:center;" onchange="calcPersonnel(); autoSave();">
+                        <span style="color:#718096;">시</span>
+                        <input type="number" id="openMin" value="0" min="0" max="59" step="30" style="width:80px; text-align:center;" onchange="calcPersonnel(); autoSave();">
+                        <span style="color:#718096;">분</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">영업 종료 시간</label>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <input type="number" id="closeTime" value="23" min="0" max="30" style="width:80px; text-align:center;" onchange="calcPersonnel(); autoSave();">
+                        <span style="color:#718096;">시</span>
+                        <input type="number" id="closeMin" value="0" min="0" max="59" step="30" style="width:80px; text-align:center;" onchange="calcPersonnel(); autoSave();">
+                        <span style="color:#718096;">분</span>
+                    </div>
+                    <div style="font-size:11px; color:#a0aec0; margin-top:4px;">24시간 운영 = 종료시간 24시 이상 입력</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">주간 운영일</label>
+                    <div class="option-group">
+                        <button class="option-btn" onclick="selectOption(this,'opDays'); autoSave();">주5일</button>
+                        <button class="option-btn" onclick="selectOption(this,'opDays'); autoSave();">주6일</button>
+                        <button class="option-btn selected" onclick="selectOption(this,'opDays'); autoSave();">주7일</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">교대 수</label>
+                    <div class="option-group">
+                        <button class="option-btn" onclick="selectOption(this,'shifts'); autoSave();">1교대</button>
+                        <button class="option-btn selected" onclick="selectOption(this,'shifts'); autoSave();">2교대</button>
+                        <button class="option-btn" onclick="selectOption(this,'shifts'); autoSave();">3교대</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">교대당 필요 인원</label>
+                    <input type="number" id="perShift" value="4" min="1" max="50" onchange="calcPersonnel(); autoSave();">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">현장관리자 <span class="hint">(별도)</span></label>
+                    <div class="option-group">
+                        <button class="option-btn selected" onclick="selectOption(this,'manager'); autoSave();">1명 배치</button>
+                        <button class="option-btn" onclick="selectOption(this,'manager'); autoSave();">미배치</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">인원 산출 결과</div>
+
+            <div class="result-box">
+                <div class="result-title">산출 인원 (내부용 — 견적서에 절대 노출 금지)</div>
+                <div style="display:flex; gap: 30px; align-items:flex-end;">
+                    <div>
+                        <div class="result-value" id="totalPersonnel">12명</div>
+                        <div class="result-sub" id="personnelFormula">4명 × 2교대 × 7일 ÷ 5일 = 11.2 → 12명</div>
+                    </div>
+                    <div id="managerInfo" style="font-size:13px; color:#4a5568;">
+                        + 현장관리자 1명
+                    </div>
+                </div>
+            </div>
+
+            <table class="data-table" style="margin-top:16px;">
+                <thead>
+                    <tr><th>항목</th><th style="text-align:right;">수치</th></tr>
+                </thead>
+                <tbody id="personnelDetail">
+                </tbody>
+            </table>
+
+            <div class="alert alert-warning" style="margin-top:16px;">
+                <span>&#9888;</span>
+                <span>이 인원수는 내부 원가계산용입니다. 견적서·고객 대화에서 절대 언급하지 마세요.</span>
+            </div>
+        </div>
+
+        <div class="btn-group" style="justify-content:space-between;">
+            <button class="btn btn-secondary" onclick="switchTab(0)">&larr; 고객정보</button>
+            <button class="btn btn-primary" onclick="switchTab(2)">다음: 원가계산 &rarr;</button>
+        </div>
+    </div>
+
+    <!-- ==================== 탭3: 원가계산 ==================== -->
+    <div class="tab-content" id="tab2">
+        <div class="card">
+            <div class="card-title">인건비 계산</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">시급 (원)</label>
+                    <input type="number" id="hourlyWage" value="10500" step="100" min="10320" onchange="calcCost(); autoSave();">
+                    <div style="font-size:11px; color:#a0aec0; margin-top:4px;">2026년 최저시급: 10,320원</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">기본급 (자동계산)</label>
+                    <div class="result-box" style="padding:10px 14px;">
+                        <span id="baseWage" style="font-size:18px; font-weight:600;">2,194,500원</span>
+                        <div class="result-sub">시급 × 209시간</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">원가 산출 상세</div>
+
+            <table class="data-table">
+                <thead>
+                    <tr><th>항목</th><th style="text-align:right;">금액</th><th style="text-align:right;">비고</th></tr>
+                </thead>
+                <tbody id="costDetail">
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong>총 원가</strong></td>
+                        <td class="num" id="totalCost" style="font-size:16px;">-</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-title">기타 비용 조정</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">야간수당 (월, 원) <span class="hint">22시 이후 근무 시</span></label>
+                    <input type="number" id="nightPay" value="0" step="10000" onchange="calcCost(); autoSave();">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">기타비용 (월, 원) <span class="hint">유니폼/교육/채용 등</span></label>
+                    <input type="number" id="etcCost" value="1000000" step="100000" onchange="calcCost(); autoSave();">
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group" style="justify-content:space-between;">
+            <button class="btn btn-secondary" onclick="switchTab(1)">&larr; 인원산출</button>
+            <button class="btn btn-primary" onclick="switchTab(3)">다음: 견적시뮬 &rarr;</button>
+        </div>
+    </div>
+
+    <!-- ==================== 탭4: 견적시뮬레이션 ==================== -->
+    <div class="tab-content" id="tab3">
+        <div class="card">
+            <div class="card-title">견적 금액 시뮬레이션</div>
+
+            <div class="result-box" style="margin-bottom:20px;">
+                <div class="result-title">총 원가 (기준)</div>
+                <div class="result-value" id="simBaseCost">-</div>
+            </div>
+
+            <div class="scenario-cards">
+                <div class="scenario-card primary">
+                    <div class="scenario-label">첫 제시</div>
+                    <div style="margin-bottom:8px;">
+                        <input type="number" class="scenario-input" id="simQuote1" value="4500" onchange="updateScenarios(); autoSave();"> 만원
+                    </div>
+                    <div class="scenario-detail">이익: <strong id="simProfit1">-</strong></div>
+                    <div class="scenario-detail">마진: <strong id="simMargin1">-</strong></div>
+                </div>
+                <div class="scenario-card secondary">
+                    <div class="scenario-label">1차 양보</div>
+                    <div style="margin-bottom:8px;">
+                        <input type="number" class="scenario-input" id="simQuote2" value="4300" onchange="updateScenarios(); autoSave();"> 만원
+                    </div>
+                    <div class="scenario-detail">이익: <strong id="simProfit2">-</strong></div>
+                    <div class="scenario-detail">마진: <strong id="simMargin2">-</strong></div>
+                </div>
+                <div class="scenario-card danger">
+                    <div class="scenario-label">마지노선</div>
+                    <div style="margin-bottom:8px;">
+                        <input type="number" class="scenario-input" id="simQuote3" value="4000" onchange="updateScenarios(); autoSave();"> 만원
+                    </div>
+                    <div class="scenario-detail">이익: <strong id="simProfit3">-</strong></div>
+                    <div class="scenario-detail">마진: <strong id="simMargin3">-</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">항목 분배 (첫 제시 기준)</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">도급운영비 (만원)</label>
+                    <input type="number" id="itemDogup" value="4000" step="100" onchange="updateItemTotal(); autoSave();">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">현장관리비 (만원)</label>
+                    <input type="number" id="itemManage" value="300" step="50" onchange="updateItemTotal(); autoSave();">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">관리운영비 (만원)</label>
+                    <input type="number" id="itemAdmin" value="200" step="50" onchange="updateItemTotal(); autoSave();">
+                </div>
+            </div>
+
+            <div class="result-box" id="itemTotalBox">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div class="result-title">항목 합계</div>
+                        <div id="itemTotal" style="font-size:20px; font-weight:700;">4,500만원</div>
+                    </div>
+                    <div id="itemMismatch" style="display:none; color:#e53e3e; font-size:13px; font-weight:600;">
+                        &#9888; 첫 제시 금액과 불일치
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info" style="margin-top:12px;">
+                <span>&#128161;</span>
+                <span><strong>팁:</strong> 협상 시 관리비(현장관리비+관리운영비)는 지키고 도급운영비에서 조정하세요.</span>
+            </div>
+        </div>
+
+        <div class="btn-group" style="justify-content:space-between;">
+            <button class="btn btn-secondary" onclick="switchTab(2)">&larr; 원가계산</button>
+            <button class="btn btn-primary" onclick="switchTab(4)">다음: 견적서 생성 &rarr;</button>
+        </div>
+    </div>
+
+    <!-- ==================== 탭5: 견적서 생성 ==================== -->
+    <div class="tab-content" id="tab4">
+        <div class="card">
+            <div class="card-title">견적서 정보</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">견적번호</label>
+                    <input type="text" id="quoteNumber" oninput="autoSave()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">견적일자</label>
+                    <input type="text" id="quoteDate" oninput="autoSave()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">업무 범위 <span class="hint">(한 줄씩 입력)</span></label>
+                <textarea id="workScope" rows="4" placeholder="예:&#10;드라잉존 물기 제거 작업&#10;입차 유도 및 고객 차량 안내&#10;고객 응대 및 안내 서비스" oninput="autoSave()"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">특기사항 <span class="hint">(한 줄씩 입력)</span></label>
+                <textarea id="quoteNotes" rows="4" placeholder="예:&#10;본 견적은 주 7일 운영 기준&#10;서비스 교육 이수자 우선 배치&#10;야간수당 도급비에 포함" oninput="autoSave()"></textarea>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="generateQuote()">견적서 생성 및 미리보기</button>
+            <button class="btn btn-primary" onclick="printQuote()">PDF 인쇄 (Ctrl+P)</button>
+        </div>
+
+        <div id="quotePreview" style="margin-top:20px;"></div>
+
+        <div class="btn-group" style="justify-content:space-between; margin-top:20px;">
+            <button class="btn btn-secondary" onclick="switchTab(3)">&larr; 견적시뮬</button>
+            <button class="btn btn-primary" onclick="switchTab(5)">다음: 체크리스트 &rarr;</button>
+        </div>
+    </div>
+
+    <!-- ==================== 탭6: 체크리스트 ==================== -->
+    <div class="tab-content" id="tab5">
+        <div class="card">
+            <div class="card-title">견적 워크플로우 체크리스트</div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+            <div style="text-align:right; font-size:12px; color:#718096; margin-bottom:16px;" id="progressText">0 / 10 완료</div>
+
+            <ul class="checklist" id="checklist">
+                <li onclick="toggleCheck(this)">
+                    <div class="check-box"></div>
+                    <div><span class="check-step">1단계</span><span class="check-text">고객 사전조사 완료</span></div>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <div class="check-box"></div>
+                    <div><span class="check-step">2단계</span><span class="check-text">현장 정보 파악 완료</span></div>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <div class="check-box"></div>
+                    <div><span class="check-step">3단계</span><span class="check-text">인원 산출 완료 (내부용)</span></div>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <div class="check-box"></div>
+                    <div><span class="check-step">4단계</span><span class="check-text">원가 계산 완료</span></div>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <div class="check-box"></div>
+                    <div><span class="check-step">5단계</span><span class="check-text">견적 금액 결정 (마진 확인)</span></div>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <div class="check-box"></div>
+                    <div><span class="check-step">6단계</span><span class="check-text">견적서 작성 & PDF 변환</span></div>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <div class="check-box"></div>
+                    <div><span class="check-step">7단계</span><span class="check-text">메일 발송 완료</span></div>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <div class="check-box"></div>
+                    <div><span class="check-step">8단계</span><span class="check-text">팔로업 (읽음 확인 → 전화)</span></div>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <div class="check-box"></div>
+                    <div><span class="check-step">9단계</span><span class="check-text">협상 대응 완료</span></div>
+                </li>
+                <li onclick="toggleCheck(this)">
+                    <div class="check-box"></div>
+                    <div><span class="check-step">10단계</span><span class="check-text">계약 체결 → 현장 투입</span></div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <div class="card-title">결과 기록</div>
+            <div class="form-group">
+                <label class="form-label">최종 결과</label>
+                <div class="option-group">
+                    <button class="option-btn" onclick="selectOption(this,'result'); autoSave();" style="border-color:#38a169; color:#38a169;">Win (계약성사)</button>
+                    <button class="option-btn" onclick="selectOption(this,'result'); autoSave();" style="border-color:#e53e3e; color:#e53e3e;">Loss (미성사)</button>
+                    <button class="option-btn" onclick="selectOption(this,'result'); autoSave();" style="border-color:#ed8936; color:#ed8936;">Pending (진행중)</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">최종 계약가 (만원)</label>
+                <input type="number" id="finalPrice" oninput="autoSave()">
+            </div>
+            <div class="form-group">
+                <label class="form-label">교훈 / 메모</label>
+                <textarea id="lessonMemo" rows="3" placeholder="이번 건에서 배운 점..." oninput="autoSave()"></textarea>
+            </div>
+        </div>
+
+        <div class="btn-group" style="justify-content:flex-start;">
+            <button class="btn btn-secondary" onclick="switchTab(4)">&larr; 견적서생성</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ===== 전역 상태 =====
+let state = {
+    source: '', currentOps: '', opDays: '주7일', shifts: '2교대',
+    manager: '1명 배치', result: '',
+    checklist: [false,false,false,false,false,false,false,false,false,false]
+};
+
+// ===== 탭 전환 =====
+function switchTab(idx) {
+    document.querySelectorAll('.tab-content').forEach((el,i) => {
+        el.classList.toggle('active', i === idx);
+    });
+    document.querySelectorAll('.tab-btn').forEach((el,i) => {
+        el.classList.toggle('active', i === idx);
+    });
+
+    // 탭 전환 시 자동 계산
+    if (idx === 1) calcPersonnel();
+    if (idx === 2) calcCost();
+    if (idx === 3) { updateScenarios(); updateItemTotal(); }
+}
+
+// ===== 옵션 버튼 선택 =====
+function selectOption(btn, group) {
+    btn.parentElement.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    state[group] = btn.textContent.trim();
+
+    if (group === 'opDays' || group === 'shifts' || group === 'manager') {
+        calcPersonnel();
+    }
+    autoSave();
+}
+
+// ===== 업종 선택 시 팁 =====
+function onIndustryChange() {
+    const v = document.getElementById('industry').value;
+    const tip = document.getElementById('industryTip');
+    const tips = {
+        '세차/주차': '시급 10,320~11,000원 범위. 서비스 마인드 필요. 마진 여유 낮은 편 (20~25%).',
+        '물류/택배': '야간 많음, 수당 비중 높음. 시급 10,500~12,000원.',
+        '제조라인': '불법파견 주의! 적법운영안내서 함께 제출 권장. 시급 10,500~13,000원.',
+        '사무/CS': '주간만 운영, 전문성에 따라 편차. 마진 여유 높음.',
+        '경비/시설': '24시간 격일근무 가능. 시급 10,320~11,000원.',
+        '호텔/숙박': '서비스 마인드 필수. 시급 10,500~12,000원.',
+        '식품제조': '위생관리 필수. 시급 10,320~11,500원.'
+    };
+    if (tips[v]) {
+        tip.style.display = 'flex';
+        tip.innerHTML = '<span>&#128161;</span><span><strong>' + v + ':</strong> ' + tips[v] + '</span>';
+    } else {
+        tip.style.display = 'none';
+    }
+}
+
+// ===== 인원 산출 =====
+function calcPersonnel() {
+    const perShift = parseInt(document.getElementById('perShift').value) || 4;
+    const opDaysMap = { '주5일': 5, '주6일': 6, '주7일': 7 };
+    const shiftsMap = { '1교대': 1, '2교대': 2, '3교대': 3 };
+    const opDays = opDaysMap[state.opDays] || 7;
+    const shifts = shiftsMap[state.shifts] || 2;
+    const hasManager = state.manager === '1명 배치';
+
+    const dailyShifts = perShift * shifts;
+    const rawPersonnel = dailyShifts * opDays / 5;
+    const personnel = Math.ceil(rawPersonnel);
+
+    // 시간 계산 (분 단위 포함)
+    const openTimeH = parseInt(document.getElementById('openTime').value) || 8;
+    const openMinV = parseInt(document.getElementById('openMin').value) || 0;
+    const closeTimeH = parseInt(document.getElementById('closeTime').value) || 23;
+    const closeMinV = parseInt(document.getElementById('closeMin').value) || 0;
+
+    const openDecimal = openTimeH + openMinV / 60;
+    const closeDecimal = closeTimeH + closeMinV / 60;
+    const totalHoursCalc = closeDecimal > 24 ? 24 : closeDecimal - openDecimal;
+    const nightHours = closeDecimal > 22 ? closeDecimal - 22 : 0;
+
+    document.getElementById('totalPersonnel').textContent = personnel + '명';
+    document.getElementById('personnelFormula').textContent =
+        perShift + '명 × ' + shifts + '교대 × ' + opDays + '일 ÷ 5일 = ' +
+        rawPersonnel.toFixed(1) + ' → ' + personnel + '명';
+
+    document.getElementById('managerInfo').textContent =
+        hasManager ? '+ 현장관리자 1명' : '(현장관리자 미배치)';
+
+    // 상세 테이블
+    const openTime = openTimeH;
+    const closeTime = closeTimeH;
+    const totalHours = totalHoursCalc;
+
+    const openStr = String(openTimeH).padStart(2,'0') + ':' + String(openMinV).padStart(2,'0');
+    const closeStr2 = closeTimeH >= 24 ? '24시간' : String(closeTimeH).padStart(2,'0') + ':' + String(closeMinV).padStart(2,'0');
+    const totalHoursStr = totalHours % 1 === 0 ? totalHours + '시간' : totalHours.toFixed(1) + '시간';
+
+    let detailHTML = '';
+    detailHTML += '<tr><td>영업시간</td><td class="num">' + openStr + ' ~ ' + closeStr2 + ' (' + totalHoursStr + ')</td></tr>';
+    detailHTML += '<tr><td>운영일</td><td class="num">' + state.opDays + '</td></tr>';
+    detailHTML += '<tr><td>교대 구조</td><td class="num">' + state.shifts + ' (교대당 ' + perShift + '명)</td></tr>';
+    detailHTML += '<tr><td>일일 man-shifts</td><td class="num">' + dailyShifts + '</td></tr>';
+    const nightStr = nightHours > 0 ? '22:00~' + closeStr2 + ' (' + (nightHours % 1 === 0 ? nightHours + '시간' : nightHours.toFixed(1) + '시간') + ')' : '없음';
+    detailHTML += '<tr><td>야간 시간대</td><td class="num">' + nightStr + '</td></tr>';
+    detailHTML += '<tr><td><strong>산출 인원</strong></td><td class="num highlight"><strong>' + personnel + '명</strong></td></tr>';
+    if (hasManager) {
+        detailHTML += '<tr><td>현장관리자</td><td class="num">+1명 (별도)</td></tr>';
+    }
+
+    document.getElementById('personnelDetail').innerHTML = detailHTML;
+
+    // 야간수당 자동 계산
+    if (nightHours > 0) {
+        const wage = parseInt(document.getElementById('hourlyWage').value) || 10500;
+        const nightPay = Math.round(wage * 0.5 * nightHours * personnel * (opDays * 4.345 / 12));
+        // 간이 계산 (월 기준)
+        const monthlyNight = Math.round(wage * 0.5 * nightHours * personnel * opDays * 52 / 12);
+        document.getElementById('nightPay').value = Math.round(monthlyNight / 10000) * 10000;
+    } else {
+        document.getElementById('nightPay').value = 0;
+    }
+
+    // 전역 저장
+    state.personnel = personnel;
+    state.nightHours = nightHours;
+}
+
+// ===== 원가 계산 =====
+function calcCost() {
+    const wage = parseInt(document.getElementById('hourlyWage').value) || 10500;
+    const personnel = state.personnel || 12;
+    const nightPay = parseInt(document.getElementById('nightPay').value) || 0;
+    const etcCost = parseInt(document.getElementById('etcCost').value) || 0;
+
+    const baseWage = wage * 209;
+    const pension = Math.round(baseWage * 0.045);
+    const health = Math.round(baseWage * 0.03545);
+    const employ = Math.round(baseWage * 0.009);
+    const indust = Math.round(baseWage * 0.015);
+    const insurance = pension + health + employ + indust;
+    const retire = Math.round(baseWage * 0.0833);
+    const perPerson = baseWage + insurance + retire;
+    const laborTotal = perPerson * personnel;
+    const totalCost = laborTotal + nightPay + etcCost;
+
+    document.getElementById('baseWage').textContent = fmt(baseWage) + '원';
+
+    let html = '';
+    html += '<tr><td>기본급 (시급 × 209h)</td><td class="num">' + fmt(baseWage) + '원</td><td class="num">1인당</td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;국민연금 (4.5%)</td><td class="num">' + fmt(pension) + '원</td><td class="num">1인당</td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;건강보험 (3.545%)</td><td class="num">' + fmt(health) + '원</td><td class="num">1인당</td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;고용보험 (0.9%)</td><td class="num">' + fmt(employ) + '원</td><td class="num">1인당</td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;산재보험 (~1.5%)</td><td class="num">' + fmt(indust) + '원</td><td class="num">1인당</td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;퇴직금충당 (8.33%)</td><td class="num">' + fmt(retire) + '원</td><td class="num">1인당</td></tr>';
+    html += '<tr style="background:#f7fafc;"><td><strong>1인당 총비용</strong></td><td class="num highlight"><strong>' + fmt(perPerson) + '원</strong></td><td class="num">× 1.1873</td></tr>';
+    html += '<tr><td>인건비 소계 (' + personnel + '명)</td><td class="num">' + fmt(laborTotal) + '원</td><td></td></tr>';
+    html += '<tr><td>야간수당</td><td class="num">' + fmt(nightPay) + '원</td><td></td></tr>';
+    html += '<tr><td>기타비용 (유니폼/교육/채용)</td><td class="num">' + fmt(etcCost) + '원</td><td></td></tr>';
+
+    document.getElementById('costDetail').innerHTML = html;
+    document.getElementById('totalCost').textContent = fmt(totalCost) + '원';
+
+    state.totalCost = totalCost;
+    state.perPerson = perPerson;
+
+    // 시뮬레이션 기본값 자동 설정
+    document.getElementById('simBaseCost').textContent = fmtMan(totalCost) + '만원';
+
+    // 시나리오 기본값 제안
+    const suggested1 = Math.ceil(totalCost / 10000 * 1.25 / 100) * 100; // 25% 마진
+    const suggested2 = Math.ceil(totalCost / 10000 * 1.20 / 100) * 100; // 20% 마진
+    const suggested3 = Math.ceil(totalCost / 10000 * 1.15 / 100) * 100; // 15% 마진
+
+    if (!state._manualQuote) {
+        document.getElementById('simQuote1').value = suggested1;
+        document.getElementById('simQuote2').value = suggested2;
+        document.getElementById('simQuote3').value = suggested3;
+
+        // 항목 분배 자동
+        document.getElementById('itemDogup').value = Math.round(suggested1 * 0.89 / 100) * 100;
+        document.getElementById('itemManage').value = Math.round(suggested1 * 0.067 / 50) * 50;
+        document.getElementById('itemAdmin').value = suggested1 - document.getElementById('itemDogup').valueAsNumber - document.getElementById('itemManage').valueAsNumber;
+    }
+}
+
+// ===== 시뮬레이션 =====
+function updateScenarios() {
+    state._manualQuote = true;
+    const cost = state.totalCost || 0;
+    [1,2,3].forEach(i => {
+        const quote = (parseInt(document.getElementById('simQuote'+i).value) || 0) * 10000;
+        const profit = quote - cost;
+        const margin = quote > 0 ? (profit / quote * 100) : 0;
+
+        document.getElementById('simProfit'+i).textContent = fmtMan(profit) + '만원';
+        document.getElementById('simMargin'+i).textContent = margin.toFixed(1) + '%';
+
+        // 색상 표시
+        const el = document.getElementById('simMargin'+i);
+        if (margin < 15) el.style.color = '#e53e3e';
+        else if (margin < 20) el.style.color = '#ed8936';
+        else el.style.color = '#38a169';
+    });
+}
+
+function updateItemTotal() {
+    const d = parseInt(document.getElementById('itemDogup').value) || 0;
+    const m = parseInt(document.getElementById('itemManage').value) || 0;
+    const a = parseInt(document.getElementById('itemAdmin').value) || 0;
+    const total = d + m + a;
+    document.getElementById('itemTotal').textContent = fmt(total) + '만원';
+
+    const quote1 = parseInt(document.getElementById('simQuote1').value) || 0;
+    const mismatch = document.getElementById('itemMismatch');
+    if (total !== quote1) {
+        mismatch.style.display = 'block';
+    } else {
+        mismatch.style.display = 'none';
+    }
+}
+
+// ===== 견적서 생성 =====
+function generateQuote() {
+    const client = document.getElementById('clientName').value || '(업체명)';
+    const site = document.getElementById('siteName').value || '(사업장)';
+    const contact = document.getElementById('contactName').value || '';
+    const quoteNum = document.getElementById('quoteNumber').value || 'WW-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-01';
+    const quoteDate = document.getElementById('quoteDate').value || formatKoreanDate(new Date());
+
+    const dogup = parseInt(document.getElementById('itemDogup').value) || 0;
+    const manage = parseInt(document.getElementById('itemManage').value) || 0;
+    const admin = parseInt(document.getElementById('itemAdmin').value) || 0;
+    const total = dogup + manage + admin;
+
+    const openH = String(document.getElementById('openTime').value).padStart(2,'0');
+    const openM = String(document.getElementById('openMin').value || 0).padStart(2,'0');
+    const closeH = parseInt(document.getElementById('closeTime').value) || 23;
+    const closeM = String(document.getElementById('closeMin').value || 0).padStart(2,'0');
+    const openTime = openH + ':' + openM;
+    const closeStr = closeH >= 24 ? '24:00' : String(closeH).padStart(2,'0') + ':' + closeM;
+    const perShift = document.getElementById('perShift').value;
+
+    const workLines = (document.getElementById('workScope').value || '').split('\n').filter(l => l.trim());
+    const noteLines = (document.getElementById('quoteNotes').value || '').split('\n').filter(l => l.trim());
+
+    const quoteHTML = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>견적서 - ${client} ${site} 인력운영 위탁도급</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Noto Sans KR',sans-serif; background:#f0f0f0; color:#333; font-size:13px; line-height:1.75; font-weight:400; letter-spacing:-0.02em; }
+        .document { max-width:210mm; margin:20px auto; background:#fff; box-shadow:0 2px 20px rgba(0,0,0,0.1); }
+        .header { padding:40px 50px 30px; border-bottom:3px solid #1a365d; }
+        .header-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px; }
+        .header h1 { font-size:30px; font-weight:600; color:#1a365d; letter-spacing:12px; }
+        .header-info { text-align:right; font-size:12px; color:#666; line-height:1.8; }
+        .header-info .label { color:#999; margin-right:8px; }
+        .total-box { background:#f8fafc; border:2px solid #1a365d; border-radius:8px; padding:20px 30px; display:flex; justify-content:space-between; align-items:center; }
+        .total-label { font-size:14px; font-weight:500; color:#1a365d; }
+        .total-amount { font-size:22px; font-weight:600; color:#1a365d; }
+        .total-sub { font-size:12px; color:#888; margin-top:4px; }
+        .body { padding:30px 50px 40px; }
+        .parties { display:flex; gap:40px; margin-bottom:30px; }
+        .party { flex:1; background:#fafafa; border-radius:6px; padding:18px 22px; }
+        .party-title { font-size:11px; color:#1a365d; font-weight:600; letter-spacing:1px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid #e2e8f0; }
+        .party-table { width:100%; }
+        .party-table td { padding:4px 0; font-size:12px; vertical-align:top; }
+        .party-table td:first-child { color:#888; width:60px; }
+        .party-table td:last-child { font-weight:500; }
+        .section { margin-bottom:28px; }
+        .section-title { font-size:14px; font-weight:600; color:#1a365d; padding-bottom:8px; border-bottom:1px solid #cbd5e0; margin-bottom:15px; }
+        .section-title .num { display:inline-block; background:#1a365d; color:#fff; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; font-size:10px; margin-right:8px; }
+        table.qt { width:100%; border-collapse:collapse; margin:10px 0; }
+        table.qt thead th { background:#1a365d; color:#fff; padding:10px 14px; font-size:11px; font-weight:500; text-align:center; }
+        table.qt thead th:first-child { text-align:left; }
+        table.qt tbody td { padding:10px 14px; border-bottom:1px solid #e2e8f0; font-size:12px; text-align:center; }
+        table.qt tbody td:first-child { text-align:left; }
+        table.qt tfoot td { padding:12px 14px; border-top:2px solid #1a365d; font-size:13px; font-weight:600; }
+        .highlight { color:#1a365d; font-weight:600; font-size:14px; }
+        .note-box { background:#f7fafc; border:1px solid #e2e8f0; border-radius:6px; padding:16px 20px; font-size:12px; line-height:1.8; }
+        .footer { text-align:center; padding:20px; font-size:11px; color:#a0aec0; border-top:1px solid #edf2f7; }
+        @page { size:A4; margin:15mm; }
+        @media print { * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; } body { background:#fff; } .document { box-shadow:none; margin:0; } }
+    </style>
+</head>
+<body>
+<div class="document">
+    <div class="header">
+        <div class="header-top">
+            <h1>견 적 서</h1>
+            <div class="header-info">
+                <p><span class="label">견적번호</span> ${quoteNum}</p>
+                <p><span class="label">견적일자</span> ${quoteDate}</p>
+                <p><span class="label">유효기간</span> 견적일로부터 30일</p>
+            </div>
+        </div>
+        <div class="total-box">
+            <div>
+                <div class="total-label">${site} 운영 위탁 월 도급비</div>
+                <div class="total-sub">부가가치세 별도</div>
+            </div>
+            <div style="text-align:right;">
+                <div class="total-amount">월 ${fmt(total * 10000)}원</div>
+                <div class="total-sub">금 ${numToKorean(total * 10000)}원정 (VAT 별도)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="body">
+        <div class="parties">
+            <div class="party">
+                <div class="party-title">수 신</div>
+                <table class="party-table">
+                    <tr><td>업체명</td><td>${client}</td></tr>
+                    <tr><td>사업장</td><td>${site}</td></tr>
+                    ${contact ? '<tr><td>담당자</td><td>'+contact+'</td></tr>' : ''}
+                </table>
+            </div>
+            <div class="party">
+                <div class="party-title">발 신</div>
+                <table class="party-table">
+                    <tr><td>업체명</td><td>워크위드</td></tr>
+                    <tr><td>대표</td><td>홍 대표</td></tr>
+                </table>
+            </div>
+        </div>
+
+        ${workLines.length > 0 ? `
+        <div class="section">
+            <div class="section-title"><span class="num">1</span>위탁 개요</div>
+            <table class="qt">
+                <thead><tr><th style="text-align:left;">항목</th><th style="width:200px;">내용</th></tr></thead>
+                <tbody>
+                    <tr><td style="text-align:left;">위탁 사업장</td><td>${client} ${site}</td></tr>
+                    <tr><td style="text-align:left;">운영 시간</td><td>${openTime} ~ ${closeStr} / ${state.opDays}</td></tr>
+                    <tr><td style="text-align:left;">운영 방식</td><td>${state.shifts} 운영</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="section-title"><span class="num">2</span>업무 범위</div>
+            <table class="qt">
+                <thead><tr><th style="text-align:left;">#</th><th style="text-align:left;">업무 내용</th></tr></thead>
+                <tbody>
+                    ${workLines.map((l,i) => '<tr><td style="text-align:left;width:40px;">'+(i+1)+'</td><td style="text-align:left;">'+l.trim()+'</td></tr>').join('')}
+                </tbody>
+            </table>
+        </div>
+        ` : ''}
+
+        <div class="section">
+            <div class="section-title"><span class="num">3</span>견적 금액</div>
+            <table class="qt">
+                <thead><tr><th style="text-align:left;">항목</th><th style="width:140px;">단위</th><th style="width:160px;">금액</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align:left;"><strong>${site} 운영 위탁 도급비</strong><br><span style="font-size:11px;color:#888;">${openTime}~${closeStr} / ${state.opDays} / ${state.shifts} 전 시간대 커버</span></td>
+                        <td>월 정액</td>
+                        <td>${fmt(dogup * 10000)}원</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left;"><strong>현장관리비</strong><br><span style="font-size:11px;color:#888;">현장관리자 상시 배치, 품질·근태 관리</span></td>
+                        <td>월 정액</td>
+                        <td>${fmt(manage * 10000)}원</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left;"><strong>관리운영비</strong><br><span style="font-size:11px;color:#888;">보험, 유니폼, 교육, 채용·충원 비용</span></td>
+                        <td>월 정액</td>
+                        <td>${fmt(admin * 10000)}원</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td style="text-align:left;"><strong>합계 (부가세 별도)</strong></td>
+                        <td></td>
+                        <td class="highlight">${fmt(total * 10000)}원</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="note-box" style="margin-top:12px;">
+                <p><strong>서비스 보장 기준</strong></p>
+                <p>· 영업시간(${openTime}~${closeStr}) 전 시간대 운영인력 배치 보장</p>
+                <p>· 교대당 최소 <strong>${perShift}명 이상</strong> 현장 배치</p>
+                ${state.manager === '1명 배치' ? '<p>· 현장관리자 <strong>상시 1명</strong> 배치</p>' : ''}
+                <p>· 결원 발생 시 <strong>당일 충원</strong></p>
+                <p style="margin-top:6px;color:#888;font-size:11px;">※ 인력 배치 규모는 당사가 서비스 품질 기준에 따라 자체 결정합니다.</p>
+            </div>
+        </div>
+
+        ${noteLines.length > 0 ? `
+        <div class="section">
+            <div class="section-title"><span class="num">4</span>특기사항</div>
+            <div class="note-box">
+                ${noteLines.map((l,i) => '<p>'+(i+1)+'. '+l.trim()+'</p>').join('')}
+            </div>
+        </div>
+        ` : ''}
+    </div>
+
+    <div class="footer">워크위드 | 본 견적서는 견적일로부터 30일간 유효합니다.</div>
+</div>
+</body>
+</html>`;
+
+    // 미리보기
+    const preview = document.getElementById('quotePreview');
+    const blob = new Blob([quoteHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+
+    preview.innerHTML = '<div class="preview-frame"><iframe id="quoteFrame" src="' + url + '"></iframe></div>';
+
+    // 견적 HTML 저장
+    state.quoteHTML = quoteHTML;
+    autoSave();
+}
+
+function printQuote() {
+    if (!state.quoteHTML) {
+        alert('먼저 견적서를 생성해주세요.');
+        return;
+    }
+    const w = window.open('', '_blank');
+    w.document.write(state.quoteHTML);
+    w.document.close();
+    setTimeout(() => w.print(), 500);
+}
+
+// ===== 체크리스트 =====
+function toggleCheck(li) {
+    li.classList.toggle('checked');
+    const idx = Array.from(li.parentElement.children).indexOf(li);
+    state.checklist[idx] = li.classList.contains('checked');
+
+    const checked = state.checklist.filter(c => c).length;
+    const total = state.checklist.length;
+    document.getElementById('progressFill').style.width = (checked/total*100) + '%';
+    document.getElementById('progressText').textContent = checked + ' / ' + total + ' 완료';
+
+    // 탭에 완료 표시
+    document.querySelectorAll('.tab-btn')[5].querySelector('.tab-num').textContent = checked + '/' + total;
+
+    autoSave();
+}
+
+// ===== 자동 저장 =====
+function autoSave() {
+    // 모든 입력값 수집
+    const data = {
+        clientName: document.getElementById('clientName').value,
+        siteName: document.getElementById('siteName').value,
+        industry: document.getElementById('industry').value,
+        contactName: document.getElementById('contactName').value,
+        contactPhone: document.getElementById('contactPhone').value,
+        contactEmail: document.getElementById('contactEmail').value,
+        reason: document.getElementById('reason').value,
+        memo: document.getElementById('memo').value,
+        openTime: document.getElementById('openTime').value,
+        openMin: document.getElementById('openMin').value,
+        closeTime: document.getElementById('closeTime').value,
+        closeMin: document.getElementById('closeMin').value,
+        perShift: document.getElementById('perShift').value,
+        hourlyWage: document.getElementById('hourlyWage').value,
+        nightPay: document.getElementById('nightPay').value,
+        etcCost: document.getElementById('etcCost').value,
+        simQuote1: document.getElementById('simQuote1').value,
+        simQuote2: document.getElementById('simQuote2').value,
+        simQuote3: document.getElementById('simQuote3').value,
+        itemDogup: document.getElementById('itemDogup').value,
+        itemManage: document.getElementById('itemManage').value,
+        itemAdmin: document.getElementById('itemAdmin').value,
+        quoteNumber: document.getElementById('quoteNumber').value,
+        quoteDate: document.getElementById('quoteDate').value,
+        workScope: document.getElementById('workScope').value,
+        quoteNotes: document.getElementById('quoteNotes').value,
+        finalPrice: document.getElementById('finalPrice').value,
+        lessonMemo: document.getElementById('lessonMemo').value,
+        state: state,
+        savedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem('ww_quote_current', JSON.stringify(data));
+
+    // 저장 상태 표시
+    document.getElementById('saveStatus').textContent = '저장됨 ' + new Date().toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
+}
+
+function loadSaved() {
+    const saved = localStorage.getItem('ww_quote_current');
+    if (!saved) { alert('저장된 데이터가 없습니다.'); return; }
+    const data = JSON.parse(saved);
+
+    // 필드 복원
+    const fields = ['clientName','siteName','industry','contactName','contactPhone','contactEmail',
+        'reason','memo','openTime','openMin','closeTime','closeMin','perShift','hourlyWage','nightPay','etcCost',
+        'simQuote1','simQuote2','simQuote3','itemDogup','itemManage','itemAdmin',
+        'quoteNumber','quoteDate','workScope','quoteNotes','finalPrice','lessonMemo'];
+
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && data[id] !== undefined) el.value = data[id];
+    });
+
+    // 상태 복원
+    if (data.state) {
+        state = data.state;
+        // 옵션 버튼 복원
+        restoreOptions('source', state.source);
+        restoreOptions('currentOps', state.currentOps);
+        restoreOptions('opDays', state.opDays);
+        restoreOptions('shifts', state.shifts);
+        restoreOptions('manager', state.manager);
+        restoreOptions('result', state.result);
+
+        // 체크리스트 복원
+        if (state.checklist) {
+            document.querySelectorAll('.checklist li').forEach((li, i) => {
+                if (state.checklist[i]) {
+                    li.classList.add('checked');
+                }
+            });
+            const checked = state.checklist.filter(c => c).length;
+            document.getElementById('progressFill').style.width = (checked/10*100) + '%';
+            document.getElementById('progressText').textContent = checked + ' / 10 완료';
+        }
+    }
+
+    calcPersonnel();
+    calcCost();
+
+    alert('불러왔습니다. (저장 시간: ' + new Date(data.savedAt).toLocaleString('ko-KR') + ')');
+}
+
+function restoreOptions(group, value) {
+    if (!value) return;
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        const parent = btn.parentElement;
+        // 같은 그룹의 버튼인지 확인 (간이)
+        if (btn.textContent.trim() === value) {
+            const siblings = parent.querySelectorAll('.option-btn');
+            // 같은 그룹인지 추정
+            siblings.forEach(s => {
+                if (getGroup(s) === group) s.classList.remove('selected');
+            });
+            if (getGroup(btn) === group) btn.classList.add('selected');
+        }
+    });
+}
+
+function getGroup(btn) {
+    const onclick = btn.getAttribute('onclick') || '';
+    const match = onclick.match(/selectOption\(this,'(\w+)'\)/);
+    return match ? match[1] : '';
+}
+
+function resetAll() {
+    if (!confirm('현재 데이터를 모두 초기화하시겠습니까?\n(이전 데이터는 브라우저에 남아있습니다)')) return;
+
+    // 현재 데이터 백업
+    const backup = localStorage.getItem('ww_quote_current');
+    if (backup) {
+        const history = JSON.parse(localStorage.getItem('ww_quote_history') || '[]');
+        history.push(JSON.parse(backup));
+        if (history.length > 20) history.shift(); // 최대 20개
+        localStorage.setItem('ww_quote_history', JSON.stringify(history));
+    }
+
+    // 초기화
+    document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(el => {
+        if (el.id === 'hourlyWage') el.value = '10500';
+        else if (el.id === 'perShift') el.value = '4';
+        else if (el.id === 'etcCost') el.value = '1000000';
+        else if (el.className.includes('scenario-input')) {}
+        else el.value = '';
+    });
+
+    document.querySelectorAll('.option-btn.selected').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.checklist li.checked').forEach(li => li.classList.remove('checked'));
+
+    state = { source:'', currentOps:'', opDays:'주7일', shifts:'2교대', manager:'1명 배치', result:'', checklist:[false,false,false,false,false,false,false,false,false,false] };
+
+    // 기본 선택 복원
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        if (['주7일','2교대','1명 배치'].includes(btn.textContent.trim())) {
+            if (['opDays','shifts','manager'].includes(getGroup(btn))) {
+                btn.classList.add('selected');
+            }
+        }
+    });
+
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('progressText').textContent = '0 / 10 완료';
+    document.getElementById('quotePreview').innerHTML = '';
+
+    switchTab(0);
+    autoSave();
+}
+
+// ===== 유틸리티 =====
+function fmt(n) {
+    return Math.round(n).toLocaleString('ko-KR');
+}
+
+function fmtMan(n) {
+    return Math.round(n / 10000).toLocaleString('ko-KR');
+}
+
+function numToKorean(n) {
+    const units = ['', '만', '억'];
+    const nums = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+    const subUnits = ['', '십', '백', '천'];
+
+    if (n === 0) return '영';
+    let result = '';
+    let unitIdx = 0;
+
+    while (n > 0) {
+        let part = n % 10000;
+        if (part > 0) {
+            let partStr = '';
+            let subIdx = 0;
+            while (part > 0) {
+                let digit = part % 10;
+                if (digit > 0) {
+                    partStr = (digit === 1 && subIdx > 0 ? '' : nums[digit]) + subUnits[subIdx] + partStr;
+                }
+                part = Math.floor(part / 10);
+                subIdx++;
+            }
+            result = partStr + units[unitIdx] + result;
+        }
+        n = Math.floor(n / 10000);
+        unitIdx++;
+    }
+    return result;
+}
+
+function formatKoreanDate(d) {
+    return d.getFullYear() + '년 ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일';
+}
+
+// ===== 초기화 =====
+window.addEventListener('DOMContentLoaded', function() {
+    // 견적번호 기본값
+    const today = new Date();
+    const dateStr = today.toISOString().slice(0,10).replace(/-/g,'');
+    document.getElementById('quoteNumber').value = 'WW-' + dateStr + '-01';
+    document.getElementById('quoteDate').value = formatKoreanDate(today);
+
+    // 저장된 데이터 자동 복원
+    const saved = localStorage.getItem('ww_quote_current');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            // 오늘 날짜와 같은 날 저장된 것만 자동 복원
+            const savedDate = new Date(data.savedAt).toDateString();
+            if (savedDate === today.toDateString()) {
+                loadSaved();
+                return;
+            }
+        } catch(e) {}
+    }
+
+    // 초기 계산
+    calcPersonnel();
+    calcCost();
+});
+</script>
+
+</body>
+</html>
