@@ -320,6 +320,40 @@
             border: 1px solid #e2e8f0; border-radius: 4px;
         }
 
+        /* 견적 유형 선택 */
+        .type-selector {
+            display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;
+        }
+        .type-card {
+            flex: 1; min-width: 140px; padding: 16px; border: 2px solid #e2e8f0;
+            border-radius: 10px; cursor: pointer; text-align: center;
+            transition: all 0.2s; background: #fff;
+        }
+        .type-card:hover { border-color: #1a365d; background: #f7fafc; }
+        .type-card.selected { border-color: #1a365d; background: #f0f5ff; }
+        .type-card .type-icon { font-size: 24px; margin-bottom: 6px; }
+        .type-card .type-name { font-size: 13px; font-weight: 600; color: #1a365d; }
+        .type-card .type-desc { font-size: 11px; color: #718096; margin-top: 4px; }
+
+        /* 유형별 표시/숨김 */
+        .for-outsource, .for-labor, .for-cs-agent, .for-cs-share { display: none; }
+        body.qt-outsource .for-outsource { display: block; }
+        body.qt-labor .for-labor { display: block; }
+        body.qt-cs-agent .for-cs-agent { display: block; }
+        body.qt-cs-share .for-cs-share { display: block; }
+        /* flex 복원 */
+        body.qt-outsource .for-outsource.d-flex { display: flex; }
+        body.qt-labor .for-labor.d-flex { display: flex; }
+        body.qt-cs-agent .for-cs-agent.d-flex { display: flex; }
+        body.qt-cs-share .for-cs-share.d-flex { display: flex; }
+        /* 공통 표시 (정액/일반 도급 공유) */
+        .for-dogup { display: none; }
+        body.qt-outsource .for-dogup, body.qt-labor .for-dogup { display: block; }
+        body.qt-outsource .for-dogup.d-flex, body.qt-labor .for-dogup.d-flex { display: flex; }
+        /* CS 공통 (CS대행+쉐어링) */
+        .for-cs { display: none; }
+        body.qt-cs-agent .for-cs, body.qt-cs-share .for-cs { display: block; }
+
         /* 인쇄 숨김 */
         @media print { body > *:not(.print-target) { display: none !important; } }
 
@@ -338,7 +372,7 @@
 <div class="app-header">
     <div style="display:flex; align-items:center;">
         <h1>견적 시뮬레이터</h1>
-        <span class="sub">워크위드 내부용 v1.0</span>
+        <span class="sub">워크위드 내부용 v3.0</span>
     </div>
     <div style="display:flex;align-items:center;gap:16px;">
         <div class="save-indicator">
@@ -368,6 +402,32 @@
 
     <!-- ==================== 탭1: 고객정보 ==================== -->
     <div class="tab-content active" id="tab0">
+        <div class="card">
+            <div class="card-title">견적 유형 선택</div>
+            <div class="type-selector">
+                <div class="type-card selected" onclick="switchQuoteType('outsource', this)">
+                    <div class="type-icon">🏢</div>
+                    <div class="type-name">정액제 도급</div>
+                    <div class="type-desc">월 총액 정액<br>(오토스테이 등)</div>
+                </div>
+                <div class="type-card" onclick="switchQuoteType('labor', this)">
+                    <div class="type-icon">🏭</div>
+                    <div class="type-name">일반 도급</div>
+                    <div class="type-desc">1인 단가 × 인원<br>(제조/물류 등)</div>
+                </div>
+                <div class="type-card" onclick="switchQuoteType('cs-agent', this)">
+                    <div class="type-icon">📞</div>
+                    <div class="type-name">CS대행</div>
+                    <div class="type-desc">전담 상담사 배치<br>(위드콜)</div>
+                </div>
+                <div class="type-card" onclick="switchQuoteType('cs-share', this)">
+                    <div class="type-icon">📊</div>
+                    <div class="type-name">CS쉐어링</div>
+                    <div class="type-desc">콜 구간별 과금<br>(공유 상담)</div>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-title">고객 / 사업장 정보</div>
 
@@ -453,6 +513,167 @@
 
     <!-- ==================== 탭2: 인원산출 ==================== -->
     <div class="tab-content" id="tab1">
+
+        <!-- ===== CS대행 전용: 상담사 구성 ===== -->
+        <div class="for-cs-agent">
+            <div class="card">
+                <div class="card-title">상담사 구성 (위드콜)</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">선임 상담사 수</label>
+                        <input type="number" id="csSeniorCount" value="1" min="0" max="20" onchange="calcCSAgent(); autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">선임 월급 (원)</label>
+                        <input type="number" id="csSeniorSalary" value="3200000" step="100000" onchange="calcCSAgent(); autoSave();">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">일반 상담사 수</label>
+                        <input type="number" id="csJuniorCount" value="1" min="0" max="20" onchange="calcCSAgent(); autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">일반 월급 (원)</label>
+                        <input type="number" id="csJuniorSalary" value="2900000" step="100000" onchange="calcCSAgent(); autoSave();">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">ASP 패키지 (인당/월)</label>
+                        <input type="number" id="csASP" value="350000" step="10000" onchange="calcCSAgent(); autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">관리수수료 (%)</label>
+                        <input type="number" id="csMgmtFee" value="8" step="1" min="0" max="30" onchange="calcCSAgent(); autoSave();">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">초기 구축비 (원) <span class="hint">1회성, 0이면 면제</span></label>
+                        <input type="number" id="csSetupFee" value="1000000" step="100000" onchange="autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">운영시간</label>
+                        <input type="text" id="csOpTime" value="09:00~18:00 (휴게 1시간 제외)" oninput="autoSave();">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">인력 근무조건</label>
+                    <input type="text" id="csWorkCond" value="평일 주간 일 8T" oninput="autoSave();">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">업무범위</label>
+                    <textarea id="csWorkScope" rows="3" placeholder="예: CS관련 업무(인바운드) + 영업 문의 초기 대응" oninput="autoSave();">CS관련 업무(인바운드) + 영업 문의 초기 대응</textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">CS대행 비용 산출</div>
+                <table class="data-table">
+                    <thead><tr><th>항목</th><th style="text-align:right;">단가</th><th style="text-align:right;">인원</th><th style="text-align:right;">합계</th></tr></thead>
+                    <tbody id="csAgentCostDetail"></tbody>
+                    <tfoot>
+                        <tr><td><strong>총계 (VAT별도)</strong></td><td></td><td></td><td class="num" id="csAgentTotal" style="font-size:16px;">-</td></tr>
+                    </tfoot>
+                </table>
+
+                <div class="result-box" style="margin-top:16px;">
+                    <div class="result-title">최종 제안가</div>
+                    <div style="display:flex;gap:16px;align-items:center;">
+                        <input type="number" id="csAgentFinalPrice" value="0" step="100000" style="width:180px;font-size:18px;font-weight:700;text-align:right;" onchange="autoSave();">
+                        <span style="font-size:14px;color:#4a5568;">원 (VAT별도)</span>
+                    </div>
+                    <div class="result-sub" id="csAgentDiscount"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CS쉐어링 전용: 콜 조건 ===== -->
+        <div class="for-cs-share">
+            <div class="card">
+                <div class="card-title">CS쉐어링 조건</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">월 기본 콜수 (건)</label>
+                        <input type="number" id="shareBaseCall" value="500" step="50" onchange="calcCSShare(); autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">월 기본료 (원)</label>
+                        <input type="number" id="shareBaseFee" value="500000" step="50000" onchange="calcCSShare(); autoSave();">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">초과 건당 단가 (원)</label>
+                        <input type="number" id="sharePerCall" value="1000" step="100" onchange="calcCSShare(); autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">통신비용</label>
+                        <select id="shareComm" onchange="autoSave();">
+                            <option value="실비청구">아웃콜 실비 청구</option>
+                            <option value="포함">기본료에 포함</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">운영시간</label>
+                        <input type="text" id="shareOpTime" value="평일 09:00~18:00" oninput="autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">초기 구축비 (원)</label>
+                        <input type="number" id="shareSetupFee" value="0" step="100000" onchange="autoSave();">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">CS 쉐어 월 콜 기준</label>
+                    <input type="text" id="shareCallStandard" value="" placeholder="예: 월 500건 기준" oninput="autoSave();">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">업무범위</label>
+                    <textarea id="shareWorkScope" rows="3" placeholder="예: 인바운드 CS 응대, 주문/교환/반품 안내" oninput="autoSave();"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">포함 서비스</label>
+                    <textarea id="shareServices" rows="2" placeholder="예: 녹취 및 시스템 이용료 포함, DB 제공 (주간/월간 보고서)" oninput="autoSave();">녹취 및 시스템 이용료 포함, DB 제공 (주간/월간 보고서)</textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">CS쉐어링 비용 산출</div>
+                <table class="data-table">
+                    <thead><tr><th>항목</th><th style="text-align:right;">단가</th><th style="text-align:right;">금액</th><th>비고</th></tr></thead>
+                    <tbody id="csShareCostDetail"></tbody>
+                    <tfoot>
+                        <tr><td><strong>합계 (VAT별도)</strong></td><td></td><td class="num" id="csShareTotal" style="font-size:16px;">-</td><td></td></tr>
+                    </tfoot>
+                </table>
+
+                <div class="result-box" style="margin-top:16px;">
+                    <div class="result-title">최종 제안가</div>
+                    <div style="display:flex;gap:16px;align-items:center;">
+                        <input type="number" id="csShareFinalPrice" value="0" step="50000" style="width:180px;font-size:18px;font-weight:700;text-align:right;" onchange="autoSave();">
+                        <span style="font-size:14px;color:#4a5568;">원/월 (VAT별도)</span>
+                    </div>
+                    <div class="result-sub" id="csShareDiscount"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 도급 공통 (정액제/일반): 현장조건 ===== -->
+        <div class="for-dogup">
         <div class="card">
             <div class="card-title">현장 조건 입력</div>
 
@@ -565,6 +786,39 @@
             </div>
         </div>
 
+        </div><!-- /for-dogup -->
+
+        <!-- 일반도급 전용: 관리수수료 설정 -->
+        <div class="for-labor">
+            <div class="card">
+                <div class="card-title">일반 도급 추가 설정</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">관리수수료 (%)</label>
+                        <input type="number" id="laborMgmtFee" value="8" step="1" min="0" max="30" onchange="calcCost(); autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">교통비 (인당/월)</label>
+                        <input type="number" id="laborTransport" value="100000" step="10000" onchange="calcCost(); autoSave();">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">직책수당 (현장관리자)</label>
+                        <input type="number" id="laborLeaderPay" value="100000" step="10000" onchange="calcCost(); autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">사업소세 (%)</label>
+                        <input type="number" id="laborBizTax" value="0.5" step="0.1" min="0" onchange="calcCost(); autoSave();">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">장기요양보험 (건강보험료 대비 %)</label>
+                    <input type="number" id="laborLongCare" value="13.14" step="0.01" min="0" onchange="calcCost(); autoSave();">
+                </div>
+            </div>
+        </div>
+
         <div class="btn-group" style="justify-content:space-between;">
             <button class="btn btn-secondary" onclick="switchTab(0)">&larr; 고객정보</button>
             <button class="btn btn-primary" onclick="switchTab(2)">다음: 원가계산 &rarr;</button>
@@ -573,6 +827,21 @@
 
     <!-- ==================== 탭3: 원가계산 ==================== -->
     <div class="tab-content" id="tab2">
+
+        <!-- CS대행/쉐어링은 Tab2에서 비용 산출까지 완료 → Tab3은 건너뜀 안내 -->
+        <div class="for-cs">
+            <div class="card">
+                <div class="alert alert-info">
+                    <span>&#128161;</span>
+                    <span>CS 견적은 이전 탭에서 비용 산출이 완료되었습니다. <strong>견적시뮬</strong> 또는 <strong>견적서생성</strong>으로 이동하세요.</span>
+                </div>
+                <div class="btn-group" style="justify-content:center;">
+                    <button class="btn btn-primary" onclick="switchTab(4)">견적서 생성으로 이동 &rarr;</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="for-dogup">
         <div class="card">
             <div class="card-title">인건비 계산</div>
 
@@ -676,6 +945,8 @@
             </div>
         </div>
 
+        </div><!-- /for-dogup -->
+
         <div class="btn-group" style="justify-content:space-between;">
             <button class="btn btn-secondary" onclick="switchTab(1)">&larr; 인원산출</button>
             <button class="btn btn-primary" onclick="switchTab(3)">다음: 견적시뮬 &rarr;</button>
@@ -720,8 +991,8 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-title">항목 분배 (첫 제시 기준)</div>
+        <div class="card for-outsource">
+            <div class="card-title">항목 분배 (첫 제시 기준) — 정액제</div>
 
             <div class="form-row">
                 <div class="form-group">
@@ -897,6 +1168,7 @@
 <script>
 // ===== 전역 상태 =====
 let state = {
+    quoteType: 'outsource',
     source: '', currentOps: '', opDays: '주7일', shifts: '2교대',
     manager: '1명 배치', result: '',
     checklist: [false,false,false,false,false,false,false,false,false,false]
@@ -927,6 +1199,98 @@ function selectOption(btn, group) {
         calcPersonnel();
     }
     autoSave();
+}
+
+// ===== 견적 유형 전환 =====
+function switchQuoteType(type, card) {
+    // 버튼 표시
+    document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+    if (card) card.classList.add('selected');
+
+    state.quoteType = type;
+
+    // body 클래스로 유형별 표시 제어
+    document.body.className = 'qt-' + type;
+
+    // 탭 라벨 변경
+    const tabLabels = {
+        outsource: ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트'],
+        labor:     ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트'],
+        'cs-agent':['고객정보','상담사구성','(건너뜀)','(건너뜀)','견적서생성','체크리스트'],
+        'cs-share':['고객정보','콜조건','(건너뜀)','(건너뜀)','견적서생성','체크리스트']
+    };
+    const labels = tabLabels[type] || tabLabels.outsource;
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        const numEl = btn.querySelector('.tab-num');
+        const text = btn.childNodes[btn.childNodes.length - 1];
+        if (text && text.nodeType === 3) text.textContent = labels[i];
+    });
+
+    autoSave();
+}
+
+// ===== CS대행 비용 계산 =====
+function calcCSAgent() {
+    const seniorN = parseInt(document.getElementById('csSeniorCount').value) || 0;
+    const seniorS = parseInt(document.getElementById('csSeniorSalary').value) || 0;
+    const juniorN = parseInt(document.getElementById('csJuniorCount').value) || 0;
+    const juniorS = parseInt(document.getElementById('csJuniorSalary').value) || 0;
+    const asp = parseInt(document.getElementById('csASP').value) || 0;
+    const mgmtPct = parseFloat(document.getElementById('csMgmtFee').value) || 8;
+
+    const totalPeople = seniorN + juniorN;
+    const laborCost = seniorN * seniorS + juniorN * juniorS;
+    const aspCost = asp * totalPeople;
+    const subtotal = laborCost + aspCost;
+    const mgmtCost = Math.round(subtotal * mgmtPct / 100);
+    const total = subtotal + mgmtCost;
+
+    let html = '';
+    if (seniorN > 0) html += '<tr><td>선임 상담사</td><td class="num">' + fmt(seniorS) + '</td><td class="num">' + seniorN + '</td><td class="num">' + fmt(seniorN * seniorS) + '</td></tr>';
+    if (juniorN > 0) html += '<tr><td>일반 상담사</td><td class="num">' + fmt(juniorS) + '</td><td class="num">' + juniorN + '</td><td class="num">' + fmt(juniorN * juniorS) + '</td></tr>';
+    html += '<tr style="background:#f7fafc;"><td><strong>직·간접 노무비 소계</strong></td><td></td><td class="num">' + totalPeople + '</td><td class="num highlight">' + fmt(laborCost) + '</td></tr>';
+    html += '<tr><td>ASP 패키지</td><td class="num">' + fmt(asp) + '</td><td class="num">' + totalPeople + '</td><td class="num">' + fmt(aspCost) + '</td></tr>';
+    html += '<tr><td>원 운영비 (발신비용)</td><td colspan="2" style="text-align:right;color:#718096;">실비 청구</td><td class="num">-</td></tr>';
+    html += '<tr style="background:#f7fafc;"><td><strong>합계 (①+②)</strong></td><td></td><td></td><td class="num highlight">' + fmt(subtotal) + '</td></tr>';
+    html += '<tr><td>관리수수료 (' + mgmtPct + '%)</td><td></td><td></td><td class="num">' + fmt(mgmtCost) + '</td></tr>';
+
+    document.getElementById('csAgentCostDetail').innerHTML = html;
+    document.getElementById('csAgentTotal').textContent = fmt(total) + '원';
+
+    // 최종 제안가 자동 세팅 (처음만)
+    const fp = document.getElementById('csAgentFinalPrice');
+    if (!state._csAgentManual) {
+        fp.value = Math.ceil(total / 100000) * 100000; // 10만원 단위 올림
+    }
+
+    const finalP = parseInt(fp.value) || 0;
+    const diff = total - finalP;
+    document.getElementById('csAgentDiscount').textContent =
+        finalP < total ? '할인: ' + fmt(total - finalP) + '원 (' + ((total - finalP)/total*100).toFixed(1) + '%)' :
+        finalP > total ? '마진: +' + fmt(finalP - total) + '원' : '원가 동일';
+
+    state.csAgentTotal = total;
+}
+
+// ===== CS쉐어링 비용 계산 =====
+function calcCSShare() {
+    const baseFee = parseInt(document.getElementById('shareBaseFee').value) || 0;
+    const baseCall = parseInt(document.getElementById('shareBaseCall').value) || 0;
+    const perCall = parseInt(document.getElementById('sharePerCall').value) || 0;
+    const comm = document.getElementById('shareComm').value;
+
+    let html = '';
+    html += '<tr><td>기본료</td><td class="num">' + fmt(baseFee) + '</td><td class="num">' + fmt(baseFee) + '</td><td>월 ' + baseCall + '건 기준</td></tr>';
+    html += '<tr><td>콜 단가 (초과분)</td><td class="num">' + fmt(perCall) + '/건</td><td class="num">-</td><td>월 ' + baseCall + '건 초과 시</td></tr>';
+    html += '<tr><td>통신 비용</td><td></td><td class="num">-</td><td>' + (comm === '실비청구' ? '아웃콜 실비 발생 시 청구' : '기본료 포함') + '</td></tr>';
+
+    document.getElementById('csShareCostDetail').innerHTML = html;
+    document.getElementById('csShareTotal').textContent = fmt(baseFee) + '원~';
+
+    const fp = document.getElementById('csShareFinalPrice');
+    if (!state._csShareManual) fp.value = baseFee;
+
+    state.csShareBaseFee = baseFee;
 }
 
 // ===== 업종 선택 시 팁 =====
@@ -1258,8 +1622,112 @@ function updateItemTotal() {
     }
 }
 
-// ===== 견적서 생성 =====
+// ===== 견적서 생성 (유형별 분기) =====
 function generateQuote() {
+    const type = state.quoteType || 'outsource';
+    if (type === 'outsource') return generateQuoteOutsource();
+    if (type === 'labor') return generateQuoteLabor();
+    if (type === 'cs-agent') return generateQuoteCSAgent();
+    if (type === 'cs-share') return generateQuoteCSShare();
+    return generateQuoteOutsource(); // fallback
+}
+
+// --- 공통 견적서 CSS ---
+function getQuoteCSS() {
+    return `* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans KR',sans-serif; background:#f0f0f0; color:#333; font-size:13px; line-height:1.75; font-weight:400; letter-spacing:-0.02em; }
+.document { max-width:210mm; margin:20px auto; background:#fff; box-shadow:0 2px 20px rgba(0,0,0,0.1); }
+.header { padding:40px 50px 30px; border-bottom:3px solid #1a365d; }
+.header-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px; }
+.header h1 { font-size:30px; font-weight:600; color:#1a365d; letter-spacing:12px; }
+.header-info { text-align:right; font-size:12px; color:#666; line-height:1.8; }
+.header-info .label { color:#999; margin-right:8px; }
+.total-box { background:#f8fafc; border:2px solid #1a365d; border-radius:8px; padding:20px 30px; display:flex; justify-content:space-between; align-items:center; }
+.total-label { font-size:14px; font-weight:500; color:#1a365d; }
+.total-amount { font-size:22px; font-weight:600; color:#1a365d; }
+.total-sub { font-size:12px; color:#888; margin-top:4px; }
+.body { padding:30px 50px 40px; }
+.parties { display:flex; gap:40px; margin-bottom:30px; }
+.party { flex:1; background:#fafafa; border-radius:6px; padding:18px 22px; }
+.party-title { font-size:11px; color:#1a365d; font-weight:600; letter-spacing:1px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid #e2e8f0; }
+.party-table { width:100%; }
+.party-table td { padding:4px 0; font-size:12px; vertical-align:top; }
+.party-table td:first-child { color:#888; width:60px; }
+.party-table td:last-child { font-weight:500; }
+.section { margin-bottom:28px; }
+.section-title { font-size:14px; font-weight:600; color:#1a365d; padding-bottom:8px; border-bottom:1px solid #cbd5e0; margin-bottom:15px; }
+.section-title .num { display:inline-block; background:#1a365d; color:#fff; width:20px; height:20px; border-radius:50%; text-align:center; line-height:20px; font-size:10px; margin-right:8px; }
+table.qt { width:100%; border-collapse:collapse; margin:10px 0; }
+table.qt thead th { background:#1a365d; color:#fff; padding:10px 14px; font-size:11px; font-weight:500; text-align:center; }
+table.qt thead th:first-child { text-align:left; }
+table.qt tbody td { padding:10px 14px; border-bottom:1px solid #e2e8f0; font-size:12px; text-align:center; }
+table.qt tbody td:first-child { text-align:left; }
+table.qt tfoot td { padding:12px 14px; border-top:2px solid #1a365d; font-size:13px; font-weight:600; }
+.highlight { color:#1a365d; font-weight:600; font-size:14px; }
+.note-box { background:#f7fafc; border:1px solid #e2e8f0; border-radius:6px; padding:16px 20px; font-size:12px; line-height:1.8; }
+.footer { text-align:center; padding:20px; font-size:11px; color:#a0aec0; border-top:1px solid #edf2f7; }
+.logo-area { text-align:center; padding:20px 0 10px; }
+@page { size:A4; margin:15mm; }
+@media print { * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; } body { background:#fff; } .document { box-shadow:none; margin:0; } }`;
+}
+
+function getQuoteHeader(title, quoteNum, quoteDate, totalLabel, totalAmount) {
+    return `<div class="header">
+    <div class="header-top">
+        <h1>${title}</h1>
+        <div class="header-info">
+            <p><span class="label">견적번호</span> ${quoteNum}</p>
+            <p><span class="label">견적일자</span> ${quoteDate}</p>
+            <p><span class="label">유효기간</span> 견적일로부터 30일</p>
+        </div>
+    </div>
+    <div class="total-box">
+        <div>
+            <div class="total-label">${totalLabel}</div>
+            <div class="total-sub">부가가치세 별도</div>
+        </div>
+        <div style="text-align:right;">
+            <div class="total-amount">${totalAmount}</div>
+            <div class="total-sub">VAT 별도</div>
+        </div>
+    </div>
+</div>`;
+}
+
+function getQuoteParties(client, site, contact) {
+    return `<div class="parties">
+    <div class="party">
+        <div class="party-title">수 신</div>
+        <table class="party-table">
+            <tr><td>업체명</td><td>${client}</td></tr>
+            <tr><td>사업장</td><td>${site}</td></tr>
+            ${contact ? '<tr><td>담당자</td><td>'+contact+'</td></tr>' : ''}
+        </table>
+    </div>
+    <div class="party">
+        <div class="party-title">발 신</div>
+        <table class="party-table">
+            <tr><td>업체명</td><td>주식회사 워크위드</td></tr>
+            <tr><td>TEL</td><td>1600-9878</td></tr>
+            <tr><td>FAX</td><td>043-912-9913</td></tr>
+            <tr><td>주소</td><td>충주시 예성로 392, 롯데프라자 4층 401호</td></tr>
+            <tr><td>대표</td><td>한 세 은</td></tr>
+        </table>
+    </div>
+</div>`;
+}
+
+function showQuotePreview(quoteHTML) {
+    const preview = document.getElementById('quotePreview');
+    const blob = new Blob([quoteHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    preview.innerHTML = '<div class="preview-frame"><iframe id="quoteFrame" src="' + url + '"></iframe></div>';
+    state.quoteHTML = quoteHTML;
+    autoSave();
+}
+
+// ===== 정액제 도급 견적서 =====
+function generateQuoteOutsource() {
     const client = document.getElementById('clientName').value || '(업체명)';
     const site = document.getElementById('siteName').value || '(사업장)';
     const contact = document.getElementById('contactName').value || '';
@@ -1448,16 +1916,310 @@ function generateQuote() {
 </body>
 </html>`;
 
-    // 미리보기
-    const preview = document.getElementById('quotePreview');
-    const blob = new Blob([quoteHTML], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
+    showQuotePreview(quoteHTML);
+}
 
-    preview.innerHTML = '<div class="preview-frame"><iframe id="quoteFrame" src="' + url + '"></iframe></div>';
+// ===== 일반 도급 견적서 (인건비 기반 1인 단가) =====
+function generateQuoteLabor() {
+    const client = document.getElementById('clientName').value || '(업체명)';
+    const site = document.getElementById('siteName').value || '';
+    const contact = document.getElementById('contactName').value || '';
+    const quoteNum = document.getElementById('quoteNumber').value || 'WW-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-001';
+    const quoteDate = document.getElementById('quoteDate').value || formatKoreanDate(new Date());
 
-    // 견적 HTML 저장
-    state.quoteHTML = quoteHTML;
-    autoSave();
+    const wage = parseInt(document.getElementById('hourlyWage').value) || 10500;
+    const baseWage = wage * 209;
+    const rPension = (parseFloat(document.getElementById('ratePension').value) || 4.5) / 100;
+    const rHealth = (parseFloat(document.getElementById('rateHealth').value) || 3.545) / 100;
+    const rEmploy = (parseFloat(document.getElementById('rateEmploy').value) || 0.9) / 100;
+    const rIndust = (parseFloat(document.getElementById('rateIndust').value) || 1.5) / 100;
+    const rRetire = (parseFloat(document.getElementById('rateRetire').value) || 8.33) / 100;
+    const longCare = (parseFloat(document.getElementById('laborLongCare')?.value) || 13.14) / 100;
+    const bizTax = (parseFloat(document.getElementById('laborBizTax')?.value) || 0.5) / 100;
+    const transport = parseInt(document.getElementById('laborTransport')?.value) || 100000;
+    const leaderPay = parseInt(document.getElementById('laborLeaderPay')?.value) || 100000;
+    const mgmtPct = parseFloat(document.getElementById('laborMgmtFee')?.value) || 8;
+
+    // 계산
+    const pension = Math.round(baseWage * rPension);
+    const health = Math.round(baseWage * rHealth);
+    const longCareAmt = Math.round(health * longCare);
+    const employ = Math.round(baseWage * rEmploy);
+    const indust = Math.round(baseWage * rIndust);
+    const bizTaxAmt = Math.round(baseWage * bizTax);
+    const retire = Math.round(baseWage * rRetire); // 발생시 청구
+    const annualLeave = Math.round(wage * 8); // 연차수당 = 통상시급×8h
+
+    const laborSub1 = baseWage + transport;
+    const laborSub2 = annualLeave;
+    const laborTotal = laborSub1 + laborSub2;
+    const insuranceTotal = pension + health + longCareAmt + employ + indust + bizTaxAmt;
+    const subtotal = laborTotal + insuranceTotal;
+    const mgmtAmt = Math.round(subtotal * mgmtPct / 100);
+    const perPersonTotal = subtotal + mgmtAmt;
+
+    // 시간 정보
+    const s1s = document.getElementById('s1Start').value || '09:00';
+    const s1e = document.getElementById('s1End').value || '18:00';
+
+    const workLines = (document.getElementById('workScope').value || '').split('\n').filter(l => l.trim());
+    const noteLines = (document.getElementById('quoteNotes').value || '').split('\n').filter(l => l.trim());
+    if (noteLines.length === 0) {
+        noteLines.push('위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.');
+        noteLines.push('최저시급 및 4대보험은 당해연도 법정 기준을 반영함.');
+        noteLines.push('근로기준법에 의거한 연장, 심야, 휴일근무 수당 및 퇴직금 등은 발생 시 별도 청구함.');
+        noteLines.push('관리수수료 포함내역: 채용 광고비, 급여/4대보험 행정대행, 노무 자문 및 리스크 관리, 결원 대응비, 근로자 복지후생비 등 제세 간접비포함');
+        noteLines.push('부가세 별도 청구함.');
+    }
+
+    const quoteHTML = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>도급견적서 - ${client}</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>${getQuoteCSS()}</style></head><body>
+<div class="document">
+${getQuoteHeader('도 급 견 적 서', quoteNum, quoteDate, client + ' 도급 운영 위탁', '1인 단가 ' + fmt(perPersonTotal) + '원')}
+<div class="body">
+${getQuoteParties(client, site || '-', contact)}
+
+<div class="section">
+    <div class="section-title"><span class="num">1</span>견적 내용</div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;">항목</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td style="text-align:left;">내용</td><td>${client} ${workLines.length > 0 ? workLines[0] : '도급 운영 위탁'}</td></tr>
+            <tr><td style="text-align:left;">운영시간</td><td>${s1s}~${s1e}</td></tr>
+            <tr><td style="text-align:left;">운영장소</td><td>${site || '-'}</td></tr>
+            <tr><td style="text-align:left;">인력 근무조건</td><td>일 8시간 근무 기준 (${state.opDays})</td></tr>
+            ${workLines.length > 0 ? '<tr><td style="text-align:left;">업무범위</td><td>' + workLines.join(', ') + '</td></tr>' : ''}
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <div class="section-title"><span class="num">2</span>운영 예산안 <span style="font-size:11px;font-weight:400;color:#888;">(적용시급: ${fmt(wage)}원) (단위: 원)</span></div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;">계정과목</th><th style="text-align:left;">세부내용</th><th>산출내역</th><th style="text-align:right;">합계</th></tr></thead>
+        <tbody>
+            <tr><td style="text-align:left;" rowspan="4"><strong>직접노무비</strong><br>(급여)</td>
+                <td style="text-align:left;">기본급</td><td>적용시급×209시간</td><td style="text-align:right;">${fmt(baseWage)}</td></tr>
+            <tr><td style="text-align:left;">교통비</td><td></td><td style="text-align:right;">${fmt(transport)}</td></tr>
+            <tr><td style="text-align:left;">직책수당</td><td>현장관리자 한정</td><td style="text-align:right;color:#888;">별도</td></tr>
+            <tr><td style="text-align:left;"><strong>① 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(laborSub1)}</td></tr>
+
+            <tr><td style="text-align:left;" rowspan="3"></td>
+                <td style="text-align:left;">퇴직금</td><td></td><td style="text-align:right;color:#888;">발생시 청구</td></tr>
+            <tr><td style="text-align:left;">연차수당</td><td>통상시급×8시간</td><td style="text-align:right;">${fmt(annualLeave)}</td></tr>
+            <tr><td style="text-align:left;"><strong>② 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(laborSub2)}</td></tr>
+
+            <tr style="background:#f0f5ff;"><td style="text-align:left;" colspan="2"><strong>③ 합계 (①+②)</strong></td><td></td><td style="text-align:right;font-weight:700;">${fmt(laborTotal)}</td></tr>
+
+            <tr><td style="text-align:left;" rowspan="7"><strong>간접노무비</strong><br>(4대보험)</td>
+                <td style="text-align:left;">국민연금</td><td>임금 합계×${(rPension*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(pension)}</td></tr>
+            <tr><td style="text-align:left;">건강보험</td><td>임금 합계×${(rHealth*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(health)}</td></tr>
+            <tr><td style="text-align:left;">장기요양보험</td><td>건강보험료×${(longCare*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(longCareAmt)}</td></tr>
+            <tr><td style="text-align:left;">고용보험</td><td>임금 합계×${(rEmploy*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(employ)}</td></tr>
+            <tr><td style="text-align:left;">산재보험</td><td>임금 합계×${(rIndust*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(indust)}</td></tr>
+            <tr><td style="text-align:left;">사업소세</td><td>임금 합계×${(bizTax*100).toFixed(1)}%</td><td style="text-align:right;">${fmt(bizTaxAmt)}</td></tr>
+            <tr><td style="text-align:left;"><strong>④ 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(insuranceTotal)}</td></tr>
+
+            <tr style="background:#f0f5ff;"><td style="text-align:left;" colspan="2"><strong>⑤ 합계 (③+④)</strong></td><td></td><td style="text-align:right;font-weight:700;">${fmt(subtotal)}</td></tr>
+
+            <tr><td style="text-align:left;"><strong>수수료</strong></td>
+                <td style="text-align:left;">관리 수수료</td><td>${mgmtPct}%</td><td style="text-align:right;">${fmt(mgmtAmt)}</td></tr>
+        </tbody>
+        <tfoot>
+            <tr><td style="text-align:left;" colspan="2"><strong>총계 (⑤+수수료) — 1인기준 (VAT 별도)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(perPersonTotal)}</td></tr>
+            <tr><td style="text-align:left;" colspan="2">월 청구 예상액</td><td></td><td style="text-align:right;color:#888;">실 투입 인원 × 1인 단가 적용</td></tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="section">
+    <div class="section-title"><span class="num">3</span>기타사항</div>
+    <div class="note-box">
+        ${noteLines.map((l,i) => '<p>'+(i+1)+'. '+l.trim()+'</p>').join('')}
+    </div>
+</div>
+</div>
+<div class="footer">워크위드 | 본 견적서는 견적일로부터 30일간 유효합니다.</div>
+</div></body></html>`;
+
+    showQuotePreview(quoteHTML);
+}
+
+// ===== CS대행 견적서 (위드콜) =====
+function generateQuoteCSAgent() {
+    const client = document.getElementById('clientName').value || '(업체명)';
+    const site = document.getElementById('siteName').value || '';
+    const contact = document.getElementById('contactName').value || '';
+    const quoteNum = document.getElementById('quoteNumber').value || 'WWC-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-001';
+    const quoteDate = document.getElementById('quoteDate').value || formatKoreanDate(new Date());
+
+    const seniorN = parseInt(document.getElementById('csSeniorCount').value) || 0;
+    const seniorS = parseInt(document.getElementById('csSeniorSalary').value) || 0;
+    const juniorN = parseInt(document.getElementById('csJuniorCount').value) || 0;
+    const juniorS = parseInt(document.getElementById('csJuniorSalary').value) || 0;
+    const asp = parseInt(document.getElementById('csASP').value) || 0;
+    const mgmtPct = parseFloat(document.getElementById('csMgmtFee').value) || 8;
+    const setupFee = parseInt(document.getElementById('csSetupFee').value) || 0;
+    const opTime = document.getElementById('csOpTime').value || '';
+    const workCond = document.getElementById('csWorkCond').value || '';
+    const workScope = document.getElementById('csWorkScope').value || '';
+
+    const totalPeople = seniorN + juniorN;
+    const laborCost = seniorN * seniorS + juniorN * juniorS;
+    const aspCost = asp * totalPeople;
+    const subtotal = laborCost + aspCost;
+    const mgmtCost = Math.round(subtotal * mgmtPct / 100);
+    const calcTotal = subtotal + mgmtCost;
+    const finalPrice = parseInt(document.getElementById('csAgentFinalPrice').value) || calcTotal;
+
+    const noteLines = (document.getElementById('quoteNotes').value || '').split('\n').filter(l => l.trim());
+    if (noteLines.length === 0) {
+        noteLines.push('위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.');
+        noteLines.push('최저시급 및 4대보험은 연도별 기준을 반영함.');
+        noteLines.push('교육비 별도 청구.');
+        noteLines.push('야간, 휴일, 연장 근무 발생 시 별도 수당 청구.');
+        noteLines.push('초기 구축비 ' + fmt(setupFee) + '원 별도 청구.' + (setupFee === 0 ? ' → 한시적 면제 프로모션 적용' : ''));
+        noteLines.push('부가세 별도 청구함.');
+    }
+
+    let peopleRows = '';
+    if (seniorN > 0) peopleRows += `<tr><td style="text-align:left;" rowspan="${juniorN > 0 ? 1 : 1}"><strong>직·간접<br>노무비</strong></td><td style="text-align:left;">선임 상담사</td><td>${fmt(seniorS)}</td><td>${seniorN}</td><td style="text-align:right;">${fmt(seniorN*seniorS)}</td></tr>`;
+    if (juniorN > 0) peopleRows += `<tr>${seniorN === 0 ? '<td style="text-align:left;"><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">일반 상담사</td><td>${fmt(juniorS)}</td><td>${juniorN}</td><td style="text-align:right;">${fmt(juniorN*juniorS)}</td></tr>`;
+
+    const quoteHTML = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>위드콜 견적서 - ${client}</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>${getQuoteCSS()}</style></head><body>
+<div class="document">
+${getQuoteHeader('위드콜 견적서', quoteNum, quoteDate, 'CS대행 서비스', '최종 제안가 ' + fmt(finalPrice) + '원')}
+<div class="body">
+${getQuoteParties(client, site || '-', contact)}
+
+<div class="section">
+    <div class="section-title"><span class="num">1</span>견적 내용</div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;">항목</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td style="text-align:left;">내용</td><td>${workScope || client + ' CS 업무'}</td></tr>
+            <tr><td style="text-align:left;">운영시간</td><td>${opTime}</td></tr>
+            <tr><td style="text-align:left;">인력 근무조건</td><td>${workCond}</td></tr>
+            <tr><td style="text-align:left;">업무범위</td><td>${workScope}</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <div class="section-title"><span class="num">2</span>운영 예산안 <span style="font-size:11px;font-weight:400;color:#888;">(단위: 원)</span></div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;">계정과목</th><th style="text-align:left;">항목</th><th>단가</th><th>인원</th><th style="text-align:right;">합계</th></tr></thead>
+        <tbody>
+            ${peopleRows}
+            <tr style="background:#f7fafc;"><td style="text-align:left;" colspan="3"><strong>① 소계</strong></td><td>${totalPeople}</td><td style="text-align:right;font-weight:600;">${fmt(laborCost)}</td></tr>
+            <tr><td style="text-align:left;" rowspan="3"><strong>운영비</strong></td><td style="text-align:left;">ASP 패키지</td><td>${fmt(asp)}</td><td>${totalPeople}</td><td style="text-align:right;">${fmt(aspCost)}</td></tr>
+            <tr><td style="text-align:left;">원 운영비</td><td colspan="2" style="text-align:center;color:#888;">발신비용 실비 청구</td><td style="text-align:right;">-</td></tr>
+            <tr><td style="text-align:left;"><strong>② 소계</strong></td><td></td><td></td><td style="text-align:right;font-weight:600;">${fmt(aspCost)}</td></tr>
+            <tr style="background:#f7fafc;"><td style="text-align:left;" colspan="3"><strong>③ 합계 (①+②)</strong></td><td></td><td style="text-align:right;font-weight:700;">${fmt(subtotal)}</td></tr>
+            <tr><td style="text-align:left;"><strong>수수료</strong></td><td style="text-align:left;">관리 수수료</td><td>${mgmtPct}%</td><td></td><td style="text-align:right;">${fmt(mgmtCost)}</td></tr>
+        </tbody>
+        <tfoot>
+            <tr><td style="text-align:left;" colspan="3"><strong>⑤ 총계 (③+④)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(calcTotal)}</td></tr>
+            ${finalPrice !== calcTotal ? '<tr><td style="text-align:left;" colspan="3"><strong style="color:#e53e3e;">최종 제안가</strong></td><td></td><td style="text-align:right;font-size:16px;font-weight:700;color:#e53e3e;">' + fmt(finalPrice) + '</td></tr>' : ''}
+        </tfoot>
+    </table>
+</div>
+
+<div class="section">
+    <div class="section-title"><span class="num">3</span>기타사항</div>
+    <div class="note-box">
+        ${noteLines.map((l,i) => '<p>'+(i+1)+'. '+l.trim()+'</p>').join('')}
+    </div>
+</div>
+</div>
+<div class="footer">워크위드 | 본 견적서는 견적일로부터 30일간 유효합니다.</div>
+</div></body></html>`;
+
+    showQuotePreview(quoteHTML);
+}
+
+// ===== CS쉐어링 견적서 =====
+function generateQuoteCSShare() {
+    const client = document.getElementById('clientName').value || '(업체명)';
+    const site = document.getElementById('siteName').value || '';
+    const contact = document.getElementById('contactName').value || '';
+    const quoteNum = document.getElementById('quoteNumber').value || 'WWC-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-001';
+    const quoteDate = document.getElementById('quoteDate').value || formatKoreanDate(new Date());
+
+    const baseFee = parseInt(document.getElementById('shareBaseFee').value) || 0;
+    const baseCall = parseInt(document.getElementById('shareBaseCall').value) || 0;
+    const perCall = parseInt(document.getElementById('sharePerCall').value) || 0;
+    const comm = document.getElementById('shareComm').value;
+    const opTime = document.getElementById('shareOpTime').value || '';
+    const setupFee = parseInt(document.getElementById('shareSetupFee').value) || 0;
+    const workScope = document.getElementById('shareWorkScope').value || '';
+    const services = document.getElementById('shareServices').value || '';
+    const callStandard = document.getElementById('shareCallStandard').value || '월 ' + baseCall + '건 기준';
+    const finalPrice = parseInt(document.getElementById('csShareFinalPrice').value) || baseFee;
+
+    const noteLines = (document.getElementById('quoteNotes').value || '').split('\n').filter(l => l.trim());
+    if (noteLines.length === 0) {
+        noteLines.push('위 내용은 예산(안)으로 실제 근무 내용과 발생 건수에 따라 조정될 수 있음.');
+        noteLines.push('녹취 및 시스템 이용료 포함 및 DB 제공. 녹취서비스는 60일 보관기준이며 DB 제공은 주간, 월간 보고서 형태로 제출.');
+        noteLines.push('근무요일 및 시간: ' + opTime);
+        noteLines.push('발신 비용은 별도로 실비 청구함(아웃콜).');
+        if (setupFee > 0) noteLines.push('초기 구축 비용 ' + fmt(setupFee) + '원 별도 청구 (1회성).');
+        noteLines.push('최소 12개월 이상 계약 체결 필수.');
+        noteLines.push('부가세 별도 청구함.');
+        noteLines.push('주말(공휴일), 야간, 심야 시간대 단가 협의 필요.');
+    }
+
+    const quoteHTML = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>CS쉐어링 견적서 - ${client}</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>${getQuoteCSS()}</style></head><body>
+<div class="document">
+${getQuoteHeader('견 적 서', quoteNum, quoteDate, 'CS쉐어링 서비스 (' + callStandard + ')', '최종 제안가 월 ' + fmt(finalPrice) + '원')}
+<div class="body">
+${getQuoteParties(client, site || '-', contact)}
+
+<div class="section">
+    <div class="section-title"><span class="num">1</span>견적 내용</div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;">항목</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td style="text-align:left;">내용</td><td>${workScope || client + ' CS 쉐어링'}</td></tr>
+            <tr><td style="text-align:left;">운영시간</td><td>${opTime}</td></tr>
+            <tr><td style="text-align:left;">운영 조건</td><td>CS 쉐어 ${callStandard}</td></tr>
+            <tr><td style="text-align:left;">업무범위</td><td>${workScope}</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <div class="section-title"><span class="num">2</span>운영 예산안 <span style="font-size:11px;font-weight:400;color:#888;">(단위: 원)</span></div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;">내용</th><th>1건 당<br>(${callStandard})</th><th style="text-align:right;">금액</th><th>비고</th></tr></thead>
+        <tbody>
+            <tr><td style="text-align:left;">기본료</td><td></td><td style="text-align:right;">${fmt(baseFee)}</td><td>${callStandard} 기본료</td></tr>
+            <tr><td style="text-align:left;">콜 단가</td><td>${fmt(perCall)}원/건</td><td style="text-align:right;">-</td><td>월 ${baseCall}건 초과 건당<br>${opTime} 근무 기준</td></tr>
+            <tr><td style="text-align:left;">통신 비용 (실비 청구)</td><td></td><td style="text-align:right;">-</td><td>${comm === '실비청구' ? '아웃콜 등 실비 발생 시 청구' : '기본료 포함'}</td></tr>
+        </tbody>
+        <tfoot>
+            <tr><td style="text-align:left;"><strong>합계</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(baseFee)}원~</td><td>VAT 별도</td></tr>
+            <tr><td style="text-align:left;"><strong style="color:#e53e3e;">최종 제안가</strong></td><td></td><td style="text-align:right;font-size:16px;font-weight:700;color:#e53e3e;">${fmt(finalPrice)}</td><td>VAT 별도</td></tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="section">
+    <div class="section-title"><span class="num">3</span>기타사항</div>
+    <div class="note-box">
+        ${noteLines.map((l,i) => '<p>'+(i+1)+'. '+l.trim()+'</p>').join('')}
+    </div>
+</div>
+</div>
+<div class="footer">워크위드 | 본 견적서는 견적일로부터 30일간 유효합니다.</div>
+</div></body></html>`;
+
+    showQuotePreview(quoteHTML);
 }
 
 function printQuote() {
@@ -1533,6 +2295,35 @@ function autoSave() {
         s3Start: document.getElementById('s3Start').value,
         s3End: document.getElementById('s3End').value,
         s3OT: document.getElementById('s3OT').value,
+        // CS대행 필드
+        csSeniorCount: document.getElementById('csSeniorCount').value,
+        csSeniorSalary: document.getElementById('csSeniorSalary').value,
+        csJuniorCount: document.getElementById('csJuniorCount').value,
+        csJuniorSalary: document.getElementById('csJuniorSalary').value,
+        csASP: document.getElementById('csASP').value,
+        csMgmtFee: document.getElementById('csMgmtFee').value,
+        csSetupFee: document.getElementById('csSetupFee').value,
+        csOpTime: document.getElementById('csOpTime').value,
+        csWorkCond: document.getElementById('csWorkCond').value,
+        csWorkScope: document.getElementById('csWorkScope').value,
+        csAgentFinalPrice: document.getElementById('csAgentFinalPrice').value,
+        // CS쉐어링 필드
+        shareBaseCall: document.getElementById('shareBaseCall').value,
+        shareBaseFee: document.getElementById('shareBaseFee').value,
+        sharePerCall: document.getElementById('sharePerCall').value,
+        shareComm: document.getElementById('shareComm').value,
+        shareOpTime: document.getElementById('shareOpTime').value,
+        shareSetupFee: document.getElementById('shareSetupFee').value,
+        shareCallStandard: document.getElementById('shareCallStandard').value,
+        shareWorkScope: document.getElementById('shareWorkScope').value,
+        shareServices: document.getElementById('shareServices').value,
+        csShareFinalPrice: document.getElementById('csShareFinalPrice').value,
+        // 일반도급 필드
+        laborMgmtFee: document.getElementById('laborMgmtFee')?.value || '8',
+        laborTransport: document.getElementById('laborTransport')?.value || '100000',
+        laborLeaderPay: document.getElementById('laborLeaderPay')?.value || '100000',
+        laborBizTax: document.getElementById('laborBizTax')?.value || '0.5',
+        laborLongCare: document.getElementById('laborLongCare')?.value || '13.14',
         state: state,
         savedAt: new Date().toISOString()
     };
@@ -1555,7 +2346,12 @@ function loadSaved() {
         'quoteNumber','quoteDate','workScope','quoteNotes','finalPrice','lessonMemo',
         'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
         'nightStart','nightEnd',
-        's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT'];
+        's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
+        'csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
+        'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice',
+        'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
+        'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
+        'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare'];
 
     fields.forEach(id => {
         const el = document.getElementById(id);
@@ -1571,6 +2367,16 @@ function loadSaved() {
         restoreOptions('opDays', state.opDays);
         restoreOptions('manager', state.manager);
         restoreOptions('result', state.result);
+
+        // 견적 유형 복원
+        if (state.quoteType) {
+            switchQuoteType(state.quoteType, null);
+            document.querySelectorAll('.type-card').forEach(c => {
+                const types = { outsource: '정액제 도급', labor: '일반 도급', 'cs-agent': 'CS대행', 'cs-share': 'CS쉐어링' };
+                if (c.querySelector('.type-name').textContent === types[state.quoteType]) c.classList.add('selected');
+                else c.classList.remove('selected');
+            });
+        }
 
         // 3교대 행 표시 복원
         if (state.shiftPreset) {
@@ -1593,6 +2399,8 @@ function loadSaved() {
 
     calcPersonnel();
     calcCost();
+    if (state.quoteType === 'cs-agent') calcCSAgent();
+    if (state.quoteType === 'cs-share') calcCSShare();
 
     alert('불러왔습니다. (저장 시간: ' + new Date(data.savedAt).toLocaleString('ko-KR') + ')');
 }
@@ -1649,7 +2457,8 @@ function resetAll() {
     document.querySelectorAll('.option-btn.selected').forEach(b => b.classList.remove('selected'));
     document.querySelectorAll('.checklist li.checked').forEach(li => li.classList.remove('checked'));
 
-    state = { source:'', currentOps:'', opDays:'주7일', shifts:'2교대', manager:'1명 배치', result:'', shiftPreset:'service', checklist:[false,false,false,false,false,false,false,false,false,false] };
+    state = { quoteType:'outsource', source:'', currentOps:'', opDays:'주7일', shifts:'2교대', manager:'1명 배치', result:'', shiftPreset:'service', checklist:[false,false,false,false,false,false,false,false,false,false] };
+    switchQuoteType('outsource', document.querySelector('.type-card'));
 
     // 기본 선택 복원
     document.querySelectorAll('.option-btn').forEach(btn => {
@@ -1820,7 +2629,12 @@ function loadFromHistory(idx) {
         'quoteNumber','quoteDate','workScope','quoteNotes','finalPrice','lessonMemo',
         'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
         'nightStart','nightEnd',
-        's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT'];
+        's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
+        'csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
+        'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice',
+        'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
+        'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
+        'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare'];
 
     fields.forEach(id => {
         const el = document.getElementById(id);
@@ -1897,6 +2711,7 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 
     // 초기 계산
+    switchQuoteType('outsource', document.querySelector('.type-card'));
     calcPersonnel();
     calcCost();
 });
