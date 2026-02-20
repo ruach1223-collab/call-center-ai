@@ -256,6 +256,70 @@
             background: #38a169;
         }
 
+        /* 이력 모달 */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #fff; border-radius: 12px; width: 90%; max-width: 700px;
+            max-height: 80vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            padding: 20px 24px; border-bottom: 1px solid #e2e8f0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h2 { font-size: 18px; font-weight: 600; color: #1a365d; }
+        .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #718096; padding: 4px 8px; }
+        .modal-body { padding: 20px 24px; overflow-y: auto; max-height: calc(80vh - 130px); }
+        .history-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 8px;
+            margin-bottom: 8px; cursor: pointer; transition: all 0.15s;
+        }
+        .history-item:hover { background: #f7fafc; border-color: #1a365d; }
+        .history-info { flex: 1; }
+        .history-client { font-weight: 600; color: #1a365d; font-size: 14px; }
+        .history-meta { font-size: 12px; color: #718096; margin-top: 2px; }
+        .history-amount { font-weight: 700; color: #1a365d; font-size: 15px; text-align: right; min-width: 120px; }
+        .history-actions { display: flex; gap: 6px; margin-left: 12px; }
+        .history-actions button {
+            padding: 4px 10px; border-radius: 4px; border: 1px solid #e2e8f0;
+            background: #fff; font-size: 11px; cursor: pointer; font-family: inherit;
+        }
+        .history-actions .btn-load { color: #1a365d; border-color: #1a365d; }
+        .history-actions .btn-load:hover { background: #1a365d; color: #fff; }
+        .history-actions .btn-del { color: #e53e3e; border-color: #e53e3e; }
+        .history-actions .btn-del:hover { background: #e53e3e; color: #fff; }
+        .history-empty { text-align: center; color: #a0aec0; padding: 40px; font-size: 14px; }
+        .history-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            font-size: 10px; font-weight: 600; margin-left: 6px;
+        }
+        .badge-win { background: #c6f6d5; color: #276749; }
+        .badge-loss { background: #fed7d7; color: #9b2c2c; }
+        .badge-pending { background: #fefcbf; color: #975a16; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid #e2e8f0; text-align: right; }
+
+        /* 요율 설정 토글 */
+        .rate-toggle {
+            font-size: 12px; color: #2b6cb0; cursor: pointer; margin-left: 8px;
+            border: none; background: none; font-family: inherit; text-decoration: underline;
+        }
+        .rate-settings { display: none; margin-top: 12px; }
+        .rate-settings.open { display: block; }
+        .rate-row {
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+        }
+        .rate-item {
+            display: flex; align-items: center; gap: 4px; font-size: 12px; color: #4a5568;
+        }
+        .rate-item input {
+            width: 65px; text-align: center; padding: 4px 6px; font-size: 12px;
+            border: 1px solid #e2e8f0; border-radius: 4px;
+        }
+
         /* 인쇄 숨김 */
         @media print { body > *:not(.print-target) { display: none !important; } }
 
@@ -282,8 +346,9 @@
             <span id="saveStatus">자동 저장됨</span>
         </div>
         <div class="header-actions">
+            <button onclick="saveToHistory()" style="background:rgba(56,161,105,0.3);border-color:rgba(56,161,105,0.5);">저장</button>
+            <button onclick="showHistory()">이력조회</button>
             <button onclick="resetAll()">새 견적</button>
-            <button onclick="loadSaved()">불러오기</button>
         </div>
     </div>
 </div>
@@ -391,58 +456,81 @@
         <div class="card">
             <div class="card-title">현장 조건 입력</div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">영업 시작 시간</label>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <input type="number" id="openTime" value="8" min="0" max="23" style="width:80px; text-align:center;" onchange="calcPersonnel(); autoSave();">
-                        <span style="color:#718096;">시</span>
-                        <input type="number" id="openMin" value="0" min="0" max="59" step="30" style="width:80px; text-align:center;" onchange="calcPersonnel(); autoSave();">
-                        <span style="color:#718096;">분</span>
-                    </div>
+            <div class="form-group">
+                <label class="form-label">근무 패턴</label>
+                <div class="option-group">
+                    <button class="option-btn selected" onclick="applyShiftPreset('service', this)">서비스업</button>
+                    <button class="option-btn" onclick="applyShiftPreset('mfg2', this)">제조 주야2교대</button>
+                    <button class="option-btn" onclick="applyShiftPreset('mfg12', this)">제조 12시간</button>
+                    <button class="option-btn" onclick="applyShiftPreset('mfg3', this)">3교대</button>
+                    <button class="option-btn" onclick="applyShiftPreset('custom', this)">커스텀</button>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">영업 종료 시간</label>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <input type="number" id="closeTime" value="23" min="0" max="30" style="width:80px; text-align:center;" onchange="calcPersonnel(); autoSave();">
-                        <span style="color:#718096;">시</span>
-                        <input type="number" id="closeMin" value="0" min="0" max="59" step="30" style="width:80px; text-align:center;" onchange="calcPersonnel(); autoSave();">
-                        <span style="color:#718096;">분</span>
-                    </div>
-                    <div style="font-size:11px; color:#a0aec0; margin-top:4px;">24시간 운영 = 종료시간 24시 이상 입력</div>
-                </div>
+                <div id="presetDesc" style="font-size:11px; color:#a0aec0; margin-top:6px;">영업시간을 교대로 나누어 커버</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">교대조 시간표</label>
+                <table class="data-table" style="margin:0;">
+                    <thead>
+                        <tr>
+                            <th style="width:70px;">교대조</th>
+                            <th>시작</th>
+                            <th>종료</th>
+                            <th>잔업종료 <span style="font-weight:400;color:#a0aec0;">(선택)</span></th>
+                            <th style="width:80px;text-align:right;">시간</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shiftTableBody">
+                        <tr>
+                            <td style="font-weight:600;color:#1a365d;">1교대</td>
+                            <td><input type="text" id="s1Start" value="08:00" style="width:70px;text-align:center;padding:4px;" onchange="calcPersonnel(); autoSave();"></td>
+                            <td><input type="text" id="s1End" value="15:30" style="width:70px;text-align:center;padding:4px;" onchange="calcPersonnel(); autoSave();"></td>
+                            <td><input type="text" id="s1OT" value="" placeholder="-" style="width:70px;text-align:center;padding:4px;color:#ed8936;" onchange="calcPersonnel(); autoSave();"></td>
+                            <td class="num" id="s1Hours">7.5h</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight:600;color:#1a365d;">2교대</td>
+                            <td><input type="text" id="s2Start" value="15:30" style="width:70px;text-align:center;padding:4px;" onchange="calcPersonnel(); autoSave();"></td>
+                            <td><input type="text" id="s2End" value="23:00" style="width:70px;text-align:center;padding:4px;" onchange="calcPersonnel(); autoSave();"></td>
+                            <td><input type="text" id="s2OT" value="" placeholder="-" style="width:70px;text-align:center;padding:4px;color:#ed8936;" onchange="calcPersonnel(); autoSave();"></td>
+                            <td class="num" id="s2Hours">7.5h</td>
+                        </tr>
+                        <tr id="shift3Row" style="display:none;">
+                            <td style="font-weight:600;color:#1a365d;">3교대</td>
+                            <td><input type="text" id="s3Start" value="" style="width:70px;text-align:center;padding:4px;" onchange="calcPersonnel(); autoSave();"></td>
+                            <td><input type="text" id="s3End" value="" style="width:70px;text-align:center;padding:4px;" onchange="calcPersonnel(); autoSave();"></td>
+                            <td><input type="text" id="s3OT" value="" placeholder="-" style="width:70px;text-align:center;padding:4px;color:#ed8936;" onchange="calcPersonnel(); autoSave();"></td>
+                            <td class="num" id="s3Hours">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="font-size:11px; color:#a0aec0; margin-top:4px;">시간은 HH:MM 형식. 야간(익일) = 24시 이후로 입력 (예: 05:00 → 29:00)</div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">주간 운영일</label>
                     <div class="option-group">
+                        <button class="option-btn" onclick="selectOption(this,'opDays'); autoSave();">주1일</button>
+                        <button class="option-btn" onclick="selectOption(this,'opDays'); autoSave();">주2일</button>
+                        <button class="option-btn" onclick="selectOption(this,'opDays'); autoSave();">주3일</button>
+                        <button class="option-btn" onclick="selectOption(this,'opDays'); autoSave();">주4일</button>
                         <button class="option-btn" onclick="selectOption(this,'opDays'); autoSave();">주5일</button>
                         <button class="option-btn" onclick="selectOption(this,'opDays'); autoSave();">주6일</button>
                         <button class="option-btn selected" onclick="selectOption(this,'opDays'); autoSave();">주7일</button>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">교대 수</label>
-                    <div class="option-group">
-                        <button class="option-btn" onclick="selectOption(this,'shifts'); autoSave();">1교대</button>
-                        <button class="option-btn selected" onclick="selectOption(this,'shifts'); autoSave();">2교대</button>
-                        <button class="option-btn" onclick="selectOption(this,'shifts'); autoSave();">3교대</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
                     <label class="form-label">교대당 필요 인원</label>
                     <input type="number" id="perShift" value="4" min="1" max="50" onchange="calcPersonnel(); autoSave();">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">현장관리자 <span class="hint">(별도)</span></label>
-                    <div class="option-group">
-                        <button class="option-btn selected" onclick="selectOption(this,'manager'); autoSave();">1명 배치</button>
-                        <button class="option-btn" onclick="selectOption(this,'manager'); autoSave();">미배치</button>
-                    </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">현장관리자 <span class="hint">(별도)</span></label>
+                <div class="option-group">
+                    <button class="option-btn selected" onclick="selectOption(this,'manager'); autoSave();">1명 배치</button>
+                    <button class="option-btn" onclick="selectOption(this,'manager'); autoSave();">미배치</button>
                 </div>
             </div>
         </div>
@@ -499,6 +587,56 @@
                     <div class="result-box" style="padding:10px 14px;">
                         <span id="baseWage" style="font-size:18px; font-weight:600;">2,194,500원</span>
                         <div class="result-sub">시급 × 209시간</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:8px;">
+                <span style="font-size:13px; font-weight:600; color:#4a5568;">요율 설정</span>
+                <button class="rate-toggle" onclick="toggleRates()">수정하기</button>
+                <div class="rate-settings" id="rateSettings">
+                    <div style="font-size:11px; color:#a0aec0; margin-bottom:8px;">업종/연도에 따라 요율이 다릅니다. 필요 시 수정하세요.</div>
+                    <div class="rate-row">
+                        <div class="rate-item">
+                            <span>국민연금</span>
+                            <input type="number" id="ratePension" value="4.5" step="0.1" onchange="calcCost(); autoSave();">
+                            <span>%</span>
+                        </div>
+                        <div class="rate-item">
+                            <span>건강보험</span>
+                            <input type="number" id="rateHealth" value="3.545" step="0.001" onchange="calcCost(); autoSave();">
+                            <span>%</span>
+                        </div>
+                        <div class="rate-item">
+                            <span>고용보험</span>
+                            <input type="number" id="rateEmploy" value="0.9" step="0.1" onchange="calcCost(); autoSave();">
+                            <span>%</span>
+                        </div>
+                        <div class="rate-item">
+                            <span>산재보험</span>
+                            <input type="number" id="rateIndust" value="1.5" step="0.1" onchange="calcCost(); autoSave();">
+                            <span>%</span>
+                        </div>
+                        <div class="rate-item">
+                            <span>퇴직금</span>
+                            <input type="number" id="rateRetire" value="8.33" step="0.01" onchange="calcCost(); autoSave();">
+                            <span>%</span>
+                        </div>
+                        <div class="rate-item">
+                            <span>심야가산</span>
+                            <input type="number" id="rateNight" value="50" step="5" onchange="calcPersonnel(); autoSave();">
+                            <span>%</span>
+                        </div>
+                        <div class="rate-item">
+                            <span>야간시작</span>
+                            <input type="number" id="nightStart" value="22" step="1" min="18" max="24" onchange="calcPersonnel(); autoSave();">
+                            <span>시</span>
+                        </div>
+                        <div class="rate-item">
+                            <span>야간종료</span>
+                            <input type="number" id="nightEnd" value="6" step="1" min="0" max="8" onchange="calcPersonnel(); autoSave();">
+                            <span>시</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -742,6 +880,20 @@
 
 </div>
 
+<!-- ===== 이력 모달 ===== -->
+<div class="modal-overlay" id="historyModal" onclick="if(event.target===this)closeHistory()">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>견적 이력</h2>
+            <button class="modal-close" onclick="closeHistory()">&times;</button>
+        </div>
+        <div class="modal-body" id="historyList"></div>
+        <div class="modal-footer">
+            <span style="font-size:11px;color:#a0aec0;">최대 50건 저장 | 브라우저 localStorage 기반</span>
+        </div>
+    </div>
+</div>
+
 <script>
 // ===== 전역 상태 =====
 let state = {
@@ -798,53 +950,163 @@ function onIndustryChange() {
     }
 }
 
+// ===== 시간 파싱 유틸 =====
+function parseTime(str) {
+    // "HH:MM" 또는 "HH" → 시간(소수)으로 변환
+    if (!str || str.trim() === '' || str.trim() === '-') return null;
+    const parts = str.trim().split(':');
+    const h = parseInt(parts[0]) || 0;
+    const m = parseInt(parts[1]) || 0;
+    return h + m / 60;
+}
+
+function fmtTime(decimal) {
+    if (decimal === null || isNaN(decimal)) return '-';
+    const h = Math.floor(decimal);
+    const m = Math.round((decimal - h) * 60);
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+
+// ===== 교대 프리셋 =====
+const shiftPresets = {
+    service: {
+        desc: '영업시간을 교대로 나누어 커버 (서비스업, 호텔, 세차 등)',
+        shifts: 2, show3: false,
+        s1: { start: '08:00', end: '15:30', ot: '' },
+        s2: { start: '15:30', end: '23:00', ot: '' },
+        s3: { start: '', end: '', ot: '' }
+    },
+    mfg2: {
+        desc: '주간/야간 2교대 (제조, 물류). 잔업시간 별도 입력 가능',
+        shifts: 2, show3: false,
+        s1: { start: '08:00', end: '17:00', ot: '19:00' },
+        s2: { start: '19:00', end: '29:00', ot: '31:00' },
+        s3: { start: '', end: '', ot: '' }
+    },
+    mfg12: {
+        desc: '12시간 주야 2교대 (제조, 물류)',
+        shifts: 2, show3: false,
+        s1: { start: '08:00', end: '20:00', ot: '' },
+        s2: { start: '20:00', end: '32:00', ot: '' },
+        s3: { start: '', end: '', ot: '' }
+    },
+    mfg3: {
+        desc: '8시간 3교대 연속 운영 (24시간 공장)',
+        shifts: 3, show3: true,
+        s1: { start: '08:00', end: '16:00', ot: '' },
+        s2: { start: '16:00', end: '24:00', ot: '' },
+        s3: { start: '24:00', end: '32:00', ot: '' }
+    },
+    custom: {
+        desc: '교대조별 시간을 직접 입력하세요',
+        shifts: 2, show3: false,
+        s1: { start: '', end: '', ot: '' },
+        s2: { start: '', end: '', ot: '' },
+        s3: { start: '', end: '', ot: '' }
+    }
+};
+
+function applyShiftPreset(key, btn) {
+    // 버튼 선택 표시
+    btn.parentElement.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    state.shiftPreset = key;
+
+    const preset = shiftPresets[key];
+    document.getElementById('presetDesc').textContent = preset.desc;
+
+    // 시간 필드 채우기
+    ['s1','s2','s3'].forEach(s => {
+        document.getElementById(s + 'Start').value = preset[s].start;
+        document.getElementById(s + 'End').value = preset[s].end;
+        document.getElementById(s + 'OT').value = preset[s].ot;
+    });
+
+    // 3교대 행 표시/숨김
+    document.getElementById('shift3Row').style.display = preset.show3 ? '' : 'none';
+
+    calcPersonnel();
+    autoSave();
+}
+
 // ===== 인원 산출 =====
 function calcPersonnel() {
     const perShift = parseInt(document.getElementById('perShift').value) || 4;
-    const opDaysMap = { '주5일': 5, '주6일': 6, '주7일': 7 };
-    const shiftsMap = { '1교대': 1, '2교대': 2, '3교대': 3 };
+    const opDaysMap = { '주1일':1,'주2일':2,'주3일':3,'주4일':4,'주5일':5,'주6일':6,'주7일':7 };
     const opDays = opDaysMap[state.opDays] || 7;
-    const shifts = shiftsMap[state.shifts] || 2;
     const hasManager = state.manager === '1명 배치';
 
-    const dailyShifts = perShift * shifts;
+    // 야간 인정 시간대 (설정값)
+    const nightStartH = parseInt(document.getElementById('nightStart')?.value) || 22;
+    const nightEndH = parseInt(document.getElementById('nightEnd')?.value) || 6;
+
+    // 교대조별 시간 계산
+    const shiftData = [];
+    let totalWorkHours = 0;
+    let totalNightHours = 0;
+    let shiftCount = 0;
+
+    [1,2,3].forEach(i => {
+        const startStr = document.getElementById('s'+i+'Start').value;
+        const endStr = document.getElementById('s'+i+'End').value;
+        const otStr = document.getElementById('s'+i+'OT').value;
+
+        const start = parseTime(startStr);
+        const end = parseTime(endStr);
+        const ot = parseTime(otStr);
+
+        if (start !== null && end !== null && end > start) {
+            const workH = end - start;
+            const otH = (ot !== null && ot > end) ? ot - end : 0;
+            const totalH = workH + otH;
+
+            // 야간시간 계산 (22~30(=06) 범위의 시간 계산)
+            let nightH = calcNightHours(start, end + otH, nightStartH, nightEndH);
+
+            shiftData.push({ idx: i, start, end, ot, workH, otH, totalH, nightH });
+            totalWorkHours += totalH;
+            totalNightHours += nightH;
+            shiftCount++;
+
+            // 시간 표시 업데이트
+            const hStr = totalH % 1 === 0 ? totalH + 'h' : totalH.toFixed(1) + 'h';
+            document.getElementById('s'+i+'Hours').textContent = hStr + (nightH > 0 ? ' (야' + nightH.toFixed(1) + 'h)' : '');
+        } else {
+            document.getElementById('s'+i+'Hours').textContent = '-';
+        }
+    });
+
+    if (shiftCount === 0) shiftCount = 2; // 기본값
+
+    const dailyShifts = perShift * shiftCount;
     const rawPersonnel = dailyShifts * opDays / 5;
     const personnel = Math.ceil(rawPersonnel);
 
-    // 시간 계산 (분 단위 포함)
-    const openTimeH = parseInt(document.getElementById('openTime').value) || 8;
-    const openMinV = parseInt(document.getElementById('openMin').value) || 0;
-    const closeTimeH = parseInt(document.getElementById('closeTime').value) || 23;
-    const closeMinV = parseInt(document.getElementById('closeMin').value) || 0;
-
-    const openDecimal = openTimeH + openMinV / 60;
-    const closeDecimal = closeTimeH + closeMinV / 60;
-    const totalHoursCalc = closeDecimal > 24 ? 24 : closeDecimal - openDecimal;
-    const nightHours = closeDecimal > 22 ? closeDecimal - 22 : 0;
+    // 전체 운영 시간 범위
+    const firstStart = shiftData.length > 0 ? shiftData[0].start : 8;
+    const lastEnd = shiftData.length > 0 ? shiftData[shiftData.length-1].end + (shiftData[shiftData.length-1].otH || 0) : 23;
 
     document.getElementById('totalPersonnel').textContent = personnel + '명';
     document.getElementById('personnelFormula').textContent =
-        perShift + '명 × ' + shifts + '교대 × ' + opDays + '일 ÷ 5일 = ' +
+        perShift + '명 × ' + shiftCount + '교대 × ' + opDays + '일 ÷ 5일 = ' +
         rawPersonnel.toFixed(1) + ' → ' + personnel + '명';
 
     document.getElementById('managerInfo').textContent =
         hasManager ? '+ 현장관리자 1명' : '(현장관리자 미배치)';
 
     // 상세 테이블
-    const openTime = openTimeH;
-    const closeTime = closeTimeH;
-    const totalHours = totalHoursCalc;
-
-    const openStr = String(openTimeH).padStart(2,'0') + ':' + String(openMinV).padStart(2,'0');
-    const closeStr2 = closeTimeH >= 24 ? '24시간' : String(closeTimeH).padStart(2,'0') + ':' + String(closeMinV).padStart(2,'0');
-    const totalHoursStr = totalHours % 1 === 0 ? totalHours + '시간' : totalHours.toFixed(1) + '시간';
-
     let detailHTML = '';
-    detailHTML += '<tr><td>영업시간</td><td class="num">' + openStr + ' ~ ' + closeStr2 + ' (' + totalHoursStr + ')</td></tr>';
+    shiftData.forEach(s => {
+        const label = s.idx + '교대';
+        const timeStr = fmtTime(s.start) + '~' + fmtTime(s.end) + (s.otH > 0 ? ' (잔업~' + fmtTime(s.end + s.otH) + ')' : '');
+        detailHTML += '<tr><td>' + label + '</td><td class="num">' + timeStr + ' / ' + s.totalH.toFixed(1) + 'h</td></tr>';
+    });
     detailHTML += '<tr><td>운영일</td><td class="num">' + state.opDays + '</td></tr>';
-    detailHTML += '<tr><td>교대 구조</td><td class="num">' + state.shifts + ' (교대당 ' + perShift + '명)</td></tr>';
     detailHTML += '<tr><td>일일 man-shifts</td><td class="num">' + dailyShifts + '</td></tr>';
-    const nightStr = nightHours > 0 ? '22:00~' + closeStr2 + ' (' + (nightHours % 1 === 0 ? nightHours + '시간' : nightHours.toFixed(1) + '시간') + ')' : '없음';
+
+    const nightStr = totalNightHours > 0
+        ? nightStartH + ':00~' + (nightEndH < 10 ? '0' : '') + nightEndH + ':00 (일 ' + totalNightHours.toFixed(1) + 'h)'
+        : '없음';
     detailHTML += '<tr><td>야간 시간대</td><td class="num">' + nightStr + '</td></tr>';
     detailHTML += '<tr><td><strong>산출 인원</strong></td><td class="num highlight"><strong>' + personnel + '명</strong></td></tr>';
     if (hasManager) {
@@ -853,12 +1115,11 @@ function calcPersonnel() {
 
     document.getElementById('personnelDetail').innerHTML = detailHTML;
 
-    // 야간수당 자동 계산
-    if (nightHours > 0) {
+    // 야간수당 자동 계산 (심야가산율 적용)
+    const nightRate = (parseFloat(document.getElementById('rateNight').value) || 50) / 100;
+    if (totalNightHours > 0) {
         const wage = parseInt(document.getElementById('hourlyWage').value) || 10500;
-        const nightPay = Math.round(wage * 0.5 * nightHours * personnel * (opDays * 4.345 / 12));
-        // 간이 계산 (월 기준)
-        const monthlyNight = Math.round(wage * 0.5 * nightHours * personnel * opDays * 52 / 12);
+        const monthlyNight = Math.round(wage * nightRate * totalNightHours * personnel * opDays * 52 / 12);
         document.getElementById('nightPay').value = Math.round(monthlyNight / 10000) * 10000;
     } else {
         document.getElementById('nightPay').value = 0;
@@ -866,7 +1127,31 @@ function calcPersonnel() {
 
     // 전역 저장
     state.personnel = personnel;
-    state.nightHours = nightHours;
+    state.nightHours = totalNightHours;
+    state.shiftCount = shiftCount;
+    state.shifts = shiftCount + '교대';
+}
+
+// 야간시간 계산 (24시간 기준 래핑 처리)
+function calcNightHours(start, end, nightStart, nightEnd) {
+    // nightStart=22, nightEnd=6 → 야간대 = 22~30(6+24)
+    let nightH = 0;
+    const ns = nightStart; // 22
+    const ne = nightEnd + 24; // 30
+
+    // shift가 일반 시간대일 때 (예: 8~17)
+    // shift가 야간을 걸칠 때 (예: 19~29=05시)
+    const overlapStart = Math.max(start, ns);
+    const overlapEnd = Math.min(end, ne);
+    if (overlapEnd > overlapStart) nightH += overlapEnd - overlapStart;
+
+    // 24시를 넘는 경우 (다음날 야간 시작 전까지)
+    // 예: start=24, end=32(=08) → 24~30 구간만 야간
+    if (start >= 24) {
+        // 이미 위에서 처리됨
+    }
+
+    return Math.max(0, nightH);
 }
 
 // ===== 원가 계산 =====
@@ -876,27 +1161,37 @@ function calcCost() {
     const nightPay = parseInt(document.getElementById('nightPay').value) || 0;
     const etcCost = parseInt(document.getElementById('etcCost').value) || 0;
 
+    // 요율 읽기 (조정 가능)
+    const rPension = (parseFloat(document.getElementById('ratePension').value) || 4.5) / 100;
+    const rHealth = (parseFloat(document.getElementById('rateHealth').value) || 3.545) / 100;
+    const rEmploy = (parseFloat(document.getElementById('rateEmploy').value) || 0.9) / 100;
+    const rIndust = (parseFloat(document.getElementById('rateIndust').value) || 1.5) / 100;
+    const rRetire = (parseFloat(document.getElementById('rateRetire').value) || 8.33) / 100;
+
     const baseWage = wage * 209;
-    const pension = Math.round(baseWage * 0.045);
-    const health = Math.round(baseWage * 0.03545);
-    const employ = Math.round(baseWage * 0.009);
-    const indust = Math.round(baseWage * 0.015);
+    const pension = Math.round(baseWage * rPension);
+    const health = Math.round(baseWage * rHealth);
+    const employ = Math.round(baseWage * rEmploy);
+    const indust = Math.round(baseWage * rIndust);
     const insurance = pension + health + employ + indust;
-    const retire = Math.round(baseWage * 0.0833);
+    const retire = Math.round(baseWage * rRetire);
     const perPerson = baseWage + insurance + retire;
     const laborTotal = perPerson * personnel;
     const totalCost = laborTotal + nightPay + etcCost;
+
+    // 배율 계산
+    const multiplier = (perPerson / baseWage).toFixed(4);
 
     document.getElementById('baseWage').textContent = fmt(baseWage) + '원';
 
     let html = '';
     html += '<tr><td>기본급 (시급 × 209h)</td><td class="num">' + fmt(baseWage) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr><td>&nbsp;&nbsp;국민연금 (4.5%)</td><td class="num">' + fmt(pension) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr><td>&nbsp;&nbsp;건강보험 (3.545%)</td><td class="num">' + fmt(health) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr><td>&nbsp;&nbsp;고용보험 (0.9%)</td><td class="num">' + fmt(employ) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr><td>&nbsp;&nbsp;산재보험 (~1.5%)</td><td class="num">' + fmt(indust) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr><td>&nbsp;&nbsp;퇴직금충당 (8.33%)</td><td class="num">' + fmt(retire) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr style="background:#f7fafc;"><td><strong>1인당 총비용</strong></td><td class="num highlight"><strong>' + fmt(perPerson) + '원</strong></td><td class="num">× 1.1873</td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;국민연금 (' + (rPension*100).toFixed(1) + '%)</td><td class="num">' + fmt(pension) + '원</td><td class="num">1인당</td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;건강보험 (' + (rHealth*100).toFixed(3) + '%)</td><td class="num">' + fmt(health) + '원</td><td class="num">1인당</td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;고용보험 (' + (rEmploy*100).toFixed(1) + '%)</td><td class="num">' + fmt(employ) + '원</td><td class="num">1인당</td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;산재보험 (' + (rIndust*100).toFixed(1) + '%)</td><td class="num">' + fmt(indust) + '원</td><td class="num">1인당</td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;퇴직금충당 (' + (rRetire*100).toFixed(2) + '%)</td><td class="num">' + fmt(retire) + '원</td><td class="num">1인당</td></tr>';
+    html += '<tr style="background:#f7fafc;"><td><strong>1인당 총비용</strong></td><td class="num highlight"><strong>' + fmt(perPerson) + '원</strong></td><td class="num">× ' + multiplier + '</td></tr>';
     html += '<tr><td>인건비 소계 (' + personnel + '명)</td><td class="num">' + fmt(laborTotal) + '원</td><td></td></tr>';
     html += '<tr><td>야간수당</td><td class="num">' + fmt(nightPay) + '원</td><td></td></tr>';
     html += '<tr><td>기타비용 (유니폼/교육/채용)</td><td class="num">' + fmt(etcCost) + '원</td><td></td></tr>';
@@ -976,12 +1271,14 @@ function generateQuote() {
     const admin = parseInt(document.getElementById('itemAdmin').value) || 0;
     const total = dogup + manage + admin;
 
-    const openH = String(document.getElementById('openTime').value).padStart(2,'0');
-    const openM = String(document.getElementById('openMin').value || 0).padStart(2,'0');
-    const closeH = parseInt(document.getElementById('closeTime').value) || 23;
-    const closeM = String(document.getElementById('closeMin').value || 0).padStart(2,'0');
-    const openTime = openH + ':' + openM;
-    const closeStr = closeH >= 24 ? '24:00' : String(closeH).padStart(2,'0') + ':' + closeM;
+    // 교대조에서 시간 범위 도출
+    const s1s = document.getElementById('s1Start').value || '08:00';
+    const s1e = document.getElementById('s1End').value || '23:00';
+    const s2e = document.getElementById('s2End').value || '';
+    const s3e = document.getElementById('s3End').value || '';
+    const openTime = s1s;
+    const lastEnd = parseTime(s3e) || parseTime(s2e) || parseTime(s1e) || 23;
+    const closeStr = lastEnd >= 24 ? '24:00' : fmtTime(lastEnd);
     const perShift = document.getElementById('perShift').value;
 
     const workLines = (document.getElementById('workScope').value || '').split('\n').filter(l => l.trim());
@@ -1203,10 +1500,6 @@ function autoSave() {
         contactEmail: document.getElementById('contactEmail').value,
         reason: document.getElementById('reason').value,
         memo: document.getElementById('memo').value,
-        openTime: document.getElementById('openTime').value,
-        openMin: document.getElementById('openMin').value,
-        closeTime: document.getElementById('closeTime').value,
-        closeMin: document.getElementById('closeMin').value,
         perShift: document.getElementById('perShift').value,
         hourlyWage: document.getElementById('hourlyWage').value,
         nightPay: document.getElementById('nightPay').value,
@@ -1223,6 +1516,23 @@ function autoSave() {
         quoteNotes: document.getElementById('quoteNotes').value,
         finalPrice: document.getElementById('finalPrice').value,
         lessonMemo: document.getElementById('lessonMemo').value,
+        ratePension: document.getElementById('ratePension').value,
+        rateHealth: document.getElementById('rateHealth').value,
+        rateEmploy: document.getElementById('rateEmploy').value,
+        rateIndust: document.getElementById('rateIndust').value,
+        rateRetire: document.getElementById('rateRetire').value,
+        rateNight: document.getElementById('rateNight').value,
+        nightStart: document.getElementById('nightStart').value,
+        nightEnd: document.getElementById('nightEnd').value,
+        s1Start: document.getElementById('s1Start').value,
+        s1End: document.getElementById('s1End').value,
+        s1OT: document.getElementById('s1OT').value,
+        s2Start: document.getElementById('s2Start').value,
+        s2End: document.getElementById('s2End').value,
+        s2OT: document.getElementById('s2OT').value,
+        s3Start: document.getElementById('s3Start').value,
+        s3End: document.getElementById('s3End').value,
+        s3OT: document.getElementById('s3OT').value,
         state: state,
         savedAt: new Date().toISOString()
     };
@@ -1235,14 +1545,17 @@ function autoSave() {
 
 function loadSaved() {
     const saved = localStorage.getItem('ww_quote_current');
-    if (!saved) { alert('저장된 데이터가 없습니다.'); return; }
+    if (!saved) { showHistory(); return; }
     const data = JSON.parse(saved);
 
     // 필드 복원
     const fields = ['clientName','siteName','industry','contactName','contactPhone','contactEmail',
-        'reason','memo','openTime','openMin','closeTime','closeMin','perShift','hourlyWage','nightPay','etcCost',
+        'reason','memo','perShift','hourlyWage','nightPay','etcCost',
         'simQuote1','simQuote2','simQuote3','itemDogup','itemManage','itemAdmin',
-        'quoteNumber','quoteDate','workScope','quoteNotes','finalPrice','lessonMemo'];
+        'quoteNumber','quoteDate','workScope','quoteNotes','finalPrice','lessonMemo',
+        'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
+        'nightStart','nightEnd',
+        's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT'];
 
     fields.forEach(id => {
         const el = document.getElementById(id);
@@ -1256,9 +1569,14 @@ function loadSaved() {
         restoreOptions('source', state.source);
         restoreOptions('currentOps', state.currentOps);
         restoreOptions('opDays', state.opDays);
-        restoreOptions('shifts', state.shifts);
         restoreOptions('manager', state.manager);
         restoreOptions('result', state.result);
+
+        // 3교대 행 표시 복원
+        if (state.shiftPreset) {
+            const preset = shiftPresets[state.shiftPreset];
+            if (preset && preset.show3) document.getElementById('shift3Row').style.display = '';
+        }
 
         // 체크리스트 복원
         if (state.checklist) {
@@ -1318,6 +1636,12 @@ function resetAll() {
         if (el.id === 'hourlyWage') el.value = '10500';
         else if (el.id === 'perShift') el.value = '4';
         else if (el.id === 'etcCost') el.value = '1000000';
+        else if (el.id === 'ratePension') el.value = '4.5';
+        else if (el.id === 'rateHealth') el.value = '3.545';
+        else if (el.id === 'rateEmploy') el.value = '0.9';
+        else if (el.id === 'rateIndust') el.value = '1.5';
+        else if (el.id === 'rateRetire') el.value = '8.33';
+        else if (el.id === 'rateNight') el.value = '50';
         else if (el.className.includes('scenario-input')) {}
         else el.value = '';
     });
@@ -1325,16 +1649,17 @@ function resetAll() {
     document.querySelectorAll('.option-btn.selected').forEach(b => b.classList.remove('selected'));
     document.querySelectorAll('.checklist li.checked').forEach(li => li.classList.remove('checked'));
 
-    state = { source:'', currentOps:'', opDays:'주7일', shifts:'2교대', manager:'1명 배치', result:'', checklist:[false,false,false,false,false,false,false,false,false,false] };
+    state = { source:'', currentOps:'', opDays:'주7일', shifts:'2교대', manager:'1명 배치', result:'', shiftPreset:'service', checklist:[false,false,false,false,false,false,false,false,false,false] };
 
     // 기본 선택 복원
     document.querySelectorAll('.option-btn').forEach(btn => {
-        if (['주7일','2교대','1명 배치'].includes(btn.textContent.trim())) {
-            if (['opDays','shifts','manager'].includes(getGroup(btn))) {
-                btn.classList.add('selected');
-            }
+        if (['주7일','1명 배치','서비스업'].includes(btn.textContent.trim())) {
+            btn.classList.add('selected');
         }
     });
+
+    // 교대 프리셋 기본값 복원
+    applyShiftPreset('service', document.querySelector('.option-btn.selected'));
 
     document.getElementById('progressFill').style.width = '0%';
     document.getElementById('progressText').textContent = '0 / 10 완료';
@@ -1385,6 +1710,168 @@ function numToKorean(n) {
 
 function formatKoreanDate(d) {
     return d.getFullYear() + '년 ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일';
+}
+
+// ===== 요율 설정 토글 =====
+function toggleRates() {
+    document.getElementById('rateSettings').classList.toggle('open');
+}
+
+// ===== 이력 저장 =====
+function saveToHistory() {
+    const client = document.getElementById('clientName').value || '(미입력)';
+    const site = document.getElementById('siteName').value || '';
+    if (client === '(미입력)' && !site) {
+        if (!confirm('업체명이 비어있습니다. 그래도 저장하시겠습니까?')) return;
+    }
+
+    // 현재 데이터 수집 (autoSave와 동일)
+    autoSave();
+    const current = JSON.parse(localStorage.getItem('ww_quote_current') || '{}');
+
+    // 견적 금액 계산
+    const d = parseInt(document.getElementById('itemDogup').value) || 0;
+    const m = parseInt(document.getElementById('itemManage').value) || 0;
+    const a = parseInt(document.getElementById('itemAdmin').value) || 0;
+    const quoteAmount = (d + m + a) * 10000;
+
+    // 이력에 추가 메타 정보 붙이기
+    current._meta = {
+        client: client,
+        site: site,
+        industry: document.getElementById('industry').value || '',
+        quoteAmount: quoteAmount,
+        totalCost: state.totalCost || 0,
+        personnel: state.personnel || 0,
+        result: state.result || 'Pending (진행중)',
+        savedAt: new Date().toISOString()
+    };
+
+    // 이력 배열에 추가
+    const history = JSON.parse(localStorage.getItem('ww_quote_history') || '[]');
+    history.push(current);
+    if (history.length > 50) history.shift(); // 최대 50건
+    localStorage.setItem('ww_quote_history', JSON.stringify(history));
+
+    alert('이력에 저장되었습니다. (' + client + ' ' + site + ')');
+}
+
+// ===== 이력 조회 =====
+function showHistory() {
+    const history = JSON.parse(localStorage.getItem('ww_quote_history') || '[]');
+    const container = document.getElementById('historyList');
+
+    if (history.length === 0) {
+        container.innerHTML = '<div class="history-empty">저장된 견적 이력이 없습니다.<br>상단 [저장] 버튼을 눌러 이력을 쌓아보세요.</div>';
+    } else {
+        let html = '<div style="font-size:12px;color:#718096;margin-bottom:12px;">총 ' + history.length + '건</div>';
+
+        // 최신순으로 표시
+        for (let i = history.length - 1; i >= 0; i--) {
+            const item = history[i];
+            const meta = item._meta || {};
+            const client = meta.client || item.clientName || '(미입력)';
+            const site = meta.site || item.siteName || '';
+            const amount = meta.quoteAmount || 0;
+            const result = meta.result || '';
+            const savedAt = meta.savedAt || item.savedAt || '';
+            const dateStr = savedAt ? new Date(savedAt).toLocaleDateString('ko-KR', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
+
+            let badgeHTML = '';
+            if (result.includes('Win')) badgeHTML = '<span class="history-badge badge-win">Win</span>';
+            else if (result.includes('Loss')) badgeHTML = '<span class="history-badge badge-loss">Loss</span>';
+            else if (result.includes('Pending')) badgeHTML = '<span class="history-badge badge-pending">진행중</span>';
+
+            html += '<div class="history-item">';
+            html += '  <div class="history-info">';
+            html += '    <div class="history-client">' + client + ' ' + site + badgeHTML + '</div>';
+            html += '    <div class="history-meta">' + dateStr + (meta.industry ? ' | ' + meta.industry : '') + (meta.personnel ? ' | ' + meta.personnel + '명' : '') + '</div>';
+            html += '  </div>';
+            html += '  <div class="history-amount">' + (amount > 0 ? fmt(amount) + '원' : '-') + '</div>';
+            html += '  <div class="history-actions">';
+            html += '    <button class="btn-load" onclick="loadFromHistory(' + i + ')">불러오기</button>';
+            html += '    <button class="btn-del" onclick="deleteHistory(' + i + ')">삭제</button>';
+            html += '  </div>';
+            html += '</div>';
+        }
+        container.innerHTML = html;
+    }
+
+    document.getElementById('historyModal').classList.add('active');
+}
+
+function closeHistory() {
+    document.getElementById('historyModal').classList.remove('active');
+}
+
+// ===== 이력 불러오기 =====
+function loadFromHistory(idx) {
+    const history = JSON.parse(localStorage.getItem('ww_quote_history') || '[]');
+    if (idx < 0 || idx >= history.length) return;
+
+    if (!confirm('현재 작업 중인 데이터를 덮어씁니다. 계속하시겠습니까?')) return;
+
+    const data = history[idx];
+
+    // 필드 복원
+    const fields = ['clientName','siteName','industry','contactName','contactPhone','contactEmail',
+        'reason','memo','perShift','hourlyWage','nightPay','etcCost',
+        'simQuote1','simQuote2','simQuote3','itemDogup','itemManage','itemAdmin',
+        'quoteNumber','quoteDate','workScope','quoteNotes','finalPrice','lessonMemo',
+        'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
+        'nightStart','nightEnd',
+        's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT'];
+
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && data[id] !== undefined) el.value = data[id];
+    });
+
+    // 상태 복원
+    if (data.state) {
+        state = data.state;
+        restoreOptions('source', state.source);
+        restoreOptions('currentOps', state.currentOps);
+        restoreOptions('opDays', state.opDays);
+        restoreOptions('manager', state.manager);
+        restoreOptions('result', state.result);
+
+        // 3교대 행 표시 복원
+        if (state.shiftPreset) {
+            const preset = shiftPresets[state.shiftPreset];
+            if (preset && preset.show3) document.getElementById('shift3Row').style.display = '';
+        }
+
+        if (state.checklist) {
+            document.querySelectorAll('.checklist li').forEach((li, i) => {
+                li.classList.toggle('checked', !!state.checklist[i]);
+            });
+            const checked = state.checklist.filter(c => c).length;
+            document.getElementById('progressFill').style.width = (checked/10*100) + '%';
+            document.getElementById('progressText').textContent = checked + ' / 10 완료';
+        }
+    }
+
+    calcPersonnel();
+    calcCost();
+    closeHistory();
+    switchTab(0);
+
+    alert('불러왔습니다. (' + (data._meta?.client || data.clientName || '') + ')');
+}
+
+// ===== 이력 삭제 =====
+function deleteHistory(idx) {
+    const history = JSON.parse(localStorage.getItem('ww_quote_history') || '[]');
+    if (idx < 0 || idx >= history.length) return;
+
+    const meta = history[idx]._meta || {};
+    const name = (meta.client || '(미입력)') + ' ' + (meta.site || '');
+    if (!confirm(name.trim() + ' 이력을 삭제하시겠습니까?')) return;
+
+    history.splice(idx, 1);
+    localStorage.setItem('ww_quote_history', JSON.stringify(history));
+    showHistory(); // 새로고침
 }
 
 // ===== 초기화 =====
