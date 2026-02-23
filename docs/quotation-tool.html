@@ -457,7 +457,9 @@
                         <option value="세차/주차">세차/주차</option>
                         <option value="물류/택배">물류/택배</option>
                         <option value="제조라인">제조 라인</option>
-                        <option value="사무/CS">사무/CS</option>
+                        <option value="사무/행정">사무/행정</option>
+                        <option value="CS/콜센터">CS/콜센터</option>
+                        <option value="이커머스">이커머스</option>
                         <option value="경비/시설">경비/시설관리</option>
                         <option value="호텔/숙박">호텔/숙박</option>
                         <option value="식품제조">식품 제조</option>
@@ -1483,13 +1485,15 @@ function onIndustryChange() {
     const v = document.getElementById('industry').value;
     const tip = document.getElementById('industryTip');
     const tips = {
-        '세차/주차': '시급 10,320~11,000원 범위. 서비스 마인드 필요. 마진 여유 낮은 편 (20~25%).',
-        '물류/택배': '야간 많음, 수당 비중 높음. 시급 10,500~12,000원.',
-        '제조라인': '불법파견 주의! 적법운영안내서 함께 제출 권장. 시급 10,500~13,000원.',
-        '사무/CS': '주간만 운영, 전문성에 따라 편차. 마진 여유 높음.',
-        '경비/시설': '24시간 격일근무 가능. 시급 10,320~11,000원.',
-        '호텔/숙박': '서비스 마인드 필수. 시급 10,500~12,000원.',
-        '식품제조': '위생관리 필수. 시급 10,320~11,500원.'
+        '세차/주차': '시급 10,320~11,000원. 서비스 마인드 필요. 추천: 정액제 도급 / 일반 도급',
+        '물류/택배': '야간 많음, 수당 비중 높음. 시급 10,500~12,000원. 추천: 일반 도급 / 정액제 도급',
+        '제조라인': '불법파견 주의! 적법운영안내서 함께 제출 권장. 시급 10,500~13,000원. 추천: 정액제 도급',
+        '사무/행정': '주간 운영, 전문성에 따라 편차. 마진 여유 높음. 추천: 정액제 도급 / 채용대행',
+        'CS/콜센터': 'ASP 인프라 포함. AI 답변 시스템 연동 가능. 추천: CS대행 / CS쉐어링',
+        '이커머스': 'CS 외주로 마케팅·상품 집중. 소규모 셀러 최적. 추천: CS쉐어링 / CS대행',
+        '경비/시설': '24시간 격일근무 가능. 시급 10,320~11,000원. 추천: 정액제 도급',
+        '호텔/숙박': '서비스 마인드 필수. 시급 10,500~12,000원. 추천: 정액제 도급',
+        '식품제조': 'HACCP 위생관리 필수. 불법파견 주의. 시급 10,320~11,500원. 추천: 정액제 도급'
     };
     if (tips[v]) {
         tip.style.display = 'flex';
@@ -2094,6 +2098,7 @@ function generateQuoteOutsource() {
         </div>
 
         ${getServiceDescription('outsource')}
+        ${getIndustryPackage()}
 
         <div class="section">
             <div class="section-title"><span class="num">4</span>특기사항</div>
@@ -2226,6 +2231,7 @@ ${getQuoteParties(client, site || '-', contact)}
 </div>
 
 ${getServiceDescription('labor')}
+${getIndustryPackage()}
 
 <div class="section">
     <div class="section-title"><span class="num">3</span>기타사항</div>
@@ -2323,6 +2329,7 @@ ${getQuoteParties(client, site || '-', contact)}
 </div>
 
 ${getServiceDescription('cs-agent')}
+${getIndustryPackage()}
 
 <div class="section">
     <div class="section-title"><span class="num">3</span>기타사항</div>
@@ -2406,6 +2413,7 @@ ${getQuoteParties(client, site || '-', contact)}
 </div>
 
 ${getServiceDescription('cs-share')}
+${getIndustryPackage()}
 
 <div class="section">
     <div class="section-title"><span class="num">3</span>기타사항</div>
@@ -2495,6 +2503,122 @@ function getServiceDescription(type) {
     <div class="note-box" style="margin-top:8px;">
         <p style="font-size:11px;color:#888;">주식회사 워크위드 | 근로자파견사업 허가업체 | 8년 무사고 운영 | TEL 1600-9878</p>
     </div>
+</div>`;
+}
+
+// ===== 업종별 문제-해결책 패키징 HTML =====
+function getIndustryPackage() {
+    const industry = document.getElementById('industry').value;
+    if (!industry) return '';
+
+    // 하위 호환: 사무/CS → 사무/행정
+    const key = industry === '사무/CS' ? '사무/행정' : industry;
+
+    const packages = {
+        '세차/주차': {
+            title: '세차/주차 업종 맞춤 솔루션',
+            items: [
+                { pain: '잦은 퇴사로 인력 공백 발생', solution: '자체 인력풀 보유, 당일 대체인력 투입 보장' },
+                { pain: '서비스 품질 편차가 큼', solution: '입사 전 서비스 마인드 교육 + 정기 CS교육 실시' },
+                { pain: '직접 고용 시 4대보험·노무 부담', solution: '당사가 4대보험·급여·노무관리 일체 처리' },
+                { pain: '성수기/비수기 인원 조절 어려움', solution: '탄력배치 운영으로 비수기 비용 절감' }
+            ]
+        },
+        '물류/택배': {
+            title: '물류/택배 업종 맞춤 솔루션',
+            items: [
+                { pain: '야간·새벽 근무자 확보 어려움', solution: '야간 전문 인력 보유, 수당 포함 단가 제시' },
+                { pain: '물량 변동에 따른 인력 유동성 필요', solution: '일·주 단위 증감 가능한 탄력 운영 체계' },
+                { pain: '산재사고 리스크 높음', solution: '안전교육 의무 실시 + 산재보험 완비' },
+                { pain: '인력 관리에 시간·비용 과다 소모', solution: '현장관리자 상주 배치, 근태·품질 일괄 관리' }
+            ]
+        },
+        '제조라인': {
+            title: '제조 라인 업종 맞춤 솔루션',
+            items: [
+                { pain: '불법파견 판정 리스크', solution: '독립 지휘체계·공정분리로 적법도급 운영 (8년 무사고)' },
+                { pain: '생산라인 중단 시 매출 손실', solution: '결원 발생 당일 대체인력 투입, 라인 중단 최소화' },
+                { pain: '신규 인력 숙련도 낮음', solution: '자체 직무교육 프로그램으로 투입 전 사전 교육' },
+                { pain: '근로감독 대응 어려움', solution: '적법운영안내서 제공 + 근로감독 공동 대응' }
+            ]
+        },
+        '사무/행정': {
+            title: '사무/행정 업종 맞춤 솔루션',
+            items: [
+                { pain: '채용 후 조기 퇴사 반복', solution: '적합성 검증 후 배치 + 조기퇴사 시 즉시 교체' },
+                { pain: '전문 인력 채용 비용 부담', solution: '도급 전환으로 채용·교육·관리 비용 일괄 절감' },
+                { pain: '업무 표준화·인수인계 어려움', solution: '매뉴얼 기반 업무 정립 + 체계적 인수인계 지원' },
+                { pain: '단기 프로젝트 인력 필요', solution: '기간 맞춤 인력 배치, 계약기간 자유 설정' }
+            ]
+        },
+        'CS/콜센터': {
+            title: 'CS/콜센터 업종 맞춤 솔루션',
+            items: [
+                { pain: '자체 콜센터 운영비 과다 (CTI·녹취 등)', solution: 'ASP 시스템 일체 포함, 별도 인프라 비용 없음' },
+                { pain: '상담 품질 관리가 안 됨', solution: 'QA 전담 + AI 답변 시스템으로 정확도 향상' },
+                { pain: '상담원 채용·교육 부담', solution: '전문 상담사 직접 채용·교육 후 배치' },
+                { pain: '상담 데이터 활용 못함', solution: '일간/주간 VOC 리포트 + 녹취 DB 제공' }
+            ]
+        },
+        '이커머스': {
+            title: '이커머스 업종 맞춤 솔루션',
+            items: [
+                { pain: '고객 문의·반품·교환 응대에 시간 소모', solution: '전문 상담사가 CS 전반 대행 처리' },
+                { pain: 'CS 매뉴얼이 없어 응대 품질 들쭉날쭉', solution: '업체별 맞춤 매뉴얼 구축 + AI 답변 시스템 연동' },
+                { pain: 'CS 때문에 마케팅·상품에 집중 못함', solution: 'CS 통합 대행으로 핵심 업무 집중 환경 제공' },
+                { pain: '1인·소규모 셀러는 전담 상담사 부담', solution: '쉐어링 방식으로 소규모도 전문 CS 이용 가능' }
+            ]
+        },
+        '경비/시설': {
+            title: '경비/시설관리 업종 맞춤 솔루션',
+            items: [
+                { pain: '24시간 교대근무 인력 확보 난항', solution: '격일근무·3교대 전문 인력 보유' },
+                { pain: '고령 인력 관리 어려움', solution: '체력·적합성 평가 후 배치 + 정기 건강관리' },
+                { pain: '야간 근무 중 사고 리스크', solution: '안전교육 정기 실시 + 산재보험 완비' },
+                { pain: '경비 인력 서비스 마인드 부족', solution: '입주민 응대 교육 + 서비스 마인드 정기 교육' }
+            ]
+        },
+        '호텔/숙박': {
+            title: '호텔/숙박 업종 맞춤 솔루션',
+            items: [
+                { pain: '서비스 품질이 곧 매출에 직결', solution: '호텔 서비스 전문교육 이수 인력 배치' },
+                { pain: '객실 청소·프론트 인력 잦은 이탈', solution: '자체 인력풀 활용 당일 충원 보장' },
+                { pain: '성수기/비수기 인력 수급 불균형', solution: '시즌별 탄력배치 + 비수기 비용 최적화' },
+                { pain: '외국어 가능 인력 부족', solution: '외국어 가능 인력 우선 매칭 서비스' }
+            ]
+        },
+        '식품제조': {
+            title: '식품 제조 업종 맞춤 솔루션',
+            items: [
+                { pain: '위생관리 기준 미충족 시 영업정지', solution: '위생교육 의무화 + HACCP 기준 준수 관리' },
+                { pain: '생산량 변동에 따른 인력 유동성 필요', solution: '일·주 단위 인원 증감 가능 탄력 운영' },
+                { pain: '불법파견 판정 리스크', solution: '독립 공정분리 + 적법운영안내서 제출' },
+                { pain: '제조 경험 인력 확보 어려움', solution: '식품제조 경험자 인력풀 보유 + 사전 교육' }
+            ]
+        },
+        '기타': {
+            title: '워크위드 맞춤 솔루션',
+            items: [
+                { pain: '인력 채용·관리에 시간 소모', solution: '채용부터 관리까지 원스톱 아웃소싱' },
+                { pain: '인건비 외 부수 비용(4대보험 등) 부담', solution: '복리후생비·4대보험 포함 단가, 추가비용 없음' },
+                { pain: '갑작스러운 결원 대응 어려움', solution: '자체 인력풀 활용 당일 대체 투입 보장' },
+                { pain: '노무 리스크(근로감독 등) 부담', solution: '적법 운영 + 노무사 자문 지원' }
+            ]
+        }
+    };
+
+    const pkg = packages[key];
+    if (!pkg) return '';
+
+    return `
+<div class="section">
+    <div class="section-title"><span class="num">&#9733;</span>${pkg.title}</div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;width:220px;">업종 고민</th><th style="text-align:left;">워크위드 솔루션</th></tr></thead>
+        <tbody>
+            ${pkg.items.map(item => '<tr><td style="text-align:left;color:#c53030;">' + item.pain + '</td><td style="text-align:left;font-weight:600;">' + item.solution + '</td></tr>').join('')}
+        </tbody>
+    </table>
 </div>`;
 }
 
@@ -2591,6 +2715,7 @@ ${getQuoteParties(client, site || '-', contact)}
 </div>
 
 ${getServiceDescription('recruit')}
+${getIndustryPackage()}
 
 <div class="section">
     <div class="section-title"><span class="num">3</span>기타사항</div>
@@ -2746,6 +2871,9 @@ function loadSaved() {
     const saved = localStorage.getItem('ww_quote_current');
     if (!saved) { showHistory(); return; }
     const data = JSON.parse(saved);
+
+    // 하위 호환: 사무/CS → 사무/행정
+    if (data.industry === '사무/CS') data.industry = '사무/행정';
 
     // 필드 복원
     const fields = ['clientName','siteName','industry','contactName','contactPhone','contactEmail',
@@ -3040,6 +3168,9 @@ function loadFromHistory(idx) {
     if (!confirm('현재 작업 중인 데이터를 덮어씁니다. 계속하시겠습니까?')) return;
 
     const data = history[idx];
+
+    // 하위 호환: 사무/CS → 사무/행정
+    if (data.industry === '사무/CS') data.industry = '사무/행정';
 
     // 필드 복원
     const fields = ['clientName','siteName','industry','contactName','contactPhone','contactEmail',
