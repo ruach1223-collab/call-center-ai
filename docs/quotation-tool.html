@@ -784,6 +784,7 @@
             <div class="form-group">
                 <label class="form-label">근무 패턴</label>
                 <div class="option-group">
+                    <button class="option-btn" onclick="applyShiftPreset('day1', this)">주간(1교대)</button>
                     <button class="option-btn selected" onclick="applyShiftPreset('service', this)">서비스업</button>
                     <button class="option-btn" onclick="applyShiftPreset('mfg2', this)">제조 주야2교대</button>
                     <button class="option-btn" onclick="applyShiftPreset('mfg12', this)">제조 12시간</button>
@@ -813,7 +814,7 @@
                             <td><input type="text" id="s1OT" value="" placeholder="-" style="width:70px;text-align:center;padding:4px;color:#ed8936;" onchange="calcPersonnel(); autoSave();"></td>
                             <td class="num" id="s1Hours">7.5h</td>
                         </tr>
-                        <tr>
+                        <tr id="shift2Row">
                             <td style="font-weight:600;color:#1a365d;">2교대</td>
                             <td><input type="text" id="s2Start" value="15:30" style="width:70px;text-align:center;padding:4px;" onchange="calcPersonnel(); autoSave();"></td>
                             <td><input type="text" id="s2End" value="23:00" style="width:70px;text-align:center;padding:4px;" onchange="calcPersonnel(); autoSave();"></td>
@@ -1522,6 +1523,13 @@ function fmtTime(decimal) {
 
 // ===== 교대 프리셋 =====
 const shiftPresets = {
+    day1: {
+        desc: '주간 1교대 (사무, 소규모, 제조 주간 등). 1명부터 가능',
+        shifts: 1, show3: false,
+        s1: { start: '08:00', end: '17:00', ot: '' },
+        s2: { start: '', end: '', ot: '' },
+        s3: { start: '', end: '', ot: '' }
+    },
     service: {
         desc: '영업시간을 교대로 나누어 커버 (서비스업, 호텔, 세차 등)',
         shifts: 2, show3: false,
@@ -1575,7 +1583,8 @@ function applyShiftPreset(key, btn) {
         document.getElementById(s + 'OT').value = preset[s].ot;
     });
 
-    // 3교대 행 표시/숨김
+    // 2교대/3교대 행 표시/숨김
+    document.getElementById('shift2Row').style.display = preset.shifts >= 2 ? '' : 'none';
     document.getElementById('shift3Row').style.display = preset.show3 ? '' : 'none';
 
     calcPersonnel();
@@ -2924,10 +2933,13 @@ function loadSaved() {
             });
         }
 
-        // 3교대 행 표시 복원
+        // 2교대/3교대 행 표시 복원
         if (state.shiftPreset) {
             const preset = shiftPresets[state.shiftPreset];
-            if (preset && preset.show3) document.getElementById('shift3Row').style.display = '';
+            if (preset) {
+                document.getElementById('shift2Row').style.display = preset.shifts >= 2 ? '' : 'none';
+                if (preset.show3) document.getElementById('shift3Row').style.display = '';
+            }
         }
 
         // 체크리스트 복원
@@ -3220,10 +3232,13 @@ function loadFromHistory(idx) {
             });
         }
 
-        // 3교대 행 표시 복원
+        // 2교대/3교대 행 표시 복원
         if (state.shiftPreset) {
             const preset = shiftPresets[state.shiftPreset];
-            if (preset && preset.show3) document.getElementById('shift3Row').style.display = '';
+            if (preset) {
+                document.getElementById('shift2Row').style.display = preset.shifts >= 2 ? '' : 'none';
+                if (preset.show3) document.getElementById('shift3Row').style.display = '';
+            }
         }
 
         if (state.checklist) {
