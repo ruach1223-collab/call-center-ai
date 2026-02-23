@@ -3234,14 +3234,30 @@ function saveToHistory() {
     const a = parseInt(document.getElementById('itemAdmin').value) || 0;
     const quoteAmount = (d + m + a) * 10000;
 
+    // 유형별 인원 계산
+    let metaPersonnel = 0;
+    const qt = state.quoteType || 'outsource';
+    if (qt === 'cs-agent') {
+        metaPersonnel = (parseInt(document.getElementById('csLeaderCount').value) || 0)
+            + (parseInt(document.getElementById('csSeniorCount').value) || 0)
+            + (parseInt(document.getElementById('csJuniorCount').value) || 0);
+    } else if (qt === 'recruit') {
+        document.getElementById('recruitRows').querySelectorAll('tr').forEach(row => {
+            metaPersonnel += parseInt(row.querySelectorAll('input')[2]?.value) || 0;
+        });
+    } else if (qt !== 'cs-share') {
+        metaPersonnel = state.personnel || 0;
+    }
+
     // 이력에 추가 메타 정보 붙이기
     current._meta = {
         client: client,
         site: site,
         industry: document.getElementById('industry').value || '',
+        quoteType: qt,
         quoteAmount: quoteAmount,
         totalCost: state.totalCost || 0,
-        personnel: state.personnel || 0,
+        personnel: metaPersonnel,
         result: state.result || 'Pending (진행중)',
         savedAt: new Date().toISOString()
     };
@@ -3284,7 +3300,9 @@ function showHistory() {
             html += '<div class="history-item">';
             html += '  <div class="history-info">';
             html += '    <div class="history-client">' + client + ' ' + site + badgeHTML + '</div>';
-            html += '    <div class="history-meta">' + dateStr + (meta.industry ? ' | ' + meta.industry : '') + (meta.personnel ? ' | ' + meta.personnel + '명' : '') + '</div>';
+            const typeNames = { outsource:'정액제', labor:'일반도급', 'cs-agent':'CS대행', 'cs-share':'쉐어링', recruit:'채용대행' };
+            const typeName = typeNames[meta.quoteType] || '';
+            html += '    <div class="history-meta">' + dateStr + (typeName ? ' | ' + typeName : '') + (meta.industry ? ' | ' + meta.industry : '') + (meta.personnel ? ' | ' + meta.personnel + '명' : '') + '</div>';
             html += '  </div>';
             html += '  <div class="history-amount">' + (amount > 0 ? fmt(amount) + '원' : '-') + '</div>';
             html += '  <div class="history-actions">';
