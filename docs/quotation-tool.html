@@ -1991,14 +1991,14 @@ table.qt tfoot td { padding:12px 14px; border-top:2px solid #1a365d; font-size:1
 
 function getQuoteHeader(title, quoteNum, quoteDate, totalLabel, totalAmount) {
     return `<div class="header">
-    <div style="margin-bottom:15px;"><img src="${WW_LOGO}" alt="Walk With" style="height:36px;"></div>
-    <div class="header-top">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
         <h1>${title}</h1>
-        <div class="header-info">
-            <p><span class="label">견적번호</span> ${quoteNum}</p>
-            <p><span class="label">견적일자</span> ${quoteDate}</p>
-            <p><span class="label">유효기간</span> 견적일로부터 30일</p>
-        </div>
+        <img src="${WW_LOGO}" alt="Walk With" style="height:36px;">
+    </div>
+    <div style="text-align:right;font-size:12px;color:#666;line-height:1.8;margin-bottom:20px;">
+        <p><span class="label">견적번호</span> ${quoteNum}</p>
+        <p><span class="label">견적일자</span> ${quoteDate}</p>
+        <p><span class="label">유효기간</span> 견적일로부터 30일</p>
     </div>
     <div class="total-box">
         <div>
@@ -2123,14 +2123,14 @@ function generateQuoteOutsource() {
 <body>
 <div class="document">
     <div class="header">
-        <div style="margin-bottom:15px;"><img src="${WW_LOGO}" alt="Walk With" style="height:36px;"></div>
-        <div class="header-top">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
             <h1>견 적 서</h1>
-            <div class="header-info">
-                <p><span class="label">견적번호</span> ${quoteNum}</p>
-                <p><span class="label">견적일자</span> ${quoteDate}</p>
-                <p><span class="label">유효기간</span> 견적일로부터 30일</p>
-            </div>
+            <img src="${WW_LOGO}" alt="Walk With" style="height:36px;">
+        </div>
+        <div style="text-align:right;font-size:12px;color:#666;line-height:1.8;margin-bottom:20px;">
+            <p><span class="label">견적번호</span> ${quoteNum}</p>
+            <p><span class="label">견적일자</span> ${quoteDate}</p>
+            <p><span class="label">유효기간</span> 견적일로부터 30일</p>
         </div>
         <div class="total-box">
             <div>
