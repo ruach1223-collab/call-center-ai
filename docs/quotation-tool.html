@@ -1986,7 +1986,7 @@ table.qt tfoot td { padding:12px 14px; border-top:2px solid #1a365d; font-size:1
 .footer { text-align:center; padding:20px; font-size:11px; color:#a0aec0; border-top:1px solid #edf2f7; }
 .logo-area { text-align:center; padding:20px 0 10px; }
 @page { size:A4; margin:0; }
-@media print { * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; } body { background:#fff; margin:0; padding:15mm; } .document { box-shadow:none; margin:0; } }`;
+@media print { * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; } body { background:#fff; margin:0; padding:15mm; } .document { box-shadow:none; margin:0; } .section { page-break-inside:avoid; } table.qt thead { display:table-header-group; } }`;
 }
 
 function getQuoteHeader(title, quoteNum, quoteDate, totalLabel, totalAmount) {
@@ -2117,7 +2117,7 @@ function generateQuoteOutsource() {
         .note-box { background:#f7fafc; border:1px solid #e2e8f0; border-radius:6px; padding:16px 20px; font-size:12px; line-height:1.8; }
         .footer { text-align:center; padding:20px; font-size:11px; color:#a0aec0; border-top:1px solid #edf2f7; }
         @page { size:A4; margin:0; }
-        @media print { * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; } body { background:#fff; margin:0; padding:15mm; } .document { box-shadow:none; margin:0; } }
+        @media print { * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; } body { background:#fff; margin:0; padding:15mm; } .document { box-shadow:none; margin:0; } .section { page-break-inside:avoid; } }
     </style>
 </head>
 <body>
@@ -2748,7 +2748,7 @@ function getIndustryPackage() {
     if (!pkg) return '';
 
     return `
-<div class="section">
+<div class="section" style="page-break-inside:avoid;">
     <div class="section-title"><span class="num">&#9733;</span>${pkg.title}</div>
     <table class="qt">
         <thead><tr><th style="text-align:left;width:220px;">업종 고민</th><th style="text-align:left;">워크위드 솔루션</th></tr></thead>
