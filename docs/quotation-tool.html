@@ -875,6 +875,15 @@
                         + 현장관리자 1명
                     </div>
                 </div>
+                <div id="personnelOverrideBox" style="display:none; margin-top:14px; padding-top:14px; border-top:1px dashed #e2e8f0;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <label style="font-size:12px; font-weight:600; color:#c53030;">실제 투입 인원 직접 입력:</label>
+                        <input type="number" id="personnelOverride" value="" min="1" max="100" style="width:70px; text-align:center; font-size:16px; font-weight:700; padding:6px; border:2px solid #c53030; border-radius:6px;" onchange="applyPersonnelOverride(); autoSave();">
+                        <span style="font-size:12px; color:#888;">명</span>
+                        <button onclick="clearPersonnelOverride()" style="font-size:11px; color:#888; background:none; border:1px solid #ccc; border-radius:4px; padding:3px 8px; cursor:pointer;">자동계산 복원</button>
+                    </div>
+                    <div style="font-size:11px; color:#a0aec0; margin-top:4px;">소규모 현장: 1명이 주6~7일 근무 시 추가일은 연장수당으로 처리</div>
+                </div>
             </div>
 
             <table class="data-table" style="margin-top:16px;">
@@ -1687,11 +1696,44 @@ function calcPersonnel() {
         document.getElementById('nightPay').value = 0;
     }
 
+    // 오버라이드 박스 표시: 올림이 발생한 경우 (rawPersonnel과 personnel이 다를 때)
+    const overrideBox = document.getElementById('personnelOverrideBox');
+    const overrideInput = document.getElementById('personnelOverride');
+    if (rawPersonnel !== personnel && rawPersonnel > 0) {
+        overrideBox.style.display = '';
+        if (!overrideInput.value) {
+            // 오버라이드 값이 없으면 자동 계산 값 사용
+        }
+    } else {
+        overrideBox.style.display = 'none';
+        overrideInput.value = '';
+    }
+
+    // 오버라이드 값이 있으면 그것을 사용
+    const finalPersonnel = overrideInput.value ? parseInt(overrideInput.value) : personnel;
+
     // 전역 저장
-    state.personnel = personnel;
+    state.personnel = finalPersonnel;
+    state.personnelCalc = personnel; // 자동 계산값 보관
     state.nightHours = totalNightHours;
     state.shiftCount = shiftCount;
     state.shifts = shiftCount + '교대';
+}
+
+// ===== 인원 오버라이드 =====
+function applyPersonnelOverride() {
+    const val = parseInt(document.getElementById('personnelOverride').value);
+    if (val && val > 0) {
+        state.personnel = val;
+        calcCost();
+    }
+}
+
+function clearPersonnelOverride() {
+    document.getElementById('personnelOverride').value = '';
+    state.personnel = state.personnelCalc || state.personnel;
+    calcCost();
+    calcPersonnel(); // 재계산하여 원래 값 복원
 }
 
 // 야간시간 계산 (24시간 기준 래핑 처리)
@@ -2849,6 +2891,8 @@ function autoSave() {
         recruitMinMonth: document.getElementById('recruitMinMonth')?.value || '3',
         recruitFinalPrice: document.getElementById('recruitFinalPrice')?.value || '',
         // 채용대행 직무 행 데이터
+        personnelOverride: document.getElementById('personnelOverride')?.value || '',
+        // 채용대행 직무 행 데이터
         recruitRowsData: (() => {
             const rows = document.getElementById('recruitRows')?.querySelectorAll('tr') || [];
             const arr = [];
@@ -2897,7 +2941,8 @@ function loadSaved() {
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
         'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare',
-        'recruitOpTime','recruitWorkCond','recruitWorkScope','recruitFeeRate','recruitMinMonth','recruitFinalPrice'];
+        'recruitOpTime','recruitWorkCond','recruitWorkScope','recruitFeeRate','recruitMinMonth','recruitFinalPrice',
+        'personnelOverride'];
 
     fields.forEach(id => {
         const el = document.getElementById(id);
@@ -3197,7 +3242,8 @@ function loadFromHistory(idx) {
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
         'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare',
-        'recruitOpTime','recruitWorkCond','recruitWorkScope','recruitFeeRate','recruitMinMonth','recruitFinalPrice'];
+        'recruitOpTime','recruitWorkCond','recruitWorkScope','recruitFeeRate','recruitMinMonth','recruitFinalPrice',
+        'personnelOverride'];
 
     fields.forEach(id => {
         const el = document.getElementById(id);
