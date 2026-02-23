@@ -613,6 +613,12 @@
                     <div class="result-sub" id="csAgentDiscount"></div>
                 </div>
             </div>
+
+            <div class="card">
+                <div class="card-title">기타사항 (견적서에 표시)</div>
+                <textarea id="csAgentNotes" rows="8" oninput="autoSave();" style="width:100%;font-size:13px;line-height:1.8;"></textarea>
+                <div style="margin-top:8px;font-size:11px;color:#a0aec0;">한 줄에 하나씩 입력. 견적서 기타사항에 번호가 자동 부여됩니다.</div>
+            </div>
         </div>
 
         <!-- ===== CS쉐어링 전용: 콜 조건 ===== -->
@@ -1372,6 +1378,22 @@ function switchQuoteType(type, card) {
         const text = btn.childNodes[btn.childNodes.length - 1];
         if (text && text.nodeType === 3) text.textContent = labels[i];
     });
+
+    // CS대행 기타사항 기본값 세팅 (비어있을 때만)
+    const csNotesEl = document.getElementById('csAgentNotes');
+    if (type === 'cs-agent' && csNotesEl && !csNotesEl.value.trim()) {
+        const setupFee = parseInt(document.getElementById('csSetupFee').value) || 1000000;
+        csNotesEl.value = [
+            '위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.',
+            '연도별로 단가 상이할 수 있음.',
+            '교육비 별도 청구.',
+            '야간, 휴일, 연장 근무 발생 시 별도 수당 청구.',
+            'ASP 패키지 : 시설 및 좌석 배치, 보안, 관리 수수료 등 포함.',
+            '초기 구축비 ' + fmt(setupFee) + '원 별도 청구. → 한시적 면제 프로모션 적용',
+            '최소 12개월 이상 계약 체결 필수. → 한시적 협의 가능',
+            '부가세 별도 청구함.'
+        ].join('\n');
+    }
 
     // 운영방식 첫 번째 버튼: CS대행이면 '인하우스', 나머지는 '직접고용'
     const selfBtn = document.getElementById('btnCurrentOpsSelf');
@@ -2407,15 +2429,7 @@ function generateQuoteCSAgent() {
     const calcTotal = subtotal + mgmtCost;
     const finalPrice = parseInt(document.getElementById('csAgentFinalPrice').value) || calcTotal;
 
-    const noteLines = [];
-    noteLines.push('위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.');
-    noteLines.push('최저시급 및 4대보험은 연도별 기준을 반영함.');
-    noteLines.push('교육비 별도 청구.');
-    noteLines.push('야간, 휴일, 연장 근무 발생 시 별도 수당 청구.');
-    noteLines.push('초기 구축비 ' + fmt(setupFee) + '원 별도 청구.' + (setupFee === 0 ? ' → 한시적 면제 프로모션 적용' : ''));
-    noteLines.push('부가세 별도 청구함.');
-    const userNotes2 = (document.getElementById('quoteNotes').value || '').split('\n').filter(l => l.trim());
-    userNotes2.forEach(n => noteLines.push(n));
+    const noteLines = (document.getElementById('csAgentNotes').value || '').split('\n').filter(l => l.trim());
 
     let peopleRows = '';
     const laborRowCount = (leaderN > 0 ? 1 : 0) + (seniorN > 0 ? 1 : 0) + (juniorN > 0 ? 1 : 0);
@@ -2955,6 +2969,7 @@ function autoSave() {
         csWorkCond: document.getElementById('csWorkCond').value,
         csWorkScope: document.getElementById('csWorkScope').value,
         csAgentFinalPrice: document.getElementById('csAgentFinalPrice').value,
+        csAgentNotes: document.getElementById('csAgentNotes').value,
         // CS쉐어링 필드
         shareBaseCall: document.getElementById('shareBaseCall').value,
         shareBaseFee: document.getElementById('shareBaseFee').value,
@@ -3026,7 +3041,7 @@ function loadSaved() {
         'nightStart','nightEnd',
         's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
         'csLeaderCount','csLeaderSalary','csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
-        'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice',
+        'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice','csAgentNotes',
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
         'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare',
@@ -3342,7 +3357,7 @@ function loadFromHistory(idx) {
         'nightStart','nightEnd',
         's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
         'csLeaderCount','csLeaderSalary','csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
-        'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice',
+        'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice','csAgentNotes',
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
         'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare',
