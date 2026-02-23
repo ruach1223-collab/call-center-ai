@@ -488,7 +488,9 @@
                 <div class="option-group">
                     <button class="option-btn" onclick="selectOption(this,'source')">크몽</button>
                     <button class="option-btn" onclick="selectOption(this,'source')">소개</button>
-                    <button class="option-btn" onclick="selectOption(this,'source')">직접문의</button>
+                    <button class="option-btn" onclick="selectOption(this,'source')">구글광고</button>
+                    <button class="option-btn" onclick="selectOption(this,'source')">네이버광고</button>
+                    <button class="option-btn" onclick="selectOption(this,'source')">홈페이지</button>
                     <button class="option-btn" onclick="selectOption(this,'source')">기타</button>
                 </div>
             </div>
@@ -496,7 +498,7 @@
             <div class="form-group">
                 <label class="form-label">현재 운영 방식</label>
                 <div class="option-group">
-                    <button class="option-btn" onclick="selectOption(this,'currentOps')">직접고용</button>
+                    <button class="option-btn" onclick="selectOption(this,'currentOps')">인하우스</button>
                     <button class="option-btn" onclick="selectOption(this,'currentOps')">타사 아웃소싱</button>
                     <button class="option-btn" onclick="selectOption(this,'currentOps')">신규 사업장</button>
                 </div>
@@ -528,6 +530,16 @@
             <div class="card">
                 <div class="card-title">상담사 구성 (위드콜)</div>
 
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">팀장 <span class="hint">(0이면 미배치)</span></label>
+                        <input type="number" id="csLeaderCount" value="0" min="0" max="5" onchange="calcCSAgent(); autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">팀장 월급 (원)</label>
+                        <input type="number" id="csLeaderSalary" value="3800000" step="100000" onchange="calcCSAgent(); autoSave();">
+                    </div>
+                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">선임 상담사 수</label>
@@ -1357,6 +1369,8 @@ function switchQuoteType(type, card) {
 
 // ===== CS대행 비용 계산 =====
 function calcCSAgent() {
+    const leaderN = parseInt(document.getElementById('csLeaderCount').value) || 0;
+    const leaderS = parseInt(document.getElementById('csLeaderSalary').value) || 0;
     const seniorN = parseInt(document.getElementById('csSeniorCount').value) || 0;
     const seniorS = parseInt(document.getElementById('csSeniorSalary').value) || 0;
     const juniorN = parseInt(document.getElementById('csJuniorCount').value) || 0;
@@ -1364,14 +1378,15 @@ function calcCSAgent() {
     const asp = parseInt(document.getElementById('csASP').value) || 0;
     const mgmtPct = parseFloat(document.getElementById('csMgmtFee').value) || 8;
 
-    const totalPeople = seniorN + juniorN;
-    const laborCost = seniorN * seniorS + juniorN * juniorS;
+    const totalPeople = leaderN + seniorN + juniorN;
+    const laborCost = leaderN * leaderS + seniorN * seniorS + juniorN * juniorS;
     const aspCost = asp * totalPeople;
     const subtotal = laborCost + aspCost;
     const mgmtCost = Math.round(subtotal * mgmtPct / 100);
     const total = subtotal + mgmtCost;
 
     let html = '';
+    if (leaderN > 0) html += '<tr><td>팀장</td><td class="num">' + fmt(leaderS) + '</td><td class="num">' + leaderN + '</td><td class="num">' + fmt(leaderN * leaderS) + '</td></tr>';
     if (seniorN > 0) html += '<tr><td>선임 상담사</td><td class="num">' + fmt(seniorS) + '</td><td class="num">' + seniorN + '</td><td class="num">' + fmt(seniorN * seniorS) + '</td></tr>';
     if (juniorN > 0) html += '<tr><td>일반 상담사</td><td class="num">' + fmt(juniorS) + '</td><td class="num">' + juniorN + '</td><td class="num">' + fmt(juniorN * juniorS) + '</td></tr>';
     html += '<tr style="background:#f7fafc;"><td><strong>직·간접 노무비 소계</strong></td><td></td><td class="num">' + totalPeople + '</td><td class="num highlight">' + fmt(laborCost) + '</td></tr>';
@@ -2305,6 +2320,8 @@ function generateQuoteCSAgent() {
     const quoteNum = document.getElementById('quoteNumber').value || 'WWC-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-001';
     const quoteDate = document.getElementById('quoteDate').value || formatKoreanDate(new Date());
 
+    const leaderN = parseInt(document.getElementById('csLeaderCount').value) || 0;
+    const leaderS = parseInt(document.getElementById('csLeaderSalary').value) || 0;
     const seniorN = parseInt(document.getElementById('csSeniorCount').value) || 0;
     const seniorS = parseInt(document.getElementById('csSeniorSalary').value) || 0;
     const juniorN = parseInt(document.getElementById('csJuniorCount').value) || 0;
@@ -2316,8 +2333,8 @@ function generateQuoteCSAgent() {
     const workCond = document.getElementById('csWorkCond').value || '';
     const workScope = document.getElementById('csWorkScope').value || '';
 
-    const totalPeople = seniorN + juniorN;
-    const laborCost = seniorN * seniorS + juniorN * juniorS;
+    const totalPeople = leaderN + seniorN + juniorN;
+    const laborCost = leaderN * leaderS + seniorN * seniorS + juniorN * juniorS;
     const aspCost = asp * totalPeople;
     const subtotal = laborCost + aspCost;
     const mgmtCost = Math.round(subtotal * mgmtPct / 100);
@@ -2335,8 +2352,11 @@ function generateQuoteCSAgent() {
     userNotes2.forEach(n => noteLines.push(n));
 
     let peopleRows = '';
-    if (seniorN > 0) peopleRows += `<tr><td style="text-align:left;" rowspan="${juniorN > 0 ? 1 : 1}"><strong>직·간접<br>노무비</strong></td><td style="text-align:left;">선임 상담사</td><td>${fmt(seniorS)}</td><td>${seniorN}</td><td style="text-align:right;">${fmt(seniorN*seniorS)}</td></tr>`;
-    if (juniorN > 0) peopleRows += `<tr>${seniorN === 0 ? '<td style="text-align:left;"><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">일반 상담사</td><td>${fmt(juniorS)}</td><td>${juniorN}</td><td style="text-align:right;">${fmt(juniorN*juniorS)}</td></tr>`;
+    const laborRowCount = (leaderN > 0 ? 1 : 0) + (seniorN > 0 ? 1 : 0) + (juniorN > 0 ? 1 : 0);
+    let laborLabelDone = false;
+    if (leaderN > 0) { peopleRows += `<tr><td style="text-align:left;"${laborRowCount > 1 ? ' rowspan="'+laborRowCount+'"' : ''}><strong>직·간접<br>노무비</strong></td><td style="text-align:left;">팀장</td><td>${fmt(leaderS)}</td><td>${leaderN}</td><td style="text-align:right;">${fmt(leaderN*leaderS)}</td></tr>`; laborLabelDone = true; }
+    if (seniorN > 0) { peopleRows += `<tr>${!laborLabelDone ? '<td style="text-align:left;"'+(laborRowCount > 1 ? ' rowspan="'+laborRowCount+'"' : '')+'><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">선임 상담사</td><td>${fmt(seniorS)}</td><td>${seniorN}</td><td style="text-align:right;">${fmt(seniorN*seniorS)}</td></tr>`; laborLabelDone = true; }
+    if (juniorN > 0) { peopleRows += `<tr>${!laborLabelDone ? '<td style="text-align:left;"><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">일반 상담사</td><td>${fmt(juniorS)}</td><td>${juniorN}</td><td style="text-align:right;">${fmt(juniorN*juniorS)}</td></tr>`; }
 
     const quoteHTML = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>위드콜 견적서 - ${client}</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -2855,6 +2875,8 @@ function autoSave() {
         s3End: document.getElementById('s3End').value,
         s3OT: document.getElementById('s3OT').value,
         // CS대행 필드
+        csLeaderCount: document.getElementById('csLeaderCount').value,
+        csLeaderSalary: document.getElementById('csLeaderSalary').value,
         csSeniorCount: document.getElementById('csSeniorCount').value,
         csSeniorSalary: document.getElementById('csSeniorSalary').value,
         csJuniorCount: document.getElementById('csJuniorCount').value,
@@ -2936,7 +2958,7 @@ function loadSaved() {
         'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
         'nightStart','nightEnd',
         's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
-        'csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
+        'csLeaderCount','csLeaderSalary','csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
         'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice',
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
@@ -3237,7 +3259,7 @@ function loadFromHistory(idx) {
         'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
         'nightStart','nightEnd',
         's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
-        'csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
+        'csLeaderCount','csLeaderSalary','csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
         'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice',
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
