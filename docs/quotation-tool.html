@@ -807,6 +807,15 @@
             </div>
 
             <div class="form-group">
+                <label class="form-label">교대수</label>
+                <div class="option-group" id="shiftCountGroup">
+                    <button class="option-btn" onclick="setShiftCount(1, this)">1교대</button>
+                    <button class="option-btn selected" onclick="setShiftCount(2, this)">2교대</button>
+                    <button class="option-btn" onclick="setShiftCount(3, this)">3교대</button>
+                </div>
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">교대조 시간표</label>
                 <table class="data-table" style="margin:0;">
                     <thead>
@@ -1591,6 +1600,36 @@ const shiftPresets = {
     }
 };
 
+function setShiftCount(n, btn, fromPreset) {
+    // 교대수 버튼 선택 표시
+    const group = document.getElementById('shiftCountGroup');
+    group.querySelectorAll('.option-btn').forEach((b, i) => {
+        b.classList.toggle('selected', i + 1 === n);
+    });
+
+    // 2교대/3교대 행 표시/숨김
+    document.getElementById('shift2Row').style.display = n >= 2 ? '' : 'none';
+    document.getElementById('shift3Row').style.display = n >= 3 ? '' : 'none';
+
+    // 숨겨진 교대 시간 초기화 (시간값 없으면 인원계산에서 안 잡힘)
+    if (n < 2) {
+        document.getElementById('s2Start').value = '';
+        document.getElementById('s2End').value = '';
+        document.getElementById('s2OT').value = '';
+    }
+    if (n < 3) {
+        document.getElementById('s3Start').value = '';
+        document.getElementById('s3End').value = '';
+        document.getElementById('s3OT').value = '';
+    }
+
+    state.shiftCount = n;
+    if (!fromPreset) {
+        calcPersonnel();
+        autoSave();
+    }
+}
+
 function applyShiftPreset(key, btn) {
     // 버튼 선택 표시
     btn.parentElement.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
@@ -1607,9 +1646,9 @@ function applyShiftPreset(key, btn) {
         document.getElementById(s + 'OT').value = preset[s].ot;
     });
 
-    // 2교대/3교대 행 표시/숨김
-    document.getElementById('shift2Row').style.display = preset.shifts >= 2 ? '' : 'none';
-    document.getElementById('shift3Row').style.display = preset.show3 ? '' : 'none';
+    // 교대수 버튼 연동 (프리셋의 기본 교대수로 세팅)
+    const shiftN = preset.show3 ? 3 : preset.shifts;
+    setShiftCount(shiftN, null, true);
 
     calcPersonnel();
     autoSave();
@@ -2874,6 +2913,7 @@ function autoSave() {
         s3Start: document.getElementById('s3Start').value,
         s3End: document.getElementById('s3End').value,
         s3OT: document.getElementById('s3OT').value,
+        shiftCount: state.shiftCount || 2,
         // CS대행 필드
         csLeaderCount: document.getElementById('csLeaderCount').value,
         csLeaderSalary: document.getElementById('csLeaderSalary').value,
@@ -3000,14 +3040,11 @@ function loadSaved() {
             });
         }
 
-        // 2교대/3교대 행 표시 복원
-        if (state.shiftPreset) {
-            const preset = shiftPresets[state.shiftPreset];
-            if (preset) {
-                document.getElementById('shift2Row').style.display = preset.shifts >= 2 ? '' : 'none';
-                if (preset.show3) document.getElementById('shift3Row').style.display = '';
-            }
-        }
+        // 교대수 복원
+        const sc = state.shiftCount || (state.shiftPreset ? (shiftPresets[state.shiftPreset]?.show3 ? 3 : shiftPresets[state.shiftPreset]?.shifts || 2) : 2);
+        setShiftCount(sc, null, true);
+
+        // 시간 필드는 이미 복원되었으므로 다시 안 건드림 (setShiftCount가 빈 값 초기화하지 않도록 fromPreset=true)
 
         // 체크리스트 복원
         if (state.checklist) {
@@ -3083,7 +3120,7 @@ function resetAll() {
     document.querySelectorAll('.option-btn.selected').forEach(b => b.classList.remove('selected'));
     document.querySelectorAll('.checklist li.checked').forEach(li => li.classList.remove('checked'));
 
-    state = { quoteType:'outsource', source:'', currentOps:'', opDays:'주7일', shifts:'2교대', manager:'1명 배치', result:'', shiftPreset:'service', checklist:[false,false,false,false,false,false,false,false,false,false] };
+    state = { quoteType:'outsource', source:'', currentOps:'', opDays:'주7일', shifts:'2교대', manager:'1명 배치', result:'', shiftPreset:'service', shiftCount:2, checklist:[false,false,false,false,false,false,false,false,false,false] };
     switchQuoteType('outsource', document.querySelector('.type-card'));
 
     // 기본 선택 복원
@@ -3300,14 +3337,9 @@ function loadFromHistory(idx) {
             });
         }
 
-        // 2교대/3교대 행 표시 복원
-        if (state.shiftPreset) {
-            const preset = shiftPresets[state.shiftPreset];
-            if (preset) {
-                document.getElementById('shift2Row').style.display = preset.shifts >= 2 ? '' : 'none';
-                if (preset.show3) document.getElementById('shift3Row').style.display = '';
-            }
-        }
+        // 교대수 복원
+        const sc = state.shiftCount || (state.shiftPreset ? (shiftPresets[state.shiftPreset]?.show3 ? 3 : shiftPresets[state.shiftPreset]?.shifts || 2) : 2);
+        setShiftCount(sc, null, true);
 
         if (state.checklist) {
             document.querySelectorAll('.checklist li').forEach((li, i) => {
