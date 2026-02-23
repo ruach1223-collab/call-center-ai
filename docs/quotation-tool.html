@@ -498,7 +498,7 @@
             <div class="form-group">
                 <label class="form-label">현재 운영 방식</label>
                 <div class="option-group">
-                    <button class="option-btn" onclick="selectOption(this,'currentOps')">인하우스</button>
+                    <button class="option-btn" id="btnCurrentOpsSelf" onclick="selectOption(this,'currentOps')">직접고용</button>
                     <button class="option-btn" onclick="selectOption(this,'currentOps')">타사 아웃소싱</button>
                     <button class="option-btn" onclick="selectOption(this,'currentOps')">신규 사업장</button>
                 </div>
@@ -1372,6 +1372,17 @@ function switchQuoteType(type, card) {
         const text = btn.childNodes[btn.childNodes.length - 1];
         if (text && text.nodeType === 3) text.textContent = labels[i];
     });
+
+    // 운영방식 첫 번째 버튼: CS대행이면 '인하우스', 나머지는 '직접고용'
+    const selfBtn = document.getElementById('btnCurrentOpsSelf');
+    if (selfBtn) {
+        const newLabel = (type === 'cs-agent') ? '인하우스' : '직접고용';
+        // 선택된 상태의 값도 업데이트
+        if (selfBtn.classList.contains('selected') && state.currentOps !== newLabel) {
+            state.currentOps = newLabel;
+        }
+        selfBtn.textContent = newLabel;
+    }
 
     autoSave();
 }
