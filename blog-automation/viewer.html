@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>워크위드 블로그 글 뷰어</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans KR', -apple-system, sans-serif; background: #f5f5f5; color: #333; }
+
+  .header {
+    background: #1a1a2e; color: white; padding: 20px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .header h1 { font-size: 18px; font-weight: 600; }
+  .header .subtitle { font-size: 13px; color: #8888aa; margin-top: 4px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+  /* 입력 영역 */
+  .input-section {
+    background: white; border-radius: 12px; padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;
+  }
+  .input-section label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 8px; }
+  .input-section textarea {
+    width: 100%; height: 120px; border: 1px solid #ddd; border-radius: 8px;
+    padding: 12px; font-size: 13px; font-family: 'Consolas', monospace;
+    resize: vertical; outline: none;
+  }
+  .input-section textarea:focus { border-color: #4a6cf7; }
+  .input-section .hint { font-size: 12px; color: #888; margin-top: 6px; }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .btn {
+    padding: 10px 20px; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: #4a6cf7; color: white; }
+  .btn-primary:hover { background: #3a5ce5; }
+  .btn-copy { background: #10b981; color: white; }
+  .btn-copy:hover { background: #059669; }
+  .btn-copy:disabled { background: #ccc; cursor: not-allowed; }
+  .btn-outline { background: white; color: #666; border: 1px solid #ddd; }
+  .btn-outline:hover { background: #f5f5f5; }
+
+  /* 미리보기 영역 */
+  .preview-section {
+    background: white; border-radius: 12px; padding: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
+    display: none;
+  }
+  .preview-header {
+    background: #03c75a; color: white; padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .preview-header .naver-logo { font-weight: 700; font-size: 15px; }
+  .preview-header .post-title { font-size: 13px; opacity: 0.9; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .preview-body {
+    padding: 32px 40px; line-height: 1.9; font-size: 16px; color: #333;
+  }
+  .preview-body h3 { font-size: 20px; margin: 28px 0 12px; color: #1a1a2e; }
+  .preview-body p { margin-bottom: 14px; }
+  .preview-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; }
+  .preview-body table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  .preview-body table th, .preview-body table td { border: 1px solid #e0e0e0; padding: 10px 12px; text-align: left; }
+  .preview-body table th { background: #f8f9fa; font-weight: 600; }
+  .preview-body ul, .preview-body ol { margin: 12px 0; padding-left: 24px; }
+  .preview-body li { margin-bottom: 6px; }
+
+  /* 복사 성공 토스트 */
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: #1a1a2e; color: white; padding: 14px 28px; border-radius: 10px;
+    font-size: 14px; font-weight: 600; opacity: 0; transition: opacity 0.3s;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+
+  /* SEO 점수 */
+  .seo-bar {
+    display: none; background: white; border-radius: 12px; padding: 16px 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;
+  }
+  .seo-bar .score-row { display: flex; align-items: center; gap: 12px; }
+  .seo-bar .score-num { font-size: 28px; font-weight: 700; }
+  .seo-bar .score-num.good { color: #10b981; }
+  .seo-bar .score-num.warn { color: #f59e0b; }
+  .seo-bar .score-num.bad { color: #ef4444; }
+  .seo-bar .score-label { font-size: 13px; color: #888; }
+  .seo-bar .char-count { font-size: 13px; color: #666; margin-top: 8px; }
+
+  .step-guide {
+    background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+    padding: 16px 20px; margin-bottom: 20px; font-size: 13px; line-height: 1.8;
+  }
+  .step-guide b { color: #92400e; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>WorkWith Blog Viewer</h1>
+    <div class="subtitle">Google Sheets에서 HTML 복사 > 여기 붙여넣기 > 미리보기 > 네이버에 복붙</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="step-guide">
+    <b>사용법 (30초)</b><br>
+    1. Google Sheets "발행이력" 시트에서 "HTML내용" 셀의 내용 복사<br>
+    2. 아래 입력칸에 붙여넣기<br>
+    3. [미리보기] 클릭 > 내용 확인<br>
+    4. [네이버용 복사] 클릭 > 네이버 블로그 에디터에 Ctrl+V
+  </div>
+
+  <div class="input-section">
+    <label>HTML 코드 입력</label>
+    <textarea id="htmlInput" placeholder="Google Sheets의 HTML내용 셀에서 복사한 코드를 여기에 붙여넣으세요..."></textarea>
+    <div class="hint">발행이력 시트 > HTML내용 열에서 복사</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="renderPreview()">미리보기</button>
+      <button class="btn btn-copy" id="copyBtn" onclick="copyForNaver()" disabled>네이버용 복사</button>
+      <button class="btn btn-outline" onclick="clearAll()">초기화</button>
+    </div>
+  </div>
+
+  <div class="seo-bar" id="seoBar">
+    <div class="score-row">
+      <div class="score-num" id="seoScore">--</div>
+      <div>
+        <div style="font-weight:600; font-size:14px;">SEO 점수</div>
+        <div class="score-label">70점 이상이면 발행 OK</div>
+      </div>
+    </div>
+    <div class="char-count" id="charCount"></div>
+  </div>
+
+  <div class="preview-section" id="previewSection">
+    <div class="preview-header">
+      <span class="naver-logo">NAVER Blog Preview</span>
+      <span class="post-title" id="previewTitle"></span>
+    </div>
+    <div class="preview-body" id="previewBody"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">복사 완료! 네이버 블로그 에디터에 Ctrl+V 하세요</div>
+
+<script>
+function renderPreview() {
+  const html = document.getElementById('htmlInput').value.trim();
+  if (!html) { alert('HTML 코드를 입력해주세요'); return; }
+
+  const previewBody = document.getElementById('previewBody');
+  const previewSection = document.getElementById('previewSection');
+  const seoBar = document.getElementById('seoBar');
+
+  previewBody.innerHTML = html;
+  previewSection.style.display = 'block';
+  document.getElementById('copyBtn').disabled = false;
+
+  // 제목 추출 (첫 h3)
+  const firstH3 = previewBody.querySelector('h3');
+  document.getElementById('previewTitle').textContent = firstH3 ? firstH3.textContent : '블로그 글 미리보기';
+
+  // 간이 SEO 체크
+  const textOnly = previewBody.innerText;
+  const charCount = textOnly.length;
+  const h3Count = previewBody.querySelectorAll('h3').length;
+  const hasTable = previewBody.querySelector('table') !== null;
+  const hasList = previewBody.querySelector('ul, ol') !== null;
+  const imgCount = previewBody.querySelectorAll('img').length;
+
+  let score = 0;
+  if (charCount >= 3000) score += 20;
+  else if (charCount >= 2500) score += 10;
+  if (h3Count >= 3) score += 15;
+  if (hasTable || hasList) score += 10;
+  if (imgCount >= 3) score += 10;
+  if (textOnly.includes('자주 묻는 질문') || textOnly.includes('FAQ')) score += 15;
+
+  // 빈말 체크
+  const fluff = ['하는 것이 중요합니다', '많은 분들이', '다양한 방법이', '적절한 대응이 필요합니다'];
+  const foundFluff = fluff.filter(f => textOnly.includes(f));
+  if (foundFluff.length === 0) score += 5;
+
+  score = Math.min(score, 100);
+
+  const scoreEl = document.getElementById('seoScore');
+  scoreEl.textContent = score;
+  scoreEl.className = 'score-num ' + (score >= 70 ? 'good' : score >= 50 ? 'warn' : 'bad');
+
+  document.getElementById('charCount').textContent =
+    `글자수: ${charCount.toLocaleString()}자 | 소제목: ${h3Count}개 | 이미지: ${imgCount}장 | 표/리스트: ${hasTable || hasList ? 'O' : 'X'}`;
+
+  seoBar.style.display = 'block';
+  previewSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyForNaver() {
+  const previewBody = document.getElementById('previewBody');
+  const range = document.createRange();
+  range.selectNodeContents(previewBody);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  document.execCommand('copy');
+  sel.removeAllRanges();
+
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+function clearAll() {
+  document.getElementById('htmlInput').value = '';
+  document.getElementById('previewBody').innerHTML = '';
+  document.getElementById('previewSection').style.display = 'none';
+  document.getElementById('seoBar').style.display = 'none';
+  document.getElementById('copyBtn').disabled = true;
+}
+</script>
+
+</body>
+</html>

@@ -216,51 +216,6 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "https://openapi.naver.com/blog/writePost.json",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "oAuth2Api",
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "title",
-              "value": "={{ $json.title }}"
-            },
-            {
-              "name": "contents",
-              "value": "={{ $json.htmlContent }}"
-            },
-            {
-              "name": "categoryNo",
-              "value": "={{ $env.NAVER_BLOG_CATEGORY_NO || '' }}"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {
-              "fullResponse": true
-            }
-          }
-        }
-      },
-      "id": "a1000001-0000-0000-0000-000000000010",
-      "name": "네이버 블로그 발행",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [2220, 300],
-      "credentials": {
-        "oAuth2Api": {
-          "id": "NAVER_OAUTH2_CREDENTIAL_ID",
-          "name": "Naver Blog OAuth2"
-        }
-      },
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
         "operation": "append",
         "documentId": {
           "__rl": true,
@@ -275,17 +230,18 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "날짜": "={{ $('SEO 검증 + 포맷팅').first().json.date }}",
+            "날짜": "={{ $json.date }}",
             "시간": "={{ new Date().toTimeString().split(' ')[0] }}",
-            "키워드": "={{ $('SEO 검증 + 포맷팅').first().json.keyword }}",
-            "LSI키워드": "={{ $('SEO 검증 + 포맷팅').first().json.lsi_keywords }}",
-            "제목": "={{ $('SEO 검증 + 포맷팅').first().json.title }}",
-            "카테고리": "={{ $('SEO 검증 + 포맷팅').first().json.category }}",
-            "글자수": "={{ $('SEO 검증 + 포맷팅').first().json.charCount }}",
-            "키워드횟수": "={{ $('SEO 검증 + 포맷팅').first().json.keywordCount }}",
-            "SEO점수": "={{ $('SEO 검증 + 포맷팅').first().json.seoScore }}",
-            "SEO체크": "={{ $('SEO 검증 + 포맷팅').first().json.seoChecks }}",
-            "상태": "성공"
+            "키워드": "={{ $json.keyword }}",
+            "LSI키워드": "={{ $json.lsi_keywords }}",
+            "제목": "={{ $json.title }}",
+            "카테고리": "={{ $json.category }}",
+            "글자수": "={{ $json.charCount }}",
+            "키워드횟수": "={{ $json.keywordCount }}",
+            "SEO점수": "={{ $json.seoScore }}",
+            "SEO체크": "={{ $json.seoChecks }}",
+            "HTML내용": "={{ $json.htmlContent }}",
+            "상태": "복붙 대기"
           }
         }
       },
@@ -293,7 +249,7 @@
       "name": "발행이력 기록",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [2440, 300],
+      "position": [2220, 300],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "GOOGLE_SHEETS_CREDENTIAL_ID",
@@ -450,7 +406,7 @@
       "main": [
         [
           {
-            "node": "네이버 블로그 발행",
+            "node": "발행이력 기록",
             "type": "main",
             "index": 0
           }
@@ -458,17 +414,6 @@
         [
           {
             "node": "SEO 미달 기록",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "네이버 블로그 발행": {
-      "main": [
-        [
-          {
-            "node": "발행이력 기록",
             "type": "main",
             "index": 0
           }
