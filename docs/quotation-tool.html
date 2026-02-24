@@ -1212,9 +1212,17 @@
                 <textarea id="workScope" rows="4" placeholder="예:&#10;드라잉존 물기 제거 작업&#10;입차 유도 및 고객 차량 안내&#10;고객 응대 및 안내 서비스" oninput="autoSave()"></textarea>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">추가 특기사항 <span class="hint">(기본 내용에 추가됩니다 / 한 줄씩 입력)</span></label>
-                <textarea id="quoteNotes" rows="4" placeholder="예:&#10;본 견적은 주 7일 운영 기준&#10;서비스 교육 이수자 우선 배치&#10;야간수당 도급비에 포함" oninput="autoSave()"></textarea>
+            <div class="form-group for-outsource">
+                <label class="form-label">기타사항 (견적서에 표시) <span class="hint">한 줄에 하나씩</span></label>
+                <textarea id="outsourceNotes" rows="6" oninput="autoSave();" style="font-size:13px;line-height:1.8;"></textarea>
+            </div>
+            <div class="form-group for-labor">
+                <label class="form-label">기타사항 (견적서에 표시) <span class="hint">한 줄에 하나씩</span></label>
+                <textarea id="laborNotes" rows="7" oninput="autoSave();" style="font-size:13px;line-height:1.8;"></textarea>
+            </div>
+            <div class="form-group for-recruit">
+                <label class="form-label">기타사항 (견적서에 표시) <span class="hint">한 줄에 하나씩</span></label>
+                <textarea id="recruitNotes" rows="6" oninput="autoSave();" style="font-size:13px;line-height:1.8;"></textarea>
             </div>
         </div>
 
@@ -1415,6 +1423,42 @@ function switchQuoteType(type, card) {
             '최소 12개월 이상 계약 체결 필수.',
             '부가세 별도 청구함.',
             '주말(공휴일), 야간, 심야 시간대 단가 협의 필요.'
+        ].join('\n');
+    }
+
+    // 정액제 도급 기타사항 기본값 세팅 (비어있을 때만)
+    const outsourceNotesEl = document.getElementById('outsourceNotes');
+    if (type === 'outsource' && outsourceNotesEl && !outsourceNotesEl.value.trim()) {
+        outsourceNotesEl.value = [
+            '위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.',
+            '부가세 별도 청구함.',
+            '야간수당(22시 이후) 및 공휴일 가산수당은 도급비에 포함되어 있음.',
+            '운영 시간 또는 서비스 범위 변경 시 월 도급비는 협의를 통해 조정함.'
+        ].join('\n');
+    }
+
+    // 일반 도급 기타사항 기본값 세팅 (비어있을 때만)
+    const laborNotesEl = document.getElementById('laborNotes');
+    if (type === 'labor' && laborNotesEl && !laborNotesEl.value.trim()) {
+        laborNotesEl.value = [
+            '위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.',
+            '최저시급 및 4대보험은 당해연도 법정 기준을 반영함.',
+            '근로기준법에 의거한 연장, 심야, 휴일근무 수당 및 퇴직금 등은 발생 시 별도 청구함.',
+            '관리수수료 포함내역: 채용 광고비, 급여/4대보험 행정대행, 노무 자문 및 리스크 관리, 결원 대응비, 근로자 복리후생비 등 제세 간접비 포함',
+            '부가세 별도 청구함.'
+        ].join('\n');
+    }
+
+    // 채용대행 기타사항 기본값 세팅 (비어있을 때만)
+    const recruitNotesEl = document.getElementById('recruitNotes');
+    if (type === 'recruit' && recruitNotesEl && !recruitNotesEl.value.trim()) {
+        const feeRate = document.getElementById('recruitFeeRate').value || '10';
+        const minMonth = document.getElementById('recruitMinMonth').value || '3';
+        recruitNotesEl.value = [
+            '위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.',
+            '각 직무별 근로자 인건비의 ' + feeRate + '%를 채용대행 수수료로 책정함.',
+            '채용대행 수수료 청구기간: 최소 ' + minMonth + '개월 (협의가능).',
+            '부가세 별도 청구함.'
         ].join('\n');
     }
 
@@ -2114,13 +2158,7 @@ function generateQuoteOutsource() {
     const perShift = document.getElementById('perShift').value;
 
     const workLines = (document.getElementById('workScope').value || '').split('\n').filter(l => l.trim());
-    const noteLines = [];
-    noteLines.push('위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.');
-    noteLines.push('부가세 별도 청구함.');
-    noteLines.push('야간수당(22시 이후) 및 공휴일 가산수당은 도급비에 포함되어 있음.');
-    noteLines.push('운영 시간 또는 서비스 범위 변경 시 월 도급비는 협의를 통해 조정함.');
-    const userNotes = (document.getElementById('quoteNotes').value || '').split('\n').filter(l => l.trim());
-    userNotes.forEach(n => noteLines.push(n));
+    const noteLines = (document.getElementById('outsourceNotes').value || '').split('\n').filter(l => l.trim());
 
     const quoteHTML = `<!DOCTYPE html>
 <html lang="ko">
@@ -2336,14 +2374,7 @@ function generateQuoteLabor() {
     const s1e = document.getElementById('s1End').value || '18:00';
 
     const workLines = (document.getElementById('workScope').value || '').split('\n').filter(l => l.trim());
-    const noteLines = [];
-    noteLines.push('위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.');
-    noteLines.push('최저시급 및 4대보험은 당해연도 법정 기준을 반영함.');
-    noteLines.push('근로기준법에 의거한 연장, 심야, 휴일근무 수당 및 퇴직금 등은 발생 시 별도 청구함.');
-    noteLines.push('관리수수료 포함내역: 채용 광고비, 급여/4대보험 행정대행, 노무 자문 및 리스크 관리, 결원 대응비, 근로자 복리후생비 등 제세 간접비 포함');
-    noteLines.push('부가세 별도 청구함.');
-    const userNotes1 = (document.getElementById('quoteNotes').value || '').split('\n').filter(l => l.trim());
-    userNotes1.forEach(n => noteLines.push(n));
+    const noteLines = (document.getElementById('laborNotes').value || '').split('\n').filter(l => l.trim());
 
     const quoteHTML = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>도급견적서 - ${client}</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -2830,13 +2861,7 @@ function generateQuoteRecruit() {
     const fee = Math.round(totalLabor * feeRate / 100);
     const calcTotal = totalLabor + fee;
 
-    const noteLines = [];
-    noteLines.push('위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.');
-    noteLines.push('각 직무별 근로자 인건비의 ' + feeRate + '%를 채용대행 수수료로 책정함.');
-    noteLines.push('채용대행 수수료 청구기간: 최소 ' + minMonth + '개월 (협의가능).');
-    noteLines.push('부가세 별도 청구함.');
-    const userNotes4 = (document.getElementById('quoteNotes').value || '').split('\n').filter(l => l.trim());
-    userNotes4.forEach(n => noteLines.push(n));
+    const noteLines = (document.getElementById('recruitNotes').value || '').split('\n').filter(l => l.trim());
 
     const quoteHTML = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>채용대행 견적서 - ${client}</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -2948,6 +2973,9 @@ function autoSave() {
         quoteDate: document.getElementById('quoteDate').value,
         workScope: document.getElementById('workScope').value,
         quoteNotes: document.getElementById('quoteNotes').value,
+        outsourceNotes: document.getElementById('outsourceNotes').value,
+        laborNotes: document.getElementById('laborNotes').value,
+        recruitNotes: document.getElementById('recruitNotes').value,
         finalPrice: document.getElementById('finalPrice').value,
         lessonMemo: document.getElementById('lessonMemo').value,
         ratePension: document.getElementById('ratePension').value,
@@ -3050,7 +3078,7 @@ function loadSaved() {
     const fields = ['clientName','siteName','industry','contactName','contactPhone','contactEmail',
         'reason','memo','perShift','hourlyWage','nightPay','etcCost',
         'simQuote1','simQuote2','simQuote3','itemDogup','itemManage','itemAdmin',
-        'quoteNumber','quoteDate','workScope','quoteNotes','finalPrice','lessonMemo',
+        'quoteNumber','quoteDate','workScope','quoteNotes','outsourceNotes','laborNotes','recruitNotes','finalPrice','lessonMemo',
         'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
         'nightStart','nightEnd',
         's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
@@ -3367,7 +3395,7 @@ function loadFromHistory(idx) {
     const fields = ['clientName','siteName','industry','contactName','contactPhone','contactEmail',
         'reason','memo','perShift','hourlyWage','nightPay','etcCost',
         'simQuote1','simQuote2','simQuote3','itemDogup','itemManage','itemAdmin',
-        'quoteNumber','quoteDate','workScope','quoteNotes','finalPrice','lessonMemo',
+        'quoteNumber','quoteDate','workScope','quoteNotes','outsourceNotes','laborNotes','recruitNotes','finalPrice','lessonMemo',
         'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
         'nightStart','nightEnd',
         's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
