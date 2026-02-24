@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>블로그 자동화 - 샘플 출력 가이드</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f5f6f8; font-family: 'Noto Sans KR', sans-serif; color: #333; }
+
+    /* 상단 가이드 헤더 */
+    .guide-header {
+      background: #1a1a2e; color: white; padding: 32px;
+    }
+    .guide-header h1 { font-size: 22px; margin-bottom: 8px; }
+    .guide-header .sub { font-size: 14px; color: #8eafc5; line-height: 1.7; }
+    .guide-header .badge {
+      display: inline-block; background: #03c75a; color: white;
+      padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+      margin-top: 12px;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; padding: 24px 20px; }
+
+    /* 워크플로우 요약 카드 */
+    .flow-card {
+      background: white; border-radius: 12px; padding: 24px;
+      margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .flow-card h2 { font-size: 16px; margin-bottom: 16px; color: #1a1a2e; }
+    .flow-steps {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    }
+    .flow-step {
+      background: #f0f2f5; padding: 10px 16px; border-radius: 8px;
+      font-size: 13px; font-weight: 500; white-space: nowrap;
+    }
+    .flow-step.active { background: #03c75a; color: white; }
+    .flow-arrow { color: #aaa; font-size: 18px; }
+
+    /* 핵심 규칙 */
+    .rules-card {
+      background: #fffbe6; border: 1px solid #ffe58f; border-radius: 12px;
+      padding: 20px 24px; margin-bottom: 24px;
+    }
+    .rules-card h3 { font-size: 15px; color: #ad6800; margin-bottom: 12px; }
+    .rules-card ul { list-style: none; font-size: 14px; line-height: 2; }
+    .rules-card li::before { content: ""; margin-right: 8px; }
+
+    /* 네이버 블로그 미리보기 */
+    .section-label {
+      font-size: 13px; font-weight: 700; color: #666;
+      margin-bottom: 8px; letter-spacing: 1px;
+    }
+    .naver-frame { border: 2px solid #03c75a; border-radius: 12px; overflow: hidden; background: white; margin-bottom: 24px; }
+    .naver-bar { background: #03c75a; color: white; padding: 10px 18px; font-size: 13px; font-weight: 700; display: flex; justify-content: space-between; }
+    .naver-title-area { padding: 24px 28px 16px; border-bottom: 1px solid #eee; }
+    .naver-title-area h2 { font-size: 22px; color: #111; line-height: 1.5; }
+    .naver-title-area .post-date { font-size: 12px; color: #999; margin-top: 8px; }
+
+    .blog-body {
+      padding: 28px; font-size: 16px; line-height: 2.0; color: #333;
+    }
+    .blog-body h3 {
+      font-size: 19px; color: #111; margin: 36px 0 16px;
+      padding-bottom: 8px; border-bottom: 2px solid #03c75a;
+    }
+    .blog-body p { margin-bottom: 18px; word-break: keep-all; }
+    .blog-body strong { color: #03c75a; }
+    .blog-body img {
+      width: 100%; border-radius: 8px; margin: 20px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .blog-body ul, .blog-body ol { margin: 14px 0 18px 24px; }
+    .blog-body li { margin-bottom: 10px; line-height: 1.8; }
+    .blog-body table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+    .blog-body th { background: #f8f9fa; padding: 12px; border: 1px solid #dee2e6; text-align: left; font-weight: 700; }
+    .blog-body td { padding: 12px; border: 1px solid #dee2e6; }
+    .blog-body .faq-q {
+      background: #f0f7ff; padding: 14px 18px; border-radius: 8px;
+      margin: 20px 0 10px; font-weight: 700; color: #1a56db;
+    }
+    .blog-body .cta-box {
+      background: #f8f9fa; border-left: 4px solid #03c75a; padding: 20px;
+      border-radius: 0 8px 8px 0; margin-top: 36px; font-size: 15px;
+    }
+
+    /* SEO 점수 */
+    .seo-card { background: white; border-radius: 12px; margin-bottom: 24px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .seo-card h3 { font-size: 15px; margin-bottom: 14px; }
+    .seo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .seo-item { padding: 10px 14px; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between; }
+    .seo-ok { background: #d4edda; color: #155724; }
+    .seo-total {
+      background: #4361ee; color: white; padding: 14px 20px;
+      border-radius: 8px; display: flex; justify-content: space-between;
+      align-items: center; font-weight: 700;
+    }
+    .seo-total .score { font-size: 28px; }
+
+    /* 비용 카드 */
+    .cost-card {
+      background: white; border-radius: 12px; padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 24px;
+    }
+    .cost-card h3 { font-size: 15px; margin-bottom: 12px; }
+    .cost-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .cost-row:last-child { border: none; font-weight: 700; color: #4361ee; }
+
+    .char-counter {
+      position: fixed; bottom: 20px; right: 20px;
+      background: #1a1a2e; color: white; padding: 10px 16px;
+      border-radius: 20px; font-size: 12px; z-index: 200;
+    }
+
+    @media print {
+      .guide-header { background: #333 !important; -webkit-print-color-adjust: exact; }
+      .char-counter { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="guide-header">
+  <h1>네이버 블로그 자동화 - 샘플 출력 가이드</h1>
+  <div class="sub">
+    n8n 워크플로우가 자동으로 생성하는 블로그 글의 예시입니다.<br>
+    매일 3회(09시, 12시, 15시) 키워드 선정부터 발행까지 자동으로 진행됩니다.
+  </div>
+  <span class="badge">2026.02 기준</span>
+</div>
+
+<div class="container">
+
+  <!-- 워크플로우 요약 -->
+  <div class="flow-card">
+    <h2>자동화 흐름</h2>
+    <div class="flow-steps">
+      <div class="flow-step">스케줄 실행</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step">발행이력 확인</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step active">AI 키워드 선정</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step active">AI 본문 생성</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step">SEO 검증</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-step">네이버 발행</div>
+    </div>
+  </div>
+
+  <!-- 핵심 규칙 -->
+  <div class="rules-card">
+    <h3>글 작성 핵심 규칙</h3>
+    <ul>
+      <li>워크위드 단가/가격 본문에 직접 노출 금지 (CTA 1회 언급만)</li>
+      <li>업계 전문 정보를 제공하는 형태 (광고 아님)</li>
+      <li>모든 문단에 수치/사례/비교 데이터 필수 (빈말 금지)</li>
+      <li>3,000~4,000자 + 이미지 5장 + FAQ 포함</li>
+      <li>SEO 70점 미만이면 자동으로 발행 차단</li>
+    </ul>
+  </div>
+
+  <!-- 네이버 블로그 미리보기 -->
+  <div class="section-label">SAMPLE OUTPUT</div>
+  <div class="naver-frame">
+    <div class="naver-bar">
+      <span>NAVER 블로그</span>
+      <span>자동 생성 예시</span>
+    </div>
+    <div class="naver-title-area">
+      <h2>CS대행 비용 구조, 자체 고용과 비교하면 얼마나 차이 날까</h2>
+      <div class="post-date">2026. 2. 24. 09:00 | 워크위드 공식 블로그</div>
+    </div>
+    <div class="blog-body" id="blogContent">
+
+<!-- ==================== 핵심 답변 (DIA 스니펫용) ==================== -->
+
+<p><strong>CS대행 비용</strong>은 서비스 형태에 따라 월 40만원대부터 350만원대까지 폭이 넓습니다. 고객 문의 응대, 클레임 처리, 반품/교환 안내 등 고객서비스 업무를 외부 전문 업체에 위탁하는 방식인데, 상담원 1명을 직접 고용할 때 드는 실비용 월 300만원(급여 230만 + 4대보험 23만 + 퇴직금 19만 + 장비/공간 30만)과 비교하면 동일 콜량 기준 상당한 절감이 가능합니다.</p>
+
+<p>그런데 검색해보면 대부분의 CS대행 업체가 구체적인 비용을 공개하지 않습니다. "문의주세요"만 적혀 있고, 전화하면 초기 구축비부터 요구하는 경우가 빈번합니다. 업체 선정 전에 업계 평균 시세와 과금 구조를 미리 파악해두면 견적서를 받았을 때 적정 가격인지 판단할 수 있습니다.</p>
+
+<img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=740&h=420&fit=crop&q=80" alt="콜센터 상담원이 헤드셋을 착용하고 업무 중인 모습" />
+
+<!-- ==================== 상세 설명 1: 과금 구조 ==================== -->
+
+<h3>CS대행 과금 모델 3가지와 업계 평균 시세</h3>
+
+<p>고객센터 외주 비용은 '상담원을 우리만 쓰느냐, 다른 업체와 공유하느냐'에 따라 3단계로 나뉩니다. 아래는 2026년 기준 업계 평균 가격대입니다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>과금 모델</th>
+      <th>일일 콜량</th>
+      <th>업계 평균 월 비용</th>
+      <th>상담원 배정</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>콜쉐어링 (공유)</td>
+      <td>20~50콜</td>
+      <td>40~80만원</td>
+      <td>3~5개 업체 공유</td>
+    </tr>
+    <tr>
+      <td>반전담</td>
+      <td>50~100콜</td>
+      <td>120~180만원</td>
+      <td>1명 우선 배정</td>
+    </tr>
+    <tr>
+      <td>전담</td>
+      <td>100~200콜</td>
+      <td>250~350만원</td>
+      <td>1~2명 전용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>주목할 점은 콜량에 비례해서 단가가 올라가지 않는다는 것입니다. 콜쉐어링에서 반전담으로 넘어가면 콜 처리량은 2~3배 늘지만 비용은 2배 정도만 증가합니다. 콜량이 성장하는 업체일수록 건당 비용이 내려가는 구조입니다.</p>
+
+<img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=740&h=420&fit=crop&q=80" alt="비용 분석 차트와 데이터" />
+
+<!-- ==================== 상세 설명 2: 비용 비교 ==================== -->
+
+<h3>자체 고용 vs CS대행, 항목별 비용 비교</h3>
+
+<p>CS대행 비용의 적정성을 판단하려면 자체 고용과 직접 비교해야 합니다. 상담원 1명 기준 항목별로 분해해보겠습니다.</p>
+
+<table>
+  <thead>
+    <tr><th>비용 항목</th><th>자체 고용 (월)</th><th>비고</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>기본급</td><td>230만원</td><td>2026 최저시급 10,030원 기준</td></tr>
+    <tr><td>4대보험 (사업자 부담)</td><td>23만원</td><td>국민연금+건보+고용+산재</td></tr>
+    <tr><td>퇴직급여 충당</td><td>19만원</td><td>월 급여의 약 8.3%</td></tr>
+    <tr><td>장비 (PC/헤드셋/CTI)</td><td>8만원</td><td>초기 투자 월할 환산</td></tr>
+    <tr><td>사무공간</td><td>15만원</td><td>1인당 점유 면적 기준</td></tr>
+    <tr><td>교육/관리 비용</td><td>10만원</td><td>신규 입사 교육 포함</td></tr>
+    <tr style="font-weight: 700; background: #f8f9fa;">
+      <td>월 합계</td><td>약 305만원</td><td></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>월 305만원이면 연간 3,660만원입니다. 여기에 콜센터 상담원의 업계 평균 이직률이 연 30~40%라는 점을 감안해야 합니다. 1명이 퇴사하면 채용 공고부터 실근무까지 4~6주가 소요되고, 그 기간 동안 전화를 받을 사람이 없습니다. 네이버 스마트스토어 기준으로 CS 불만 리뷰 1건당 매출이 약 2~3% 감소한다는 데이터를 적용하면, 공백 기간의 손실은 인건비보다 클 수 있습니다.</p>
+
+<img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=740&h=420&fit=crop&q=80" alt="비용 절감을 나타내는 그래프" />
+
+<!-- ==================== 상세 설명 3: 체크리스트 ==================== -->
+
+<h3>CS대행 업체 선정 시 반드시 확인할 5가지</h3>
+
+<p>비슷한 견적이라도 세부 조건에서 큰 차이가 납니다. 견적서를 나란히 놓고 아래 항목을 비교하세요.</p>
+
+<ol>
+  <li><strong>초기 구축비</strong>: 업계 평균 100~300만원입니다. 12개월 운영 시 구축비 300만원은 월 25만원에 해당하므로 총비용에 상당한 영향을 미칩니다. 구축비를 무료로 제공하는 업체도 있으니 반드시 비교하세요.</li>
+  <li><strong>최소 계약 기간</strong>: 6개월~1년 약정이 업계 표준입니다. 중도 해지 시 잔여 기간의 30~50%를 위약금으로 청구하는 곳이 많습니다. 월 단위 계약이 가능한 업체가 리스크가 적습니다.</li>
+  <li><strong>콜 녹취 + 리포트 제공</strong>: 일별 통화건수, 평균 통화시간, 미스콜 비율, 만족도 데이터를 리포트로 제공하는지 확인하세요. 녹취 청취가 불가능한 업체는 품질관리를 포기한 것과 같습니다.</li>
+  <li><strong>전용 매뉴얼 제작</strong>: 우리 제품에 맞는 전용 상담 매뉴얼을 만들어주는지가 핵심입니다. 범용 스크립트만 쓰는 곳은 "확인 후 연락드리겠습니다"만 반복하게 됩니다.</li>
+  <li><strong>위탁도급 계약 여부</strong>: 파견과 도급의 법적 차이는 '지휘명령권'입니다. 고객사가 상담원에게 직접 출퇴근, 업무 방법을 지시하면 불법파견에 해당할 수 있으므로, 반드시 위탁도급 형태로 계약해야 합니다.</li>
+</ol>
+
+<!-- ==================== 상세 설명 4: 비용 절감 전략 ==================== -->
+
+<h3>CS대행 비용을 줄이는 실전 방법 3가지</h3>
+
+<p>동일한 서비스라도 계약 방식에 따라 비용 차이가 상당합니다.</p>
+
+<p><strong>1. 단순문의 자동화로 유입 콜량 줄이기</strong><br>
+배송 조회, 영업시간 안내, 교환/반품 절차 등 정형화된 문의는 전체 콜의 40~60%를 차지합니다. 이걸 카카오톡 챗봇이나 ARS 자동응답으로 돌리면 사람이 받아야 할 콜만 대행에 넘길 수 있습니다. 콜량 구간이 하나 내려가면 월 수십만원 차이가 납니다.</p>
+
+<p><strong>2. 장기 계약 할인 활용</strong><br>
+3개월 시 5%, 6개월 시 10%, 12개월 시 15~20% 할인이 업계 관행입니다. 단, 반드시 첫 1개월은 월 단위로 테스트한 뒤 품질이 확인되면 장기 전환하세요.</p>
+
+<p><strong>3. 콜량 구간 사전 협상</strong><br>
+현재 일 30콜인데 3개월 후 60콜로 늘어날 예정이라면, 상위 구간으로 미리 계약하면서 "미달 시 차액 환불" 조건을 넣는 방법이 있습니다. 업체 입장에서는 장기 고객 확보가 되므로 수용하는 경우가 많습니다.</p>
+
+<img src="https://images.unsplash.com/photo-1531973576160-7125cd663d86?w=740&h=420&fit=crop&q=80" alt="비즈니스 전략 회의" />
+
+<!-- ==================== 근거/데이터: 초저가 주의 ==================== -->
+
+<h3>월 30만원 미만 초저가 CS대행, 왜 위험한가</h3>
+
+<p>CS대행 비용이 지나치게 저렴한 업체의 실체를 구체적으로 살펴보겠습니다.</p>
+
+<ul>
+  <li><strong>상담원 1명당 담당 업체 수</strong>: 일반 업체 3~5개 vs 초저가 업체 10~15개. 상담원의 하루 처리 가능량이 80~120콜인데, 15개 업체의 제품을 전부 숙지하기는 물리적으로 불가능합니다.</li>
+  <li><strong>매뉴얼 부재</strong>: 업체별 전용 매뉴얼 없이 "담당자 확인 후 회신드리겠습니다" 한 줄 공통 스크립트만 사용합니다.</li>
+  <li><strong>실제 피해 사례</strong>: 월 25만원 초저가 CS대행을 쓰던 한 쇼핑몰은 3개월간 "고객센터를 아무도 안 받는다"는 1점 리뷰가 10건 이상 달렸습니다. 리뷰 1건당 매출 2~3% 감소를 적용하면 CS 때문에 발생한 매출 하락이 20% 이상이었던 셈입니다.</li>
+</ul>
+
+<p>CS 외주에서 가장 경계해야 할 것은 '싼 가격'이 아니라 '낮은 품질로 인한 매출 손실'입니다.</p>
+
+<img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=740&h=420&fit=crop&q=80" alt="전문 상담 업무 모습" />
+
+<!-- ==================== FAQ ==================== -->
+
+<h3>자주 묻는 질문</h3>
+
+<div class="faq-q">Q. CS대행 비용에 부가세가 포함되어 있나요?</div>
+<p>거의 모든 업체가 부가세 별도입니다. 월 100만원 견적이면 실제 청구액은 110만원(VAT 10%)입니다. 연간으로 환산하면 부가세만 120만원이 추가되므로 예산 책정 시 반드시 반영하세요.</p>
+
+<div class="faq-q">Q. 하루 10건도 안 되는데 CS대행을 맡길 수 있나요?</div>
+<p>가능합니다. 콜쉐어링 모델은 소량 콜도 대응합니다. 자체 고용 시 상담원 1명의 처리 가능량이 하루 80~120건인데, 10건만 처리하면서 월 300만원을 지출하는 건 인건비의 90%를 낭비하는 것과 같습니다. 이 구간에서는 CS대행이 합리적입니다.</p>
+
+<div class="faq-q">Q. 불법파견 문제가 걱정됩니다. 어떻게 구분하나요?</div>
+<p>핵심 기준은 '지휘명령권'입니다. 고객사가 상담원에게 직접 출퇴근, 업무 방법, 휴게 시간 등을 지시하면 파견(고용 의무 발생), 대행사 관리자가 지시하면 도급(외주)입니다. 계약서에 "위탁도급"으로 명시하고, 업무 지시는 반드시 대행사 관리자를 통해야 합니다.</p>
+
+<!-- ==================== CTA ==================== -->
+
+<div class="cta-box">
+  <p>CS대행에 대해 더 궁금한 점이 있으시면 워크위드(1533-4999)로 문의주세요. 홈페이지 walkwithcall.co.kr에서도 상담 가능합니다.</p>
+</div>
+
+    </div>
+  </div>
+
+  <!-- SEO 검증 -->
+  <div class="seo-card">
+    <h3>SEO 자동 검증 결과</h3>
+    <div class="seo-grid">
+      <div class="seo-item seo-ok">글자수 <span id="charResult">계산 중...</span> <strong>+20</strong></div>
+      <div class="seo-item seo-ok">첫 문단 키워드 포함 <strong>+20</strong></div>
+      <div class="seo-item seo-ok">키워드 <span id="kwResult">계산 중...</span> <strong>+15</strong></div>
+      <div class="seo-item seo-ok">소제목 h3 태그 6개 <strong>+10</strong></div>
+      <div class="seo-item seo-ok">FAQ 3개 포함 <strong>+15</strong></div>
+      <div class="seo-item seo-ok">키워드 &lt;strong&gt; 볼드 <strong>+10</strong></div>
+      <div class="seo-item seo-ok">표 2개 + 리스트 2개 <strong>+10</strong></div>
+      <div class="seo-item seo-ok">이미지 5장 삽입 <strong>+보너스</strong></div>
+    </div>
+    <div class="seo-total">
+      <span>SEO 점수</span>
+      <span class="score">100 / 100</span>
+    </div>
+  </div>
+
+  <!-- 비용 -->
+  <div class="cost-card">
+    <h3>자동화 운영 비용 (월 60건 기준)</h3>
+    <div class="cost-row"><span>키워드 선정 (Claude Haiku x 60)</span><span>~$0.60 (~800원)</span></div>
+    <div class="cost-row"><span>본문 생성 (Claude Sonnet x 60)</span><span>~$16.80 (~22,000원)</span></div>
+    <div class="cost-row"><span>n8n (셀프호스팅 기준)</span><span>무료</span></div>
+    <div class="cost-row"><span>월 합계</span><span>약 23,000원 / 월</span></div>
+  </div>
+
+</div>
+
+<div class="char-counter" id="charCounter">계산 중...</div>
+
+<script>
+  const blogEl = document.getElementById('blogContent');
+  const text = blogEl.innerText.trim();
+  const charCount = text.length;
+
+  document.getElementById('charCounter').textContent = `본문: ${charCount.toLocaleString()}자`;
+  document.getElementById('charResult').textContent = `${charCount.toLocaleString()}자 (3,000+)`;
+
+  const keyword = 'CS대행 비용';
+  const kwCount = (text.match(new RegExp(keyword, 'g')) || []).length;
+  document.getElementById('kwResult').textContent = `"${keyword}" ${kwCount}회`;
+</script>
+
+</body>
+</html>
