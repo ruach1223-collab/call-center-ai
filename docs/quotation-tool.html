@@ -2030,8 +2030,8 @@ table.qt tfoot td { padding:12px 14px; border-top:2px solid #1a365d; font-size:1
 .note-box { background:#f7fafc; border:1px solid #e2e8f0; border-radius:6px; padding:16px 20px; font-size:12px; line-height:1.8; }
 .footer { text-align:center; padding:20px; font-size:11px; color:#a0aec0; border-top:1px solid #edf2f7; }
 .logo-area { text-align:center; padding:20px 0 10px; }
-@page { size:A4; margin:0; }
-@media print { * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; } body { background:#fff; margin:0; padding:15mm; } .document { box-shadow:none; margin:0; } .section { page-break-inside:avoid; } table.qt thead { display:table-header-group; } }`;
+@page { size:A4; margin:15mm; }
+@media print { * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; } body { background:#fff; margin:0; padding:0; } .document { box-shadow:none; margin:0; } .section { page-break-inside:avoid; } table.qt thead { display:table-header-group; } }`;
 }
 
 function getQuoteHeader(title, quoteNum, quoteDate, totalLabel, totalAmount) {
@@ -2161,8 +2161,8 @@ function generateQuoteOutsource() {
         .highlight { color:#1a365d; font-weight:600; font-size:14px; }
         .note-box { background:#f7fafc; border:1px solid #e2e8f0; border-radius:6px; padding:16px 20px; font-size:12px; line-height:1.8; }
         .footer { text-align:center; padding:20px; font-size:11px; color:#a0aec0; border-top:1px solid #edf2f7; }
-        @page { size:A4; margin:0; }
-        @media print { * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; } body { background:#fff; margin:0; padding:15mm; } .document { box-shadow:none; margin:0; } .section { page-break-inside:avoid; } }
+        @page { size:A4; margin:15mm; }
+        @media print { * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; } body { background:#fff; margin:0; padding:0; } .document { box-shadow:none; margin:0; } .section { page-break-inside:avoid; } }
     </style>
 </head>
 <body>
@@ -2899,10 +2899,10 @@ function printQuote() {
         alert('먼저 견적서를 생성해주세요.');
         return;
     }
-    const w = window.open('', '_blank');
-    w.document.write(state.quoteHTML);
-    w.document.close();
-    setTimeout(() => w.print(), 500);
+    const blob = new Blob([state.quoteHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, '_blank');
+    setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 800);
 }
 
 // ===== 체크리스트 =====
@@ -3328,14 +3328,15 @@ function showHistory() {
 
             html += '<div class="history-item">';
             html += '  <div class="history-info">';
-            html += '    <div class="history-client">' + client + ' ' + site + badgeHTML + '</div>';
+            html += '    <div class="history-client" id="hc-' + i + '" ondblclick="editHistoryField(' + i + ',\'client\')">' + client + ' ' + site + badgeHTML + '</div>';
             const typeNames = { outsource:'정액제', labor:'일반도급', 'cs-agent':'CS대행', 'cs-share':'쉐어링', recruit:'채용대행' };
             const typeName = typeNames[meta.quoteType] || '';
             html += '    <div class="history-meta">' + dateStr + (typeName ? ' | ' + typeName : '') + (meta.industry ? ' | ' + meta.industry : '') + (meta.personnel ? ' | ' + meta.personnel + '명' : '') + '</div>';
             html += '  </div>';
-            html += '  <div class="history-amount">' + (amount > 0 ? fmt(amount) + '원' : '-') + '</div>';
+            html += '  <div class="history-amount" id="ha-' + i + '" ondblclick="editHistoryField(' + i + ',\'amount\')">' + (amount > 0 ? fmt(amount) + '원' : '-') + '</div>';
             html += '  <div class="history-actions">';
             html += '    <button class="btn-load" onclick="loadFromHistory(' + i + ')">불러오기</button>';
+            html += '    <button class="btn-edit" onclick="editHistoryField(' + i + ',\'client\')" title="수정" style="background:#edf2f7;color:#4a5568;font-size:11px;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;">수정</button>';
             html += '    <button class="btn-del" onclick="deleteHistory(' + i + ')">삭제</button>';
             html += '  </div>';
             html += '</div>';
@@ -3437,6 +3438,54 @@ function loadFromHistory(idx) {
 }
 
 // ===== 이력 삭제 =====
+function editHistoryField(idx, field) {
+    const history = JSON.parse(localStorage.getItem('ww_quote_history') || '[]');
+    if (idx < 0 || idx >= history.length) return;
+    const item = history[idx];
+    const meta = item._meta || {};
+
+    if (field === 'client') {
+        const el = document.getElementById('hc-' + idx);
+        const curClient = meta.client || item.clientName || '';
+        const curSite = meta.site || item.siteName || '';
+        el.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px;">'
+            + '<input type="text" id="heClient-' + idx + '" value="' + curClient.replace(/"/g,'&quot;') + '" placeholder="업체명" style="font-size:13px;padding:4px 8px;border:1px solid #cbd5e0;border-radius:4px;width:140px;">'
+            + '<input type="text" id="heSite-' + idx + '" value="' + curSite.replace(/"/g,'&quot;') + '" placeholder="현장명" style="font-size:13px;padding:4px 8px;border:1px solid #cbd5e0;border-radius:4px;width:140px;">'
+            + '<div style="display:flex;gap:4px;"><button onclick="saveHistoryField(' + idx + ',\'client\')" style="font-size:11px;padding:3px 10px;background:#4299e1;color:#fff;border:none;border-radius:4px;cursor:pointer;">저장</button>'
+            + '<button onclick="showHistory()" style="font-size:11px;padding:3px 10px;background:#e2e8f0;color:#4a5568;border:none;border-radius:4px;cursor:pointer;">취소</button></div></div>';
+        document.getElementById('heClient-' + idx).focus();
+    } else if (field === 'amount') {
+        const el = document.getElementById('ha-' + idx);
+        const curAmount = meta.quoteAmount || 0;
+        el.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px;">'
+            + '<input type="number" id="heAmount-' + idx + '" value="' + curAmount + '" step="10000" style="font-size:13px;padding:4px 8px;border:1px solid #cbd5e0;border-radius:4px;width:120px;text-align:right;">'
+            + '<div style="display:flex;gap:4px;"><button onclick="saveHistoryField(' + idx + ',\'amount\')" style="font-size:11px;padding:3px 10px;background:#4299e1;color:#fff;border:none;border-radius:4px;cursor:pointer;">저장</button>'
+            + '<button onclick="showHistory()" style="font-size:11px;padding:3px 10px;background:#e2e8f0;color:#4a5568;border:none;border-radius:4px;cursor:pointer;">취소</button></div></div>';
+        document.getElementById('heAmount-' + idx).focus();
+    }
+}
+
+function saveHistoryField(idx, field) {
+    const history = JSON.parse(localStorage.getItem('ww_quote_history') || '[]');
+    if (idx < 0 || idx >= history.length) return;
+    if (!history[idx]._meta) history[idx]._meta = {};
+
+    if (field === 'client') {
+        const newClient = document.getElementById('heClient-' + idx).value.trim();
+        const newSite = document.getElementById('heSite-' + idx).value.trim();
+        history[idx]._meta.client = newClient;
+        history[idx]._meta.site = newSite;
+        history[idx].clientName = newClient;
+        history[idx].siteName = newSite;
+    } else if (field === 'amount') {
+        const newAmount = parseInt(document.getElementById('heAmount-' + idx).value) || 0;
+        history[idx]._meta.quoteAmount = newAmount;
+    }
+
+    localStorage.setItem('ww_quote_history', JSON.stringify(history));
+    showHistory();
+}
+
 function deleteHistory(idx) {
     const history = JSON.parse(localStorage.getItem('ww_quote_history') || '[]');
     if (idx < 0 || idx >= history.length) return;
