@@ -336,22 +336,24 @@
         .type-card .type-desc { font-size: 11px; color: #718096; margin-top: 4px; }
 
         /* 유형별 표시/숨김 */
-        .for-outsource, .for-labor, .for-cs-agent, .for-cs-share, .for-recruit { display: none; }
+        .for-outsource, .for-labor, .for-cs-agent, .for-cs-share, .for-recruit, .for-dispatch { display: none; }
         body.qt-outsource .for-outsource { display: block; }
         body.qt-labor .for-labor { display: block; }
         body.qt-cs-agent .for-cs-agent { display: block; }
         body.qt-cs-share .for-cs-share { display: block; }
         body.qt-recruit .for-recruit { display: block; }
+        body.qt-dispatch .for-dispatch { display: block; }
         /* flex 복원 */
         body.qt-outsource .for-outsource.d-flex { display: flex; }
         body.qt-labor .for-labor.d-flex { display: flex; }
         body.qt-cs-agent .for-cs-agent.d-flex { display: flex; }
         body.qt-cs-share .for-cs-share.d-flex { display: flex; }
         body.qt-recruit .for-recruit.d-flex { display: flex; }
-        /* 공통 표시 (정액/일반 도급 공유) */
+        body.qt-dispatch .for-dispatch.d-flex { display: flex; }
+        /* 공통 표시 (정액/일반 도급/파견 공유) */
         .for-dogup { display: none; }
-        body.qt-outsource .for-dogup, body.qt-labor .for-dogup { display: block; }
-        body.qt-outsource .for-dogup.d-flex, body.qt-labor .for-dogup.d-flex { display: flex; }
+        body.qt-outsource .for-dogup, body.qt-labor .for-dogup, body.qt-dispatch .for-dogup { display: block; }
+        body.qt-outsource .for-dogup.d-flex, body.qt-labor .for-dogup.d-flex, body.qt-dispatch .for-dogup.d-flex { display: flex; }
         /* CS 공통 (CS대행+쉐어링) */
         .for-cs { display: none; }
         body.qt-cs-agent .for-cs, body.qt-cs-share .for-cs { display: block; }
@@ -431,6 +433,11 @@
                     <div class="type-icon">🤝</div>
                     <div class="type-name">채용대행</div>
                     <div class="type-desc">인력 소개 수수료<br>(직무별 단가)</div>
+                </div>
+                <div class="type-card" onclick="switchQuoteType('dispatch', this)">
+                    <div class="type-icon">👷</div>
+                    <div class="type-name">파견</div>
+                    <div class="type-desc">인력 파견 수수료<br>(1인 단가 × 인원)</div>
                 </div>
             </div>
         </div>
@@ -1220,6 +1227,10 @@
                 <label class="form-label">기타사항 (견적서에 표시) <span class="hint">한 줄에 하나씩</span></label>
                 <textarea id="laborNotes" rows="7" oninput="autoSave();" style="font-size:13px;line-height:1.8;"></textarea>
             </div>
+            <div class="form-group for-dispatch">
+                <label class="form-label">기타사항 (견적서에 표시) <span class="hint">한 줄에 하나씩</span></label>
+                <textarea id="dispatchNotes" rows="7" oninput="autoSave();" style="font-size:13px;line-height:1.8;"></textarea>
+            </div>
             <div class="form-group for-recruit">
                 <label class="form-label">기타사항 (견적서에 표시) <span class="hint">한 줄에 하나씩</span></label>
                 <textarea id="recruitNotes" rows="6" oninput="autoSave();" style="font-size:13px;line-height:1.8;"></textarea>
@@ -1382,6 +1393,7 @@ function switchQuoteType(type, card) {
     const tabLabels = {
         outsource: ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트'],
         labor:     ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트'],
+        dispatch:  ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트'],
         'cs-agent':['고객정보','상담사구성','(건너뜀)','(건너뜀)','견적서생성','체크리스트'],
         'cs-share':['고객정보','콜조건','(건너뜀)','(건너뜀)','견적서생성','체크리스트'],
         recruit:   ['고객정보','직무구성','(건너뜀)','(건너뜀)','견적서생성','체크리스트']
@@ -1445,6 +1457,19 @@ function switchQuoteType(type, card) {
             '최저시급 및 4대보험은 당해연도 법정 기준을 반영함.',
             '근로기준법에 의거한 연장, 심야, 휴일근무 수당 및 퇴직금 등은 발생 시 별도 청구함.',
             '관리수수료 포함내역: 채용 광고비, 급여/4대보험 행정대행, 노무 자문 및 리스크 관리, 결원 대응비, 근로자 복리후생비 등 제세 간접비 포함',
+            '부가세 별도 청구함.'
+        ].join('\n');
+    }
+
+    // 파견 기타사항 기본값 세팅 (비어있을 때만)
+    const dispatchNotesEl = document.getElementById('dispatchNotes');
+    if (type === 'dispatch' && dispatchNotesEl && !dispatchNotesEl.value.trim()) {
+        dispatchNotesEl.value = [
+            '위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.',
+            '최저시급 및 4대보험은 당해연도 법정 기준을 반영함.',
+            '근로기준법에 의거한 연장, 심야, 휴일근무 수당 및 퇴직금 등은 발생 시 별도 청구함.',
+            '파견수수료 포함내역: 채용 광고비, 급여/4대보험 행정대행, 노무 자문 및 리스크 관리, 결원 대응비, 근로자 복리후생비 등 제세 간접비 포함',
+            '파견근로자보호법에 따른 사용기간 및 조건을 준수함.',
             '부가세 별도 청구함.'
         ].join('\n');
     }
@@ -2033,6 +2058,7 @@ function generateQuote() {
     if (type === 'cs-agent') return generateQuoteCSAgent();
     if (type === 'cs-share') return generateQuoteCSShare();
     if (type === 'recruit') return generateQuoteRecruit();
+    if (type === 'dispatch') return generateQuoteDispatch();
     return generateQuoteOutsource(); // fallback
 }
 
@@ -2453,6 +2479,128 @@ ${getIndustryPackage()}
     showQuotePreview(quoteHTML);
 }
 
+// ===== 파견 견적서 (일반 도급 기반) =====
+function generateQuoteDispatch() {
+    const client = document.getElementById('clientName').value || '(업체명)';
+    const site = document.getElementById('siteName').value || '';
+    const contact = document.getElementById('contactName').value || '';
+    const quoteNum = document.getElementById('quoteNumber').value || 'WW-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-001';
+    const quoteDate = document.getElementById('quoteDate').value || formatKoreanDate(new Date());
+
+    const wage = parseInt(document.getElementById('hourlyWage').value) || 10500;
+    const baseWage = wage * 209;
+    const rPension = (parseFloat(document.getElementById('ratePension').value) || 4.5) / 100;
+    const rHealth = (parseFloat(document.getElementById('rateHealth').value) || 3.545) / 100;
+    const rEmploy = (parseFloat(document.getElementById('rateEmploy').value) || 0.9) / 100;
+    const rIndust = (parseFloat(document.getElementById('rateIndust').value) || 1.5) / 100;
+    const rRetire = (parseFloat(document.getElementById('rateRetire').value) || 8.33) / 100;
+    const longCare = (parseFloat(document.getElementById('laborLongCare')?.value) || 13.14) / 100;
+    const bizTax = (parseFloat(document.getElementById('laborBizTax')?.value) || 0.5) / 100;
+    const transport = parseInt(document.getElementById('laborTransport')?.value) || 100000;
+    const leaderPay = parseInt(document.getElementById('laborLeaderPay')?.value) || 100000;
+    const laborMgmtRaw = parseFloat(document.getElementById('laborMgmtFee')?.value);
+    const mgmtPct = isNaN(laborMgmtRaw) ? 8 : laborMgmtRaw;
+
+    const pension = Math.round(baseWage * rPension);
+    const health = Math.round(baseWage * rHealth);
+    const longCareAmt = Math.round(health * longCare);
+    const employ = Math.round(baseWage * rEmploy);
+    const indust = Math.round(baseWage * rIndust);
+    const bizTaxAmt = Math.round(baseWage * bizTax);
+    const retire = Math.round(baseWage * rRetire);
+    const annualLeave = Math.round(wage * 8);
+
+    const laborSub1 = baseWage + transport;
+    const laborSub2 = annualLeave;
+    const laborTotal = laborSub1 + laborSub2;
+    const insuranceTotal = pension + health + longCareAmt + employ + indust + bizTaxAmt;
+    const subtotal = laborTotal + insuranceTotal;
+    const mgmtAmt = Math.round(subtotal * mgmtPct / 100);
+    const perPersonTotal = subtotal + mgmtAmt;
+
+    const s1s = document.getElementById('s1Start').value || '09:00';
+    const s1e = document.getElementById('s1End').value || '18:00';
+
+    const workLines = (document.getElementById('workScope').value || '').split('\n').filter(l => l.trim());
+    const noteLines = (document.getElementById('dispatchNotes').value || '').split('\n').filter(l => l.trim());
+
+    const quoteHTML = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>파견견적서 - ${client}</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>${getQuoteCSS()}</style></head><body>
+<div class="document">
+${getQuoteHeader('파 견 견 적 서', quoteNum, quoteDate, client + ' 인력 파견', '1인 단가 ' + fmt(perPersonTotal) + '원')}
+<div class="body">
+${getQuoteParties(client, site || '-', contact)}
+
+<div class="section">
+    <div class="section-title"><span class="num">1</span>견적 내용</div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;">항목</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td style="text-align:left;">내용</td><td>${client} ${workLines.length > 0 ? workLines[0] : '인력 파견'}</td></tr>
+            <tr><td style="text-align:left;">운영시간</td><td>${s1s}~${s1e}</td></tr>
+            <tr><td style="text-align:left;">운영장소</td><td>${site || '-'}</td></tr>
+            <tr><td style="text-align:left;">인력 근무조건</td><td>일 8시간 근무 기준 (${state.opDays})</td></tr>
+            ${workLines.length > 0 ? '<tr><td style="text-align:left;">업무범위</td><td>' + workLines.join(', ') + '</td></tr>' : ''}
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <div class="section-title"><span class="num">2</span>운영 예산안 <span style="font-size:11px;font-weight:400;color:#888;">(적용시급: ${fmt(wage)}원) (단위: 원)</span></div>
+    <table class="qt">
+        <thead><tr><th style="text-align:left;">계정과목</th><th style="text-align:left;">세부내용</th><th>산출내역</th><th style="text-align:right;">합계</th></tr></thead>
+        <tbody>
+            <tr><td style="text-align:left;" rowspan="4"><strong>직접노무비</strong><br>(급여)</td>
+                <td style="text-align:left;">기본급</td><td>적용시급×209시간</td><td style="text-align:right;">${fmt(baseWage)}</td></tr>
+            <tr><td style="text-align:left;">교통비</td><td></td><td style="text-align:right;">${fmt(transport)}</td></tr>
+            <tr><td style="text-align:left;">직책수당</td><td>현장관리자 한정</td><td style="text-align:right;color:#888;">별도</td></tr>
+            <tr><td style="text-align:left;"><strong>① 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(laborSub1)}</td></tr>
+
+            <tr><td style="text-align:left;" rowspan="3"></td>
+                <td style="text-align:left;">퇴직금</td><td></td><td style="text-align:right;color:#888;">발생시 청구</td></tr>
+            <tr><td style="text-align:left;">연차수당</td><td>통상시급×8시간</td><td style="text-align:right;">${fmt(annualLeave)}</td></tr>
+            <tr><td style="text-align:left;"><strong>② 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(laborSub2)}</td></tr>
+
+            <tr style="background:#f0f5ff;"><td style="text-align:left;" colspan="2"><strong>③ 합계 (①+②)</strong></td><td></td><td style="text-align:right;font-weight:700;">${fmt(laborTotal)}</td></tr>
+
+            <tr><td style="text-align:left;" rowspan="7"><strong>간접노무비</strong><br>(4대보험)</td>
+                <td style="text-align:left;">국민연금</td><td>임금 합계×${(rPension*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(pension)}</td></tr>
+            <tr><td style="text-align:left;">건강보험</td><td>임금 합계×${(rHealth*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(health)}</td></tr>
+            <tr><td style="text-align:left;">장기요양보험</td><td>건강보험료×${(longCare*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(longCareAmt)}</td></tr>
+            <tr><td style="text-align:left;">고용보험</td><td>임금 합계×${(rEmploy*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(employ)}</td></tr>
+            <tr><td style="text-align:left;">산재보험</td><td>임금 합계×${(rIndust*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(indust)}</td></tr>
+            <tr><td style="text-align:left;">사업소세</td><td>임금 합계×${(bizTax*100).toFixed(1)}%</td><td style="text-align:right;">${fmt(bizTaxAmt)}</td></tr>
+            <tr><td style="text-align:left;"><strong>④ 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(insuranceTotal)}</td></tr>
+
+            <tr style="background:#f0f5ff;"><td style="text-align:left;" colspan="2"><strong>⑤ 합계 (③+④)</strong></td><td></td><td style="text-align:right;font-weight:700;">${fmt(subtotal)}</td></tr>
+
+            <tr><td style="text-align:left;"><strong>수수료</strong></td>
+                <td style="text-align:left;">파견 수수료</td><td>${mgmtPct}%</td><td style="text-align:right;">${fmt(mgmtAmt)}</td></tr>
+        </tbody>
+        <tfoot>
+            <tr><td style="text-align:left;" colspan="2"><strong>총계 (⑤+수수료) — 1인기준 (VAT 별도)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(perPersonTotal)}</td></tr>
+            <tr><td style="text-align:left;" colspan="2">월 청구 예상액</td><td></td><td style="text-align:right;color:#888;">실 투입 인원 × 1인 단가 적용</td></tr>
+        </tfoot>
+    </table>
+</div>
+
+${getServiceDescription('dispatch')}
+${getIndustryPackage()}
+
+<div class="section">
+    <div class="section-title"><span class="num">3</span>기타사항</div>
+    <div class="note-box">
+        ${noteLines.map((l,i) => '<p>'+(i+1)+'. '+l.trim()+'</p>').join('')}
+    </div>
+</div>
+</div>
+<div class="footer">워크위드 | 본 견적서는 견적일로부터 30일간 유효합니다.</div>
+</div></body></html>`;
+
+    showQuotePreview(quoteHTML);
+}
+
 // ===== CS대행 견적서 (위드콜) =====
 function generateQuoteCSAgent() {
     const client = document.getElementById('clientName').value || '(업체명)';
@@ -2679,6 +2827,17 @@ function getServiceDescription(type) {
                 { name: '수수료 청구 기간', desc: '채용 확정 후 최소 계약기간 동안 월 수수료 청구' },
                 { name: '인력풀 보유', desc: '자체 인력 DB 활용으로 빠른 후보자 매칭' },
                 { name: '도급 전환 지원', desc: '채용대행 → 인력 도급 전환 시 원스톱 지원 가능' }
+            ]
+        },
+        dispatch: {
+            title: '워크위드 인력 파견 서비스 안내',
+            items: [
+                { name: '전문 인력 선발·파견', desc: '직무 적합성 평가를 거친 경험 인력 파견 배치' },
+                { name: '4대보험 완비', desc: '국민연금, 건강보험, 고용보험, 산재보험 전원 가입' },
+                { name: '급여·노무 관리', desc: '파견근로자 급여 지급, 4대보험, 노무관리 일체 처리' },
+                { name: '결원 즉시 충원', desc: '퇴사·결근 시 당일 대체인력 투입 보장' },
+                { name: '자체 교육 체계', desc: '안전교육, 직무교육, 서비스 교육 정기 실시' },
+                { name: '파견법 준수', desc: '파견근로자보호법에 따른 적법한 운영 체계 보장' }
             ]
         }
     };
@@ -2976,6 +3135,7 @@ function autoSave() {
         outsourceNotes: document.getElementById('outsourceNotes').value,
         laborNotes: document.getElementById('laborNotes').value,
         recruitNotes: document.getElementById('recruitNotes').value,
+        dispatchNotes: document.getElementById('dispatchNotes').value,
         finalPrice: document.getElementById('finalPrice').value,
         lessonMemo: document.getElementById('lessonMemo').value,
         ratePension: document.getElementById('ratePension').value,
@@ -3078,7 +3238,7 @@ function loadSaved() {
     const fields = ['clientName','siteName','industry','contactName','contactPhone','contactEmail',
         'reason','memo','perShift','hourlyWage','nightPay','etcCost',
         'simQuote1','simQuote2','simQuote3','itemDogup','itemManage','itemAdmin',
-        'quoteNumber','quoteDate','workScope','quoteNotes','outsourceNotes','laborNotes','recruitNotes','finalPrice','lessonMemo',
+        'quoteNumber','quoteDate','workScope','quoteNotes','outsourceNotes','laborNotes','recruitNotes','dispatchNotes','finalPrice','lessonMemo',
         'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
         'nightStart','nightEnd',
         's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
@@ -3118,7 +3278,7 @@ function loadSaved() {
         if (state.quoteType) {
             switchQuoteType(state.quoteType, null);
             document.querySelectorAll('.type-card').forEach(c => {
-                const types = { outsource: '정액제 도급', labor: '일반 도급', 'cs-agent': 'CS대행', 'cs-share': 'CS쉐어링', recruit: '채용대행' };
+                const types = { outsource: '정액제 도급', labor: '일반 도급', dispatch: '파견', 'cs-agent': 'CS대행', 'cs-share': 'CS쉐어링', recruit: '채용대행' };
                 if (c.querySelector('.type-name').textContent === types[state.quoteType]) c.classList.add('selected');
                 else c.classList.remove('selected');
             });
@@ -3357,7 +3517,7 @@ function showHistory() {
             html += '<div class="history-item">';
             html += '  <div class="history-info">';
             html += '    <div class="history-client" id="hc-' + i + '" ondblclick="editHistoryField(' + i + ',\'client\')">' + client + ' ' + site + badgeHTML + '</div>';
-            const typeNames = { outsource:'정액제', labor:'일반도급', 'cs-agent':'CS대행', 'cs-share':'쉐어링', recruit:'채용대행' };
+            const typeNames = { outsource:'정액제', labor:'일반도급', dispatch:'파견', 'cs-agent':'CS대행', 'cs-share':'쉐어링', recruit:'채용대행' };
             const typeName = typeNames[meta.quoteType] || '';
             html += '    <div class="history-meta">' + dateStr + (typeName ? ' | ' + typeName : '') + (meta.industry ? ' | ' + meta.industry : '') + (meta.personnel ? ' | ' + meta.personnel + '명' : '') + '</div>';
             html += '  </div>';
@@ -3395,7 +3555,7 @@ function loadFromHistory(idx) {
     const fields = ['clientName','siteName','industry','contactName','contactPhone','contactEmail',
         'reason','memo','perShift','hourlyWage','nightPay','etcCost',
         'simQuote1','simQuote2','simQuote3','itemDogup','itemManage','itemAdmin',
-        'quoteNumber','quoteDate','workScope','quoteNotes','outsourceNotes','laborNotes','recruitNotes','finalPrice','lessonMemo',
+        'quoteNumber','quoteDate','workScope','quoteNotes','outsourceNotes','laborNotes','recruitNotes','dispatchNotes','finalPrice','lessonMemo',
         'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
         'nightStart','nightEnd',
         's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
@@ -3434,7 +3594,7 @@ function loadFromHistory(idx) {
         if (state.quoteType) {
             switchQuoteType(state.quoteType, null);
             document.querySelectorAll('.type-card').forEach(c => {
-                const types = { outsource: '정액제 도급', labor: '일반 도급', 'cs-agent': 'CS대행', 'cs-share': 'CS쉐어링', recruit: '채용대행' };
+                const types = { outsource: '정액제 도급', labor: '일반 도급', dispatch: '파견', 'cs-agent': 'CS대행', 'cs-share': 'CS쉐어링', recruit: '채용대행' };
                 if (c.querySelector('.type-name').textContent === types[state.quoteType]) c.classList.add('selected');
                 else c.classList.remove('selected');
             });
