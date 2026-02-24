@@ -533,7 +533,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">팀장 <span class="hint">(0이면 미배치)</span></label>
-                        <input type="number" id="csLeaderCount" value="0" min="0" max="5" onchange="calcCSAgent(); autoSave();">
+                        <input type="number" id="csLeaderCount" value="0" min="0" max="5" step="0.5" onchange="calcCSAgent(); autoSave();">
                     </div>
                     <div class="form-group">
                         <label class="form-label">팀장 월급 (원)</label>
@@ -543,7 +543,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">선임 상담사 수</label>
-                        <input type="number" id="csSeniorCount" value="1" min="0" max="20" onchange="calcCSAgent(); autoSave();">
+                        <input type="number" id="csSeniorCount" value="1" min="0" max="20" step="0.5" onchange="calcCSAgent(); autoSave();">
                     </div>
                     <div class="form-group">
                         <label class="form-label">선임 월급 (원)</label>
@@ -553,7 +553,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">일반 상담사 수</label>
-                        <input type="number" id="csJuniorCount" value="1" min="0" max="20" onchange="calcCSAgent(); autoSave();">
+                        <input type="number" id="csJuniorCount" value="1" min="0" max="20" step="0.5" onchange="calcCSAgent(); autoSave();">
                     </div>
                     <div class="form-group">
                         <label class="form-label">일반 월급 (원)</label>
@@ -1411,27 +1411,27 @@ function switchQuoteType(type, card) {
 
 // ===== CS대행 비용 계산 =====
 function calcCSAgent() {
-    const leaderN = parseInt(document.getElementById('csLeaderCount').value) || 0;
+    const leaderN = parseFloat(document.getElementById('csLeaderCount').value) || 0;
     const leaderS = parseInt(document.getElementById('csLeaderSalary').value) || 0;
-    const seniorN = parseInt(document.getElementById('csSeniorCount').value) || 0;
+    const seniorN = parseFloat(document.getElementById('csSeniorCount').value) || 0;
     const seniorS = parseInt(document.getElementById('csSeniorSalary').value) || 0;
-    const juniorN = parseInt(document.getElementById('csJuniorCount').value) || 0;
+    const juniorN = parseFloat(document.getElementById('csJuniorCount').value) || 0;
     const juniorS = parseInt(document.getElementById('csJuniorSalary').value) || 0;
     const asp = parseInt(document.getElementById('csASP').value) || 0;
     const mgmtRaw = parseFloat(document.getElementById('csMgmtFee').value);
     const mgmtPct = isNaN(mgmtRaw) ? 8 : mgmtRaw;
 
     const totalPeople = leaderN + seniorN + juniorN;
-    const laborCost = leaderN * leaderS + seniorN * seniorS + juniorN * juniorS;
-    const aspCost = asp * totalPeople;
+    const laborCost = Math.round(leaderN * leaderS + seniorN * seniorS + juniorN * juniorS);
+    const aspCost = Math.round(asp * totalPeople);
     const subtotal = laborCost + aspCost;
     const mgmtCost = Math.round(subtotal * mgmtPct / 100);
     const total = subtotal + mgmtCost;
 
     let html = '';
-    if (leaderN > 0) html += '<tr><td>팀장</td><td class="num">' + fmt(leaderS) + '</td><td class="num">' + leaderN + '</td><td class="num">' + fmt(leaderN * leaderS) + '</td></tr>';
-    if (seniorN > 0) html += '<tr><td>선임 상담사</td><td class="num">' + fmt(seniorS) + '</td><td class="num">' + seniorN + '</td><td class="num">' + fmt(seniorN * seniorS) + '</td></tr>';
-    if (juniorN > 0) html += '<tr><td>일반 상담사</td><td class="num">' + fmt(juniorS) + '</td><td class="num">' + juniorN + '</td><td class="num">' + fmt(juniorN * juniorS) + '</td></tr>';
+    if (leaderN > 0) html += '<tr><td>팀장</td><td class="num">' + fmt(leaderS) + '</td><td class="num">' + leaderN + '</td><td class="num">' + fmt(Math.round(leaderN * leaderS)) + '</td></tr>';
+    if (seniorN > 0) html += '<tr><td>선임 상담사</td><td class="num">' + fmt(seniorS) + '</td><td class="num">' + seniorN + '</td><td class="num">' + fmt(Math.round(seniorN * seniorS)) + '</td></tr>';
+    if (juniorN > 0) html += '<tr><td>일반 상담사</td><td class="num">' + fmt(juniorS) + '</td><td class="num">' + juniorN + '</td><td class="num">' + fmt(Math.round(juniorN * juniorS)) + '</td></tr>';
     html += '<tr style="background:#f7fafc;"><td><strong>직·간접 노무비 소계</strong></td><td></td><td class="num">' + totalPeople + '</td><td class="num highlight">' + fmt(laborCost) + '</td></tr>';
     html += '<tr><td>ASP 패키지</td><td class="num">' + fmt(asp) + '</td><td class="num">' + totalPeople + '</td><td class="num">' + fmt(aspCost) + '</td></tr>';
     html += '<tr><td>원 운영비 (발신비용)</td><td colspan="2" style="text-align:right;color:#718096;">실비 청구</td><td class="num">-</td></tr>';
@@ -2407,11 +2407,11 @@ function generateQuoteCSAgent() {
     const quoteNum = document.getElementById('quoteNumber').value || 'WWC-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-001';
     const quoteDate = document.getElementById('quoteDate').value || formatKoreanDate(new Date());
 
-    const leaderN = parseInt(document.getElementById('csLeaderCount').value) || 0;
+    const leaderN = parseFloat(document.getElementById('csLeaderCount').value) || 0;
     const leaderS = parseInt(document.getElementById('csLeaderSalary').value) || 0;
-    const seniorN = parseInt(document.getElementById('csSeniorCount').value) || 0;
+    const seniorN = parseFloat(document.getElementById('csSeniorCount').value) || 0;
     const seniorS = parseInt(document.getElementById('csSeniorSalary').value) || 0;
-    const juniorN = parseInt(document.getElementById('csJuniorCount').value) || 0;
+    const juniorN = parseFloat(document.getElementById('csJuniorCount').value) || 0;
     const juniorS = parseInt(document.getElementById('csJuniorSalary').value) || 0;
     const asp = parseInt(document.getElementById('csASP').value) || 0;
     const csMgmtRaw = parseFloat(document.getElementById('csMgmtFee').value);
@@ -2422,8 +2422,8 @@ function generateQuoteCSAgent() {
     const workScope = document.getElementById('csWorkScope').value || '';
 
     const totalPeople = leaderN + seniorN + juniorN;
-    const laborCost = leaderN * leaderS + seniorN * seniorS + juniorN * juniorS;
-    const aspCost = asp * totalPeople;
+    const laborCost = Math.round(leaderN * leaderS + seniorN * seniorS + juniorN * juniorS);
+    const aspCost = Math.round(asp * totalPeople);
     const subtotal = laborCost + aspCost;
     const mgmtCost = Math.round(subtotal * mgmtPct / 100);
     const calcTotal = subtotal + mgmtCost;
@@ -2434,9 +2434,9 @@ function generateQuoteCSAgent() {
     let peopleRows = '';
     const laborRowCount = (leaderN > 0 ? 1 : 0) + (seniorN > 0 ? 1 : 0) + (juniorN > 0 ? 1 : 0);
     let laborLabelDone = false;
-    if (leaderN > 0) { peopleRows += `<tr><td style="text-align:left;"${laborRowCount > 1 ? ' rowspan="'+laborRowCount+'"' : ''}><strong>직·간접<br>노무비</strong></td><td style="text-align:left;">팀장</td><td>${fmt(leaderS)}</td><td>${leaderN}</td><td style="text-align:right;">${fmt(leaderN*leaderS)}</td></tr>`; laborLabelDone = true; }
-    if (seniorN > 0) { peopleRows += `<tr>${!laborLabelDone ? '<td style="text-align:left;"'+(laborRowCount > 1 ? ' rowspan="'+laborRowCount+'"' : '')+'><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">선임 상담사</td><td>${fmt(seniorS)}</td><td>${seniorN}</td><td style="text-align:right;">${fmt(seniorN*seniorS)}</td></tr>`; laborLabelDone = true; }
-    if (juniorN > 0) { peopleRows += `<tr>${!laborLabelDone ? '<td style="text-align:left;"><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">일반 상담사</td><td>${fmt(juniorS)}</td><td>${juniorN}</td><td style="text-align:right;">${fmt(juniorN*juniorS)}</td></tr>`; }
+    if (leaderN > 0) { peopleRows += `<tr><td style="text-align:left;"${laborRowCount > 1 ? ' rowspan="'+laborRowCount+'"' : ''}><strong>직·간접<br>노무비</strong></td><td style="text-align:left;">팀장</td><td>${fmt(leaderS)}</td><td>${leaderN}</td><td style="text-align:right;">${fmt(Math.round(leaderN*leaderS))}</td></tr>`; laborLabelDone = true; }
+    if (seniorN > 0) { peopleRows += `<tr>${!laborLabelDone ? '<td style="text-align:left;"'+(laborRowCount > 1 ? ' rowspan="'+laborRowCount+'"' : '')+'><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">선임 상담사</td><td>${fmt(seniorS)}</td><td>${seniorN}</td><td style="text-align:right;">${fmt(Math.round(seniorN*seniorS))}</td></tr>`; laborLabelDone = true; }
+    if (juniorN > 0) { peopleRows += `<tr>${!laborLabelDone ? '<td style="text-align:left;"><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">일반 상담사</td><td>${fmt(juniorS)}</td><td>${juniorN}</td><td style="text-align:right;">${fmt(Math.round(juniorN*juniorS))}</td></tr>`; }
 
     const quoteHTML = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>위드콜 견적서 - ${client}</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -3253,9 +3253,9 @@ function saveToHistory() {
     let metaPersonnel = 0;
     const qt = state.quoteType || 'outsource';
     if (qt === 'cs-agent') {
-        metaPersonnel = (parseInt(document.getElementById('csLeaderCount').value) || 0)
-            + (parseInt(document.getElementById('csSeniorCount').value) || 0)
-            + (parseInt(document.getElementById('csJuniorCount').value) || 0);
+        metaPersonnel = (parseFloat(document.getElementById('csLeaderCount').value) || 0)
+            + (parseFloat(document.getElementById('csSeniorCount').value) || 0)
+            + (parseFloat(document.getElementById('csJuniorCount').value) || 0);
     } else if (qt === 'recruit') {
         document.getElementById('recruitRows').querySelectorAll('tr').forEach(row => {
             metaPersonnel += parseInt(row.querySelectorAll('input')[2]?.value) || 0;
