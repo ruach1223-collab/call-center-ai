@@ -696,6 +696,12 @@
                     </div>
                     <div class="result-sub" id="csShareDiscount"></div>
                 </div>
+
+                <div class="card" style="margin-top:16px;">
+                    <div class="card-title">기타사항 (견적서에 표시)</div>
+                    <textarea id="csShareNotes" rows="8" oninput="autoSave();" style="width:100%;font-size:13px;line-height:1.8;"></textarea>
+                    <div style="margin-top:8px;font-size:11px;color:#a0aec0;">한 줄에 하나씩 입력. 견적서 기타사항에 번호가 자동 부여됩니다.</div>
+                </div>
             </div>
         </div>
 
@@ -1192,12 +1198,12 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">견적번호</label>
-                    <input type="text" id="quoteNumber" oninput="autoSave()">
+                    <label class="form-label">견적번호 <span class="hint">(비우면 자동생성)</span></label>
+                    <input type="text" id="quoteNumber" placeholder="예: WWC-20260223-001" oninput="autoSave()">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">견적일자</label>
-                    <input type="text" id="quoteDate" oninput="autoSave()">
+                    <label class="form-label">견적일자 <span class="hint">(비우면 오늘날짜)</span></label>
+                    <input type="text" id="quoteDate" placeholder="예: 2026년 02월 23일" oninput="autoSave()">
                 </div>
             </div>
 
@@ -1392,6 +1398,23 @@ function switchQuoteType(type, card) {
             '초기 구축비 ' + fmt(setupFee) + '원 별도 청구. → 한시적 면제 프로모션 적용',
             '최소 12개월 이상 계약 체결 필수. → 한시적 협의 가능',
             '부가세 별도 청구함.'
+        ].join('\n');
+    }
+
+    // CS쉐어링 기타사항 기본값 세팅 (비어있을 때만)
+    const csShareNotesEl = document.getElementById('csShareNotes');
+    if (type === 'cs-share' && csShareNotesEl && !csShareNotesEl.value.trim()) {
+        const shareSetup = parseInt(document.getElementById('shareSetupFee').value) || 0;
+        const shareOpTimeVal = document.getElementById('shareOpTime').value || '평일 09:00~18:00';
+        csShareNotesEl.value = [
+            '위 내용은 예산(안)으로 실제 근무 내용과 발생 건수에 따라 조정될 수 있음.',
+            '녹취 및 시스템 이용료 포함 및 DB 제공. 녹취서비스는 60일 보관기준이며 DB 제공은 주간, 월간 보고서 형태로 제출.',
+            '근무요일 및 시간: ' + shareOpTimeVal,
+            '발신 비용은 별도로 실비 청구함(아웃콜).',
+            shareSetup > 0 ? '초기 구축 비용 ' + fmt(shareSetup) + '원 별도 청구 (1회성).' : '초기 구축 비용 면제 (프로모션 적용).',
+            '최소 12개월 이상 계약 체결 필수.',
+            '부가세 별도 청구함.',
+            '주말(공휴일), 야간, 심야 시간대 단가 협의 필요.'
         ].join('\n');
     }
 
@@ -2514,17 +2537,7 @@ function generateQuoteCSShare() {
     const callStandard = document.getElementById('shareCallStandard').value || '월 ' + baseCall + '건 기준';
     const finalPrice = parseInt(document.getElementById('csShareFinalPrice').value) || baseFee;
 
-    const noteLines = [];
-    noteLines.push('위 내용은 예산(안)으로 실제 근무 내용과 발생 건수에 따라 조정될 수 있음.');
-    noteLines.push('녹취 및 시스템 이용료 포함 및 DB 제공. 녹취서비스는 60일 보관기준이며 DB 제공은 주간, 월간 보고서 형태로 제출.');
-    noteLines.push('근무요일 및 시간: ' + opTime);
-    noteLines.push('발신 비용은 별도로 실비 청구함(아웃콜).');
-    if (setupFee > 0) noteLines.push('초기 구축 비용 ' + fmt(setupFee) + '원 별도 청구 (1회성).');
-    noteLines.push('최소 12개월 이상 계약 체결 필수.');
-    noteLines.push('부가세 별도 청구함.');
-    noteLines.push('주말(공휴일), 야간, 심야 시간대 단가 협의 필요.');
-    const userNotes3 = (document.getElementById('quoteNotes').value || '').split('\n').filter(l => l.trim());
-    userNotes3.forEach(n => noteLines.push(n));
+    const noteLines = (document.getElementById('csShareNotes').value || '').split('\n').filter(l => l.trim());
 
     const quoteHTML = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>CS쉐어링 견적서 - ${client}</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -2981,6 +2994,7 @@ function autoSave() {
         shareWorkScope: document.getElementById('shareWorkScope').value,
         shareServices: document.getElementById('shareServices').value,
         csShareFinalPrice: document.getElementById('csShareFinalPrice').value,
+        csShareNotes: document.getElementById('csShareNotes').value,
         // 일반도급 필드
         laborMgmtFee: document.getElementById('laborMgmtFee')?.value || '8',
         laborTransport: document.getElementById('laborTransport')?.value || '100000',
@@ -3043,7 +3057,7 @@ function loadSaved() {
         'csLeaderCount','csLeaderSalary','csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
         'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice','csAgentNotes',
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
-        'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
+        'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice','csShareNotes',
         'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare',
         'recruitOpTime','recruitWorkCond','recruitWorkScope','recruitFeeRate','recruitMinMonth','recruitFinalPrice',
         'personnelOverride'];
@@ -3359,7 +3373,7 @@ function loadFromHistory(idx) {
         'csLeaderCount','csLeaderSalary','csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
         'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice','csAgentNotes',
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
-        'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice',
+        'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice','csShareNotes',
         'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare',
         'recruitOpTime','recruitWorkCond','recruitWorkScope','recruitFeeRate','recruitMinMonth','recruitFinalPrice',
         'personnelOverride'];
