@@ -4095,22 +4095,16 @@ function sendToGoogleSheet() {
     gasPost(url, data)
     .then(result => {
         if (result.success) {
-            state._sheetRow = result.row; // 수정용 행 번호 기억
-            saveStatus.textContent = result.updated ? '구글시트 수정 완료!' : '구글시트 저장 완료!';
-            saveStatus.style.color = '#68d391';
-            setTimeout(() => { saveStatus.textContent = prevText; saveStatus.style.color = ''; }, 3000);
+            state._sheetRow = result.row;
+            if (saveStatus) { saveStatus.textContent = result.updated ? '구글시트 수정 완료!' : '구글시트 저장 완료!'; saveStatus.style.color = '#68d391'; setTimeout(() => { saveStatus.textContent = prevText; saveStatus.style.color = ''; }, 3000); }
             alert(result.updated ? '구글시트 행 ' + result.row + ' 수정 완료!' : '구글시트에 저장되었습니다. (행 ' + result.row + ')');
         } else {
-            saveStatus.textContent = '전송 실패';
-            saveStatus.style.color = '#fc8181';
-            setTimeout(() => { saveStatus.textContent = prevText; saveStatus.style.color = ''; }, 3000);
+            if (saveStatus) { saveStatus.textContent = '전송 실패'; saveStatus.style.color = '#fc8181'; setTimeout(() => { saveStatus.textContent = prevText; saveStatus.style.color = ''; }, 3000); }
             alert('전송 실패: ' + (result.error || '알 수 없는 오류'));
         }
     })
     .catch(err => {
-        saveStatus.textContent = '전송 실패';
-        saveStatus.style.color = '#fc8181';
-        setTimeout(() => { saveStatus.textContent = prevText; saveStatus.style.color = ''; }, 3000);
+        if (saveStatus) { saveStatus.textContent = '전송 실패'; saveStatus.style.color = '#fc8181'; setTimeout(() => { saveStatus.textContent = prevText; saveStatus.style.color = ''; }, 3000); }
         alert('전송 오류: ' + err.message + '\n\nApps Script URL을 확인해주세요.');
         openSheetModal();
     });
