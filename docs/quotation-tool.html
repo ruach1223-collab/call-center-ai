@@ -3792,6 +3792,30 @@ const APPS_SCRIPT_CODE = `function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    // 목록 조회 (POST)
+    if (data._action === 'list') {
+      var ss2 = SpreadsheetApp.getActiveSpreadsheet();
+      var sh2 = ss2.getSheetByName('견적관리');
+      if (!sh2) return ContentService.createTextOutput(JSON.stringify({success:true, data:[]})).setMimeType(ContentService.MimeType.JSON);
+      var lastRow = sh2.getLastRow();
+      if (lastRow < 2) return ContentService.createTextOutput(JSON.stringify({success:true, data:[]})).setMimeType(ContentService.MimeType.JSON);
+      var vals = sh2.getRange(2, 1, lastRow - 1, 18).getValues();
+      var list = vals.map(function(r, i) {
+        return {row: i+2, date:r[0], quoteType:r[1], clientName:r[2], siteName:r[3],
+          industry:r[4], contactName:r[5], personnel:r[10], quoteAmount:r[12],
+          finalPrice:r[14], result:r[15], fileUrl:r[17]};
+      });
+      return ContentService.createTextOutput(JSON.stringify({success:true, data:list})).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 개별 로드 (POST)
+    if (data._action === 'load') {
+      var ss3 = SpreadsheetApp.getActiveSpreadsheet();
+      var sh3 = ss3.getSheetByName('견적관리');
+      var fullData = sh3.getRange(parseInt(data._row), 19).getValue();
+      return ContentService.createTextOutput(JSON.stringify({success:true, row:parseInt(data._row), fullData:fullData})).setMimeType(ContentService.MimeType.JSON);
+    }
+
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName('견적관리');
     if (!sheet) {
@@ -4103,19 +4127,13 @@ function showSheetHistory() {
     container.innerHTML = '<div style="text-align:center;padding:30px;color:#718096;">구글시트에서 불러오는 중...</div>';
     document.getElementById('historyModal').classList.add('active');
 
-    // GET 요청으로 목록 조회
-    fetch(url + '?action=list', { redirect: 'follow' })
-    .then(r => r.text())
-    .then(text => {
-        try { var result = JSON.parse(text); } catch(e) {
-            // 리다이렉트 HTML이 올 수 있으므로 수동 처리
-            throw new Error('목록 조회 실패');
-        }
+    gasPost(url, { _action: 'list' })
+    .then(result => {
         if (!result.success) throw new Error(result.error || '조회 실패');
         renderSheetHistory(result.data);
     })
     .catch(err => {
-        container.innerHTML = '<div style="text-align:center;padding:30px;color:#e53e3e;">구글시트 조회 실패: ' + err.message + '<br><br><span style="font-size:12px;color:#718096;">로컬 이력을 보려면 [이력조회] 버튼을 사용하세요.</span></div>';
+        container.innerHTML = '<div style="text-align:center;padding:30px;color:#e53e3e;">구글시트 조회 실패: ' + err.message + '<br><br><span style="font-size:12px;color:#718096;">로컬 이력을 보려면 [로컬이력] 버튼을 사용하세요.</span></div>';
     });
 }
 
@@ -4160,10 +4178,8 @@ function loadFromSheet(rowNum) {
 
     if (!confirm('현재 작업 중인 데이터를 덮어씁니다. 계속하시겠습니까?')) return;
 
-    fetch(url + '?action=load&row=' + rowNum, { redirect: 'follow' })
-    .then(r => r.text())
-    .then(text => {
-        try { var result = JSON.parse(text); } catch(e) { throw new Error('데이터 로드 실패'); }
+    gasPost(url, { _action: 'load', _row: rowNum })
+    .then(result => {
         if (!result.success) throw new Error(result.error || '로드 실패');
 
         // fullData JSON으로 복원
