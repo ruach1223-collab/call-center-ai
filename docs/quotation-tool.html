@@ -3920,33 +3920,17 @@ function copyAppsScript() {
 }
 
 function gasPost(url, payload) {
-    // Google Apps Script는 302 리다이렉트를 사용하므로 수동 처리
     return fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload),
-        redirect: 'manual'
-    })
-    .then(r => {
-        if (r.type === 'opaqueredirect' || r.status === 302) {
-            // 리다이렉트 URL을 GET으로 따라감
-            const loc = r.headers.get('Location');
-            if (loc) return fetch(loc);
-            // opaqueredirect면 Location 접근 불가 → follow 모드로 재시도
-            return fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload),
-                redirect: 'follow'
-            });
-        }
-        return r;
+        redirect: 'follow'
     })
     .then(r => r.text())
     .then(text => {
+        console.log('GAS 응답:', text.substring(0, 200));
         try { return JSON.parse(text); } catch(e) {
             if (text.includes('</html>')) throw new Error('HTML 응답 수신 - Apps Script 배포 설정을 확인해주세요');
-            throw new Error('응답 파싱 실패');
+            throw new Error('응답 파싱 실패: ' + text.substring(0, 100));
         }
     });
 }
@@ -4065,10 +4049,12 @@ function sendToGoogleSheet() {
 
     // autoSave 데이터 전체를 JSON으로 첨부 (나중에 불러오기용)
     autoSave();
-    const fullData = localStorage.getItem('ww_quote_current') || '{}';
-    data._fullData = fullData;
+    const saved = JSON.parse(localStorage.getItem('ww_quote_current') || '{}');
+    // quoteHTML은 별도 Drive 파일로 저장하므로 fullData에서 제거 (셀 크기 초과 방지)
+    if (saved.state) delete saved.state.quoteHTML;
+    data._fullData = JSON.stringify(saved);
 
-    // 견적서 HTML 첨부 (생성된 경우)
+    // 견적서 HTML 첨부 → 구글드라이브에 파일로 저장됨
     if (state.quoteHTML) {
         data._quoteHtml = state.quoteHTML;
     }
