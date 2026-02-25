@@ -3983,29 +3983,27 @@ function testSheetConnection() {
     });
 }
 
+function elVal(id) { const el = document.getElementById(id); return el ? el.value || '' : ''; }
+
 function collectSheetData() {
     const qt = state.quoteType || 'outsource';
     const typeNames = { outsource:'정액제 도급', labor:'일반 도급', dispatch:'파견', 'cs-agent':'CS대행', 'cs-share':'CS쉐어링', recruit:'채용대행' };
 
-    // 인원
     let personnel = 0;
     if (qt === 'cs-agent') {
-        personnel = (parseFloat(document.getElementById('csLeaderCount').value) || 0)
-            + (parseFloat(document.getElementById('csSeniorCount').value) || 0)
-            + (parseFloat(document.getElementById('csJuniorCount').value) || 0);
+        personnel = (parseFloat(elVal('csLeaderCount')) || 0)
+            + (parseFloat(elVal('csSeniorCount')) || 0)
+            + (parseFloat(elVal('csJuniorCount')) || 0);
     } else if (qt === 'recruit') {
-        document.getElementById('recruitRows').querySelectorAll('tr').forEach(row => {
+        const rows = document.getElementById('recruitRows');
+        if (rows) rows.querySelectorAll('tr').forEach(row => {
             personnel += parseInt(row.querySelectorAll('input')[2]?.value) || 0;
         });
     } else if (qt !== 'cs-share') {
         personnel = state.personnel || 0;
     }
 
-    // 견적금액
-    let quoteAmount = 0;
-    let finalPrice = 0;
-    let totalCost = 0;
-
+    let quoteAmount = 0, finalPrice = 0, totalCost = 0;
     if (qt === 'cs-agent') {
         totalCost = parseInt(document.getElementById('csAgentTotal')?.textContent?.replace(/[^0-9]/g,'')) || 0;
         finalPrice = numVal('csAgentFinalPrice');
@@ -4018,19 +4016,16 @@ function collectSheetData() {
     } else if (qt === 'recruit') {
         finalPrice = numVal('recruitFinalPrice');
         quoteAmount = finalPrice;
-        totalCost = 0;
     } else {
-        // 정액제/일반/파견
-        const d = parseInt(document.getElementById('itemDogup').value) || 0;
-        const m = parseInt(document.getElementById('itemManage').value) || 0;
-        const a = parseInt(document.getElementById('itemAdmin').value) || 0;
+        const d = parseInt(elVal('itemDogup')) || 0;
+        const m = parseInt(elVal('itemManage')) || 0;
+        const a = parseInt(elVal('itemAdmin')) || 0;
         quoteAmount = (d + m + a) * 10000;
         totalCost = state.totalCost || 0;
         finalPrice = numVal('finalPrice');
         if (finalPrice) finalPrice = finalPrice * 10000;
     }
 
-    // 마진율
     let marginRate = '';
     if (quoteAmount > 0 && totalCost > 0) {
         marginRate = ((quoteAmount - totalCost) / quoteAmount * 100).toFixed(1);
@@ -4039,12 +4034,12 @@ function collectSheetData() {
     return {
         date: new Date().toLocaleDateString('ko-KR', {year:'numeric', month:'2-digit', day:'2-digit'}),
         quoteType: typeNames[qt] || qt,
-        clientName: document.getElementById('clientName').value || '',
-        siteName: document.getElementById('siteName').value || '',
-        industry: document.getElementById('industry').value || '',
-        contactName: document.getElementById('contactName').value || '',
-        contactPhone: document.getElementById('contactPhone').value || '',
-        contactEmail: document.getElementById('contactEmail').value || '',
+        clientName: elVal('clientName'),
+        siteName: elVal('siteName'),
+        industry: elVal('industry'),
+        contactName: elVal('contactName'),
+        contactPhone: elVal('contactPhone'),
+        contactEmail: elVal('contactEmail'),
         source: state.source || '',
         currentOps: state.currentOps || '',
         personnel: personnel,
@@ -4053,7 +4048,7 @@ function collectSheetData() {
         marginRate: marginRate,
         finalPrice: finalPrice || quoteAmount,
         result: state.result || 'Pending (진행중)',
-        memo: document.getElementById('memo').value || ''
+        memo: elVal('memo')
     };
 }
 
@@ -4092,9 +4087,8 @@ function sendToGoogleSheet() {
 
     // 전송 중 표시
     const saveStatus = document.getElementById('saveStatus');
-    const prevText = saveStatus.textContent;
-    saveStatus.textContent = '구글시트 전송 중...';
-    saveStatus.style.color = '#63b3ed';
+    const prevText = saveStatus ? saveStatus.textContent : '';
+    if (saveStatus) { saveStatus.textContent = '구글시트 전송 중...'; saveStatus.style.color = '#63b3ed'; }
 
     gasPost(url, data)
     .then(result => {
