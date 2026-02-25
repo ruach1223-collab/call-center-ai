@@ -3529,8 +3529,8 @@ function toggleRates() {
 
 // ===== 이력 저장 =====
 function saveToHistory() {
-    const client = document.getElementById('clientName').value || '(미입력)';
-    const site = document.getElementById('siteName').value || '';
+    const client = elVal('clientName') || '(미입력)';
+    const site = elVal('siteName') || '';
     if (client === '(미입력)' && !site) {
         if (!confirm('업체명이 비어있습니다. 그래도 저장하시겠습니까?')) return;
     }
@@ -3540,22 +3540,25 @@ function saveToHistory() {
     const current = JSON.parse(localStorage.getItem('ww_quote_current') || '{}');
 
     // 견적 금액 계산
-    const d = parseInt(document.getElementById('itemDogup').value) || 0;
-    const m = parseInt(document.getElementById('itemManage').value) || 0;
-    const a = parseInt(document.getElementById('itemAdmin').value) || 0;
+    const d = parseInt(elVal('itemDogup')) || 0;
+    const m = parseInt(elVal('itemManage')) || 0;
+    const a = parseInt(elVal('itemAdmin')) || 0;
     const quoteAmount = (d + m + a) * 10000;
 
     // 유형별 인원 계산
     let metaPersonnel = 0;
     const qt = state.quoteType || 'outsource';
     if (qt === 'cs-agent') {
-        metaPersonnel = (parseFloat(document.getElementById('csLeaderCount').value) || 0)
-            + (parseFloat(document.getElementById('csSeniorCount').value) || 0)
-            + (parseFloat(document.getElementById('csJuniorCount').value) || 0);
+        metaPersonnel = (parseFloat(elVal('csLeaderCount')) || 0)
+            + (parseFloat(elVal('csSeniorCount')) || 0)
+            + (parseFloat(elVal('csJuniorCount')) || 0);
     } else if (qt === 'recruit') {
-        document.getElementById('recruitRows').querySelectorAll('tr').forEach(row => {
-            metaPersonnel += parseInt(row.querySelectorAll('input')[2]?.value) || 0;
-        });
+        const recruitEl = document.getElementById('recruitRows');
+        if (recruitEl) {
+            recruitEl.querySelectorAll('tr').forEach(row => {
+                metaPersonnel += parseInt(row.querySelectorAll('input')[2]?.value) || 0;
+            });
+        }
     } else if (qt !== 'cs-share') {
         metaPersonnel = state.personnel || 0;
     }
@@ -3564,7 +3567,7 @@ function saveToHistory() {
     current._meta = {
         client: client,
         site: site,
-        industry: document.getElementById('industry').value || '',
+        industry: elVal('industry') || '',
         quoteType: qt,
         quoteAmount: quoteAmount,
         totalCost: state.totalCost || 0,
