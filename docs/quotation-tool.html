@@ -2456,7 +2456,8 @@ function generateQuoteLabor() {
     const rRetire = (parseFloat(document.getElementById('rateRetire').value) || 8.33) / 100;
     const longCare = (parseFloat(document.getElementById('laborLongCare')?.value) || 13.14) / 100;
     const bizTax = (parseFloat(document.getElementById('laborBizTax')?.value) || 0.5) / 100;
-    const transport = numVal('laborTransport') || 100000;
+    const transport = numVal('laborTransport') || 0;
+    const nightPay = numVal('nightPay') || 0;
     const leaderPay = numVal('laborLeaderPay') || 100000;
     const laborMgmtRaw = parseFloat(document.getElementById('laborMgmtFee')?.value);
     const mgmtPct = isNaN(laborMgmtRaw) ? 8 : laborMgmtRaw;
@@ -2471,7 +2472,7 @@ function generateQuoteLabor() {
     const retire = Math.round(baseWage * rRetire); // 발생시 청구
     const annualLeave = Math.round(wage * 8); // 연차수당 = 통상시급×8h
 
-    const laborSub1 = baseWage + transport;
+    const laborSub1 = baseWage + transport + nightPay;
     const laborSub2 = annualLeave;
     const laborTotal = laborSub1 + laborSub2;
     const insuranceTotal = pension + health + longCareAmt + employ + indust + bizTaxAmt;
@@ -2513,10 +2514,10 @@ ${getQuoteParties(client, site || '-', contact)}
     <table class="qt">
         <thead><tr><th style="text-align:left;">계정과목</th><th style="text-align:left;">세부내용</th><th>산출내역</th><th style="text-align:right;">합계</th></tr></thead>
         <tbody>
-            <tr><td style="text-align:left;" rowspan="4"><strong>직접노무비</strong><br>(급여)</td>
+            <tr><td style="text-align:left;" rowspan="${2 + (transport > 0 ? 1 : 0) + (nightPay > 0 ? 1 : 0)}"><strong>직접노무비</strong><br>(급여)</td>
                 <td style="text-align:left;">기본급</td><td>적용시급×209시간</td><td style="text-align:right;">${fmt(baseWage)}</td></tr>
-            <tr><td style="text-align:left;">교통비</td><td></td><td style="text-align:right;">${fmt(transport)}</td></tr>
-            <tr><td style="text-align:left;">직책수당</td><td>현장관리자 한정</td><td style="text-align:right;color:#888;">별도</td></tr>
+            ${transport > 0 ? '<tr><td style="text-align:left;">교통비</td><td></td><td style="text-align:right;">' + fmt(transport) + '</td></tr>' : ''}
+            ${nightPay > 0 ? '<tr><td style="text-align:left;">야간수당</td><td></td><td style="text-align:right;">' + fmt(nightPay) + '</td></tr>' : ''}
             <tr><td style="text-align:left;"><strong>① 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(laborSub1)}</td></tr>
 
             <tr><td style="text-align:left;" rowspan="3"></td>
@@ -2581,7 +2582,8 @@ function generateQuoteDispatch() {
     const rRetire = (parseFloat(document.getElementById('rateRetire').value) || 8.33) / 100;
     const longCare = (parseFloat(document.getElementById('laborLongCare')?.value) || 13.14) / 100;
     const bizTax = (parseFloat(document.getElementById('laborBizTax')?.value) || 0.5) / 100;
-    const transport = numVal('laborTransport') || 100000;
+    const transport = numVal('laborTransport') || 0;
+    const nightPay = numVal('nightPay') || 0;
     const leaderPay = numVal('laborLeaderPay') || 100000;
     const laborMgmtRaw = parseFloat(document.getElementById('laborMgmtFee')?.value);
     const mgmtPct = isNaN(laborMgmtRaw) ? 8 : laborMgmtRaw;
@@ -2595,7 +2597,7 @@ function generateQuoteDispatch() {
     const retire = Math.round(baseWage * rRetire);
     const annualLeave = Math.round(wage * 8);
 
-    const laborSub1 = baseWage + transport;
+    const laborSub1 = baseWage + transport + nightPay;
     const laborSub2 = annualLeave;
     const laborTotal = laborSub1 + laborSub2;
     const insuranceTotal = pension + health + longCareAmt + employ + indust + bizTaxAmt;
@@ -2636,10 +2638,10 @@ ${getQuoteParties(client, site || '-', contact)}
     <table class="qt">
         <thead><tr><th style="text-align:left;">계정과목</th><th style="text-align:left;">세부내용</th><th>산출내역</th><th style="text-align:right;">합계</th></tr></thead>
         <tbody>
-            <tr><td style="text-align:left;" rowspan="4"><strong>직접노무비</strong><br>(급여)</td>
+            <tr><td style="text-align:left;" rowspan="${2 + (transport > 0 ? 1 : 0) + (nightPay > 0 ? 1 : 0)}"><strong>직접노무비</strong><br>(급여)</td>
                 <td style="text-align:left;">기본급</td><td>적용시급×209시간</td><td style="text-align:right;">${fmt(baseWage)}</td></tr>
-            <tr><td style="text-align:left;">교통비</td><td></td><td style="text-align:right;">${fmt(transport)}</td></tr>
-            <tr><td style="text-align:left;">직책수당</td><td>현장관리자 한정</td><td style="text-align:right;color:#888;">별도</td></tr>
+            ${transport > 0 ? '<tr><td style="text-align:left;">교통비</td><td></td><td style="text-align:right;">' + fmt(transport) + '</td></tr>' : ''}
+            ${nightPay > 0 ? '<tr><td style="text-align:left;">야간수당</td><td></td><td style="text-align:right;">' + fmt(nightPay) + '</td></tr>' : ''}
             <tr><td style="text-align:left;"><strong>① 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(laborSub1)}</td></tr>
 
             <tr><td style="text-align:left;" rowspan="3"></td>
