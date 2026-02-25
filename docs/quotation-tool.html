@@ -4058,11 +4058,13 @@ function collectSheetData() {
 }
 
 function sendToGoogleSheet() {
+  try {
     const url = getSheetUrl();
     if (!url) {
         openSheetModal();
         return;
     }
+    alert('전송 시작... URL: ' + url.substring(0, 40) + '...');
 
     const clientName = document.getElementById('clientName').value;
     if (!clientName) {
@@ -4116,6 +4118,9 @@ function sendToGoogleSheet() {
         alert('전송 오류: ' + err.message + '\n\nApps Script URL을 확인해주세요.');
         openSheetModal();
     });
+  } catch(e) {
+    alert('sendToGoogleSheet 에러: ' + e.message);
+  }
 }
 
 // ===== 구글시트에서 불러오기 =====
