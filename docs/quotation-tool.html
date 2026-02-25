@@ -4059,9 +4059,7 @@ function sendToGoogleSheet() {
         openSheetModal();
         return;
     }
-    alert('전송 시작... URL: ' + url.substring(0, 40) + '...');
-
-    const clientName = document.getElementById('clientName').value;
+    const clientName = elVal('clientName');
     if (!clientName) {
         if (!confirm('업체명이 비어있습니다. 그래도 전송하시겠습니까?')) return;
     }
