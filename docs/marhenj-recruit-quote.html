@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채용대행 견적서 - 마르헨제이(MARHEN.J)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans KR', '맑은 고딕', sans-serif;
+            background: #f0f0f0; color: #333; font-size: 13px; line-height: 1.75;
+            font-weight: 400; letter-spacing: -0.02em;
+        }
+        .document {
+            max-width: 210mm; margin: 20px auto; background: #fff;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 헤더 */
+        .header { padding: 40px 50px 30px; border-bottom: 3px solid #1a365d; }
+        .header-top {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 28px; font-weight: 600; color: #1a365d; letter-spacing: 8px; }
+        .header-sub { font-size: 13px; color: #888; margin-top: 4px; letter-spacing: 0; }
+        .header-info { text-align: right; font-size: 12px; color: #666; line-height: 1.8; }
+        .header-info .label { color: #999; margin-right: 8px; }
+
+        .total-box {
+            background: #f8fafc; border: 2px solid #1a365d; border-radius: 8px;
+            padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .total-label { font-size: 14px; font-weight: 500; color: #1a365d; }
+        .total-amount { font-size: 20px; font-weight: 600; color: #1a365d; }
+        .total-sub { font-size: 12px; color: #888; margin-top: 4px; }
+
+        /* 본문 */
+        .body { padding: 30px 50px 40px; }
+
+        /* 수신/발신 */
+        .parties { display: flex; gap: 40px; margin-bottom: 30px; }
+        .party { flex: 1; background: #fafafa; border-radius: 6px; padding: 18px 22px; }
+        .party-title {
+            font-size: 11px; color: #1a365d; font-weight: 600; letter-spacing: 1px;
+            margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;
+        }
+        .party-table { width: 100%; }
+        .party-table td { padding: 4px 0; font-size: 12px; vertical-align: top; }
+        .party-table td:first-child { color: #888; width: 60px; }
+        .party-table td:last-child { font-weight: 500; }
+
+        /* 섹션 */
+        .section { margin-bottom: 28px; }
+        .section-title {
+            font-size: 14px; font-weight: 600; color: #1a365d;
+            padding-bottom: 8px; border-bottom: 1px solid #cbd5e0;
+            margin-bottom: 15px;
+        }
+        .section-title .num {
+            display: inline-block; background: #1a365d; color: #fff;
+            width: 20px; height: 20px; border-radius: 50%; text-align: center;
+            line-height: 20px; font-size: 10px; margin-right: 8px; font-weight: 500;
+        }
+
+        /* 테이블 */
+        table.qt { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        table.qt thead th {
+            background: #1a365d; color: #fff; padding: 10px 14px;
+            font-size: 11px; font-weight: 500; text-align: center;
+        }
+        table.qt thead th:first-child { text-align: left; }
+        table.qt tbody td {
+            padding: 10px 14px; border-bottom: 1px solid #e2e8f0;
+            font-size: 12px; text-align: center;
+        }
+        table.qt tbody td:first-child { text-align: left; }
+        table.qt tbody tr:last-child td { border-bottom: none; }
+        table.qt tfoot td {
+            padding: 12px 14px; font-weight: 700; font-size: 13px;
+            border-top: 2px solid #1a365d; text-align: center;
+        }
+        table.qt tfoot td:first-child { text-align: left; }
+        .highlight { color: #1a365d; font-weight: 700; }
+        .sub-row { background: #f7fafc; }
+
+        /* 단가 카드 */
+        .price-cards { display: flex; gap: 16px; margin: 15px 0; }
+        .price-card {
+            flex: 1; border: 2px solid #e2e8f0; border-radius: 10px; padding: 22px 18px;
+            text-align: center; position: relative;
+        }
+        .price-card.primary { border-color: #1a365d; background: #f8fafc; }
+        .price-badge {
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            background: #1a365d; color: #fff; font-size: 10px; font-weight: 600;
+            padding: 3px 14px; border-radius: 10px; white-space: nowrap;
+        }
+        .price-role { font-size: 14px; font-weight: 600; color: #1a365d; margin-bottom: 4px; }
+        .price-career { font-size: 11px; color: #888; margin-bottom: 14px; }
+        .price-salary { font-size: 11px; color: #666; margin-bottom: 4px; }
+        .price-salary strong { font-size: 13px; color: #333; }
+        .price-divider { border-top: 1px dashed #cbd5e0; margin: 12px 0; }
+        .price-fee-label { font-size: 10px; color: #888; margin-bottom: 2px; }
+        .price-fee { font-size: 20px; font-weight: 700; color: #1a365d; }
+        .price-fee-sub { font-size: 11px; color: #888; margin-top: 2px; }
+
+        /* 체크리스트 */
+        .check-list { margin: 10px 0; }
+        .check-list li {
+            list-style: none; padding: 5px 0; font-size: 12px;
+            padding-left: 22px; position: relative;
+        }
+        .check-list li::before {
+            content: "\2713"; position: absolute; left: 0;
+            color: #38a169; font-weight: 700; font-size: 13px;
+        }
+        .uncheck-list li::before { content: "\2715"; color: #e53e3e; }
+
+        /* 조건 */
+        .terms-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0;
+        }
+        .term-item {
+            display: flex; gap: 10px; font-size: 12px;
+            padding: 8px 12px; background: #fafafa; border-radius: 4px;
+        }
+        .term-label { color: #888; min-width: 100px; }
+        .term-value { font-weight: 600; }
+
+        /* 특기사항 */
+        .note-box {
+            background: #fffbeb; border-left: 3px solid #d69e2e; padding: 14px 18px;
+            margin: 10px 0; border-radius: 0 6px 6px 0;
+        }
+        .note-box p { font-size: 12px; margin-bottom: 4px; }
+
+        /* 특장점 카드 */
+        .feature-cards { display: flex; gap: 14px; margin: 15px 0; }
+        .feature-card {
+            flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;
+            text-align: center;
+        }
+        .feature-icon { font-size: 22px; margin-bottom: 6px; }
+        .feature-title { font-size: 12px; font-weight: 600; color: #1a365d; margin-bottom: 4px; }
+        .feature-desc { font-size: 11px; color: #666; line-height: 1.5; }
+
+        /* 시뮬레이션 */
+        .sim-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; }
+        .sim-table th {
+            background: #edf2f7; padding: 8px 12px; text-align: center;
+            font-weight: 600; color: #1a365d; border-bottom: 1px solid #cbd5e0;
+        }
+        .sim-table th:first-child { text-align: left; }
+        .sim-table td { padding: 8px 12px; text-align: center; border-bottom: 1px solid #edf2f7; }
+        .sim-table td:first-child { text-align: left; }
+        .sim-table tr:last-child td { border-bottom: none; }
+        .sim-highlight { background: #f0f5ff; font-weight: 600; }
+
+        /* 푸터 */
+        .footer {
+            padding: 20px 50px; background: #f8fafc; border-top: 1px solid #e2e8f0;
+            text-align: center; font-size: 11px; color: #888;
+        }
+
+        /* 인쇄 */
+        @page { size: A4; margin: 12mm; }
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { background: #fff; margin: 0; padding: 0; }
+            .document { box-shadow: none; margin: 0; max-width: 100%; }
+            .header { padding: 20px 30px 20px; }
+            .body { padding: 20px 30px 30px; }
+            .footer { padding: 15px 30px; }
+            .no-print { display: none; }
+        }
+        .print-btn {
+            position: fixed; bottom: 30px; right: 30px;
+            background: #1a365d; color: #fff; border: none;
+            padding: 14px 28px; border-radius: 30px; font-size: 15px; font-weight: 600;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(26,54,93,0.3); z-index: 100;
+        }
+        .print-btn:hover { background: #2d4a7c; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">PDF 저장 / 인쇄</button>
+
+<div class="document">
+
+    <!-- ========== 헤더 ========== -->
+    <div class="header">
+        <div class="header-top">
+            <div>
+                <h1>채용대행 견적서</h1>
+                <div class="header-sub">Recruitment Service Quotation</div>
+            </div>
+            <div class="header-info">
+                <p><span class="label">견적번호</span> WW-2026-0224-01</p>
+                <p><span class="label">견적일자</span> 2026년 2월 24일</p>
+                <p><span class="label">유효기간</span> 견적일로부터 30일</p>
+            </div>
+        </div>
+
+        <div class="total-box">
+            <div>
+                <div class="total-label">채용대행 소개수수료 (인원당)</div>
+                <div class="total-sub">부가가치세 별도 / 최소 3개월 청구</div>
+            </div>
+            <div style="text-align: right;">
+                <div class="total-amount">월 급여의 10%</div>
+                <div class="total-sub">인원당 월 12만~30만원 수준</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 본문 ========== -->
+    <div class="body">
+
+        <!-- 수신/발신 -->
+        <div class="parties">
+            <div class="party">
+                <div class="party-title">수 신</div>
+                <table class="party-table">
+                    <tr><td>업체명</td><td>(주)알비이엔씨 / 마르헨제이</td></tr>
+                    <tr><td>현장</td><td>성수, 삼청, 한남, 명동 (4개 매장)</td></tr>
+                    <tr><td>담당자</td><td></td></tr>
+                </table>
+            </div>
+            <div class="party">
+                <div class="party-title">발 신</div>
+                <table class="party-table">
+                    <tr><td>업체명</td><td>주식회사 워크위드</td></tr>
+                    <tr><td>TEL</td><td>1600-9878</td></tr>
+                    <tr><td>FAX</td><td>043-912-9913</td></tr>
+                    <tr><td>주소</td><td>충주시 예성로 392, 롯데프라자 4층 401호</td></tr>
+                    <tr><td>대표</td><td>한 세 은</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 1. 건명 및 개요 -->
+        <div class="section">
+            <div class="section-title"><span class="num">1</span>건명 및 개요</div>
+            <table class="qt">
+                <tbody>
+                    <tr><td style="width:120px;"><strong>건 명</strong></td><td style="text-align:left;">마르헨제이 매장 인력 채용대행</td></tr>
+                    <tr><td><strong>서비스 유형</strong></td><td style="text-align:left;"><span class="highlight">채용대행 (구인 · 선발 · 추천)</span></td></tr>
+                    <tr><td><strong>대상 매장</strong></td><td style="text-align:left;">성수점, 삼청점, 한남점, 명동점 (총 4개)</td></tr>
+                    <tr><td><strong>채용 직무</strong></td><td style="text-align:left;">매장 매니저, 판매 직원, PT(파트타이머)</td></tr>
+                    <tr><td><strong>업무범위</strong></td><td style="text-align:left;">구인 공고, 지원자 스크리닝, 이력서 전달, 면접 코디네이션</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 2. 인원당 단가표 -->
+        <div class="section">
+            <div class="section-title"><span class="num">2</span>직무별 인원당 단가표</div>
+
+            <div class="price-cards">
+                <div class="price-card">
+                    <div class="price-role">매장 매니저</div>
+                    <div class="price-career">경력 3년 이상</div>
+                    <div class="price-salary">예상 월 급여 <strong>300만원</strong></div>
+                    <div class="price-divider"></div>
+                    <div class="price-fee-label">월 소개수수료 (1인)</div>
+                    <div class="price-fee">30만원</div>
+                    <div class="price-fee-sub">3개월 합계 90만원</div>
+                </div>
+                <div class="price-card primary">
+                    <div class="price-badge">가장 많은 문의</div>
+                    <div class="price-role">판매 직원</div>
+                    <div class="price-career">신입 ~ 경력</div>
+                    <div class="price-salary">예상 월 급여 <strong>250만원</strong></div>
+                    <div class="price-divider"></div>
+                    <div class="price-fee-label">월 소개수수료 (1인)</div>
+                    <div class="price-fee">25만원</div>
+                    <div class="price-fee-sub">3개월 합계 75만원</div>
+                </div>
+                <div class="price-card">
+                    <div class="price-role">PT (파트타이머)</div>
+                    <div class="price-career">신입</div>
+                    <div class="price-salary">예상 월 급여 <strong>120만원</strong></div>
+                    <div class="price-divider"></div>
+                    <div class="price-fee-label">월 소개수수료 (1인)</div>
+                    <div class="price-fee">12만원</div>
+                    <div class="price-fee-sub">3개월 합계 36만원</div>
+                </div>
+            </div>
+
+            <p style="font-size:11px; color:#888; margin-top:8px;">
+                ※ 소개수수료 = 해당 인력 월 급여 × 10% / 최소 청구기간 3개월<br>
+                ※ 예상 월 급여는 서울 핵심상권 패션 매장 시세 기준이며, 귀사 급여 테이블에 맞춰 조정됩니다.
+            </p>
+        </div>
+
+        <!-- 3. 예상 비용 시뮬레이션 -->
+        <div class="section">
+            <div class="section-title"><span class="num">3</span>예상 비용 시뮬레이션 (참고)</div>
+
+            <table class="sim-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">구성 예시</th>
+                        <th>인원</th>
+                        <th>월 수수료</th>
+                        <th>3개월 합계</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>매니저 1 + 직원 2 + PT 1</td>
+                        <td>4명</td>
+                        <td>92만원</td>
+                        <td>276만원</td>
+                    </tr>
+                    <tr>
+                        <td>매니저 2 + 직원 2</td>
+                        <td>4명</td>
+                        <td>110만원</td>
+                        <td>330만원</td>
+                    </tr>
+                    <tr>
+                        <td>직원 4</td>
+                        <td>4명</td>
+                        <td>100만원</td>
+                        <td>300만원</td>
+                    </tr>
+                    <tr class="sim-highlight">
+                        <td>매니저 4 + 직원 4 + PT 4</td>
+                        <td>12명</td>
+                        <td>268만원</td>
+                        <td>804만원</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size:11px; color:#888; margin-top:6px;">※ 실제 금액은 확정 인원 및 급여 기준에 따라 변동됩니다.</p>
+        </div>
+
+        <!-- 4. 서비스 범위 -->
+        <div class="section">
+            <div class="section-title"><span class="num">4</span>채용대행 서비스 범위</div>
+            <table class="qt">
+                <thead>
+                    <tr>
+                        <th style="width:40px;">No</th>
+                        <th style="text-align:left;">서비스 항목</th>
+                        <th style="width:240px;">상세 내용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td style="text-align:left;"><strong>구인 공고 등록 및 관리</strong></td>
+                        <td>주요 채용 플랫폼 공고 등록 · 갱신</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td style="text-align:left;"><strong>지원자 스크리닝</strong></td>
+                        <td>이력서 검토, 적합 후보자 1차 선별</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td style="text-align:left;"><strong>후보자 추천 및 이력서 전달</strong></td>
+                        <td>직무별 적합 후보자 리스트 제공</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td style="text-align:left;"><strong>면접 코디네이션</strong></td>
+                        <td>면접 일정 조율, 후보자 안내</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td style="text-align:left;"><strong>입사 후 관리</strong></td>
+                        <td>3개월 이내 퇴사 시 무상 재채용 1회</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 5. 포함/불포함 -->
+        <div class="section">
+            <div class="section-title"><span class="num">5</span>서비스 포함 / 불포함 사항</div>
+            <div style="display:flex; gap:20px;">
+                <div style="flex:1;">
+                    <p style="font-size:12px; font-weight:700; color:#38a169; margin-bottom:8px;">포함사항</p>
+                    <ul class="check-list">
+                        <li>채용 플랫폼 구인공고 등록 및 관리</li>
+                        <li>지원자 서류 스크리닝</li>
+                        <li>직무별 적합 후보자 추천</li>
+                        <li>면접 일정 조율 및 코디네이션</li>
+                        <li>입사 후 3개월 이내 퇴사 시 무상 재채용 1회</li>
+                        <li>구인 광고비 (당사 부담)</li>
+                    </ul>
+                </div>
+                <div style="flex:1;">
+                    <p style="font-size:12px; font-weight:700; color:#e53e3e; margin-bottom:8px;">불포함사항</p>
+                    <ul class="check-list uncheck-list">
+                        <li>채용 인력의 인건비 (귀사 직접 지급)</li>
+                        <li>4대보험 · 퇴직금 (귀사 의무)</li>
+                        <li>인력 교육 및 근태관리</li>
+                        <li>유니폼 · 장비 등 근무용품</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. 특장점 + 비교 -->
+        <div class="section">
+            <div class="section-title"><span class="num">6</span>워크위드 채용대행 특장점</div>
+
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <div class="feature-icon">&#9889;</div>
+                    <div class="feature-title">빠른 충원</div>
+                    <div class="feature-desc">자체 인력풀 보유<br>의뢰 후 <strong>5~7일 내</strong> 후보자 추천</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128176;</div>
+                    <div class="feature-title">합리적 비용</div>
+                    <div class="feature-desc">헤드헌팅 대비<br><strong>1/5 수준</strong> 비용</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128170;</div>
+                    <div class="feature-title">리스크 제로</div>
+                    <div class="feature-desc">3개월 내 퇴사 시<br><strong>무상 재채용</strong></div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#127941;</div>
+                    <div class="feature-title">도급 전환</div>
+                    <div class="feature-desc">향후 인력도급<br><strong>원스톱 전환</strong> 가능</div>
+                </div>
+            </div>
+
+            <div class="note-box">
+                <p><strong>타사 비용 비교 (매니저 1명 채용 기준, 연봉 3,600만원)</strong></p>
+                <p>· 헤드헌팅 (서치펌): 연봉의 20% = <strong>720만원</strong> (일시불)</p>
+                <p>· 채용 플랫폼 (원티드 등): 연봉의 7% = <strong>252만원</strong></p>
+                <p>· <strong style="color:#1a365d;">워크위드: 월 30만원 × 3개월 = 90만원</strong></p>
+            </div>
+        </div>
+
+        <!-- 7. 계약 조건 -->
+        <div class="section">
+            <div class="section-title"><span class="num">7</span>계약 조건</div>
+            <div class="terms-grid">
+                <div class="term-item">
+                    <span class="term-label">서비스 유형</span>
+                    <span class="term-value highlight">채용대행</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">초기 비용</span>
+                    <span class="term-value highlight">없음 (무료)</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">수수료율</span>
+                    <span class="term-value">월 급여의 10%</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">최소 청구기간</span>
+                    <span class="term-value">3개월</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">정산 주기</span>
+                    <span class="term-value">월 1회 (매월 말일 청구)</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">대금 지급</span>
+                    <span class="term-value">청구일 익월 10일</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">무상 재채용</span>
+                    <span class="term-value">입사 3개월 내 퇴사 시 1회</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">계약 해지</span>
+                    <span class="term-value">30일 전 서면 통보</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. 특기사항 -->
+        <div class="section">
+            <div class="section-title"><span class="num">8</span>특기사항</div>
+            <div class="note-box">
+                <p>1. 소개수수료는 채용된 인력의 <strong>월 급여 × 10%</strong>로 산정합니다.</p>
+                <p>2. 최소 수수료 청구기간: <strong>3개월</strong> (협의 가능)</p>
+                <p>3. 인건비(월 급여)는 귀사 내부 급여 기준에 맞춰 조정됩니다.</p>
+                <p>4. 채용 인원 및 직무 구성은 상호 협의를 통해 확정합니다.</p>
+                <p>5. 향후 인력도급(아웃소싱) 전환 시 원스톱 지원이 가능합니다.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 푸터 -->
+    <div class="footer">
+        워크위드 | 본 견적서는 견적일로부터 30일간 유효합니다.
+    </div>
+
+</div>
+
+</body>
+</html>

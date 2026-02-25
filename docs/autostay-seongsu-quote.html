@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>견적서 - 오토스테이 성수점 인력운영 위탁도급</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans KR', '맑은 고딕', sans-serif;
+            background: #f0f0f0; color: #333; font-size: 13px; line-height: 1.75;
+            font-weight: 400; letter-spacing: -0.02em;
+        }
+
+        .document {
+            max-width: 210mm; margin: 20px auto; background: #fff;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 헤더 */
+        .header {
+            padding: 40px 50px 30px;
+            border-bottom: 3px solid #1a365d;
+        }
+        .header-top {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 30px; font-weight: 600; color: #1a365d;
+            letter-spacing: 12px;
+        }
+        .header-info {
+            text-align: right; font-size: 12px; color: #666; line-height: 1.8;
+        }
+        .header-info .label { color: #999; margin-right: 8px; }
+
+        .total-box {
+            background: #f8fafc; border: 2px solid #1a365d; border-radius: 8px;
+            padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .total-label { font-size: 14px; font-weight: 500; color: #1a365d; }
+        .total-amount { font-size: 22px; font-weight: 600; color: #1a365d; }
+        .total-sub { font-size: 12px; color: #888; margin-top: 4px; }
+
+        /* 본문 */
+        .body { padding: 30px 50px 40px; }
+
+        /* 수신/발신 */
+        .parties {
+            display: flex; gap: 40px; margin-bottom: 30px;
+        }
+        .party {
+            flex: 1; background: #fafafa; border-radius: 6px; padding: 18px 22px;
+        }
+        .party-title {
+            font-size: 11px; color: #1a365d; font-weight: 600; letter-spacing: 1px;
+            margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;
+        }
+        .party-table { width: 100%; }
+        .party-table td { padding: 4px 0; font-size: 12px; vertical-align: top; }
+        .party-table td:first-child { color: #888; width: 60px; }
+        .party-table td:last-child { font-weight: 500; }
+
+        /* 섹션 */
+        .section { margin-bottom: 28px; }
+        .section-title {
+            font-size: 14px; font-weight: 600; color: #1a365d;
+            padding-bottom: 8px; border-bottom: 1px solid #cbd5e0;
+            margin-bottom: 15px; letter-spacing: 0;
+        }
+        .section-title .num {
+            display: inline-block; background: #1a365d; color: #fff;
+            width: 20px; height: 20px; border-radius: 50%; text-align: center;
+            line-height: 20px; font-size: 10px; margin-right: 8px; font-weight: 500;
+        }
+
+        /* 테이블 */
+        table.quote-table {
+            width: 100%; border-collapse: collapse; margin: 10px 0;
+        }
+        table.quote-table thead th {
+            background: #1a365d; color: #fff; padding: 10px 14px;
+            font-size: 11px; font-weight: 500; text-align: center;
+            letter-spacing: 0;
+        }
+        table.quote-table thead th:first-child { text-align: left; }
+        table.quote-table tbody td {
+            padding: 10px 14px; border-bottom: 1px solid #e2e8f0;
+            font-size: 12px; text-align: center;
+        }
+        table.quote-table tbody td:first-child { text-align: left; }
+        table.quote-table tbody tr:last-child td { border-bottom: none; }
+        table.quote-table tfoot td {
+            padding: 12px 14px; font-weight: 700; font-size: 13px;
+            border-top: 2px solid #1a365d; text-align: center;
+        }
+        table.quote-table tfoot td:first-child { text-align: left; }
+        .highlight { color: #1a365d; font-weight: 700; }
+
+        /* 옵션 카드 */
+        .option-cards { display: flex; gap: 20px; margin: 15px 0; }
+        .option-card {
+            flex: 1; border: 2px solid #e2e8f0; border-radius: 8px; padding: 20px;
+            position: relative;
+        }
+        .option-card.recommended {
+            border-color: #1a365d; background: #f8fafc;
+        }
+        .option-badge {
+            position: absolute; top: -10px; right: 15px;
+            background: #1a365d; color: #fff; font-size: 10px; font-weight: 600;
+            padding: 3px 12px; border-radius: 10px; letter-spacing: 1px;
+        }
+        .option-title {
+            font-size: 14px; font-weight: 700; color: #1a365d; margin-bottom: 12px;
+        }
+        .option-price {
+            font-size: 22px; font-weight: 700; color: #1a365d; margin-bottom: 4px;
+        }
+        .option-vat { font-size: 11px; color: #888; margin-bottom: 15px; }
+        .option-detail { font-size: 12px; color: #555; }
+        .option-detail li { padding: 3px 0; list-style: none; }
+        .option-detail li::before { content: "· "; color: #1a365d; font-weight: 700; }
+
+        /* 체크리스트 */
+        .check-list { margin: 10px 0; }
+        .check-list li {
+            list-style: none; padding: 5px 0; font-size: 12px;
+            padding-left: 22px; position: relative;
+        }
+        .check-list li::before {
+            content: "✓"; position: absolute; left: 0;
+            color: #38a169; font-weight: 700; font-size: 13px;
+        }
+        .uncheck-list li::before {
+            content: "✕"; color: #e53e3e;
+        }
+
+        /* 조건 */
+        .terms-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0;
+        }
+        .term-item {
+            display: flex; gap: 10px; font-size: 12px;
+            padding: 8px 12px; background: #fafafa; border-radius: 4px;
+        }
+        .term-label { color: #888; min-width: 80px; }
+        .term-value { font-weight: 600; }
+
+        /* 특기사항 */
+        .note-box {
+            background: #fffbeb; border-left: 3px solid #d69e2e; padding: 14px 18px;
+            margin: 10px 0; border-radius: 0 6px 6px 0;
+        }
+        .note-box p { font-size: 12px; margin-bottom: 4px; }
+
+        /* 서명란 */
+        .signature-area {
+            margin-top: 40px; padding-top: 30px; border-top: 1px solid #e2e8f0;
+            display: flex; justify-content: flex-end; gap: 60px;
+        }
+        .sig-box { text-align: center; min-width: 140px; }
+        .sig-label { font-size: 11px; color: #888; margin-bottom: 30px; }
+        .sig-line { border-bottom: 1px solid #333; margin-bottom: 6px; height: 40px; }
+        .sig-name { font-size: 13px; font-weight: 600; }
+        .sig-role { font-size: 11px; color: #888; }
+
+        /* 푸터 */
+        .footer {
+            padding: 20px 50px; background: #f8fafc; border-top: 1px solid #e2e8f0;
+            text-align: center; font-size: 11px; color: #888;
+        }
+
+        /* 인쇄 */
+        @page { size: A4; margin: 12mm; }
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { background: #fff; margin: 0; padding: 0; }
+            .document { box-shadow: none; margin: 0; max-width: 100%; }
+            .header { padding: 20px 30px 20px; }
+            .body { padding: 20px 30px 30px; }
+            .footer { padding: 15px 30px; }
+            .no-print { display: none; }
+        }
+
+        .print-btn {
+            position: fixed; bottom: 30px; right: 30px;
+            background: #1a365d; color: #fff; border: none;
+            padding: 14px 28px; border-radius: 30px; font-size: 15px; font-weight: 600;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(26,54,93,0.3); z-index: 100;
+        }
+        .print-btn:hover { background: #2d4a7c; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">PDF 저장 / 인쇄</button>
+
+<div class="document">
+
+    <!-- ========== 헤더 ========== -->
+    <div class="header">
+        <div class="header-top">
+            <h1>견 적 서</h1>
+            <div class="header-info">
+                <p><span class="label">견적번호</span> WW-2026-0219-01</p>
+                <p><span class="label">견적일자</span> 2026년 2월 19일</p>
+                <p><span class="label">유효기간</span> 견적일로부터 30일</p>
+            </div>
+        </div>
+
+        <div class="total-box">
+            <div>
+                <div class="total-label">성수점 운영 위탁 월 도급비</div>
+                <div class="total-sub">부가가치세 별도</div>
+            </div>
+            <div style="text-align: right;">
+                <div class="total-amount">월 45,000,000원</div>
+                <div class="total-sub">금 사천오백만원정 (VAT 별도)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 본문 ========== -->
+    <div class="body">
+
+        <!-- 수신/발신 -->
+        <div class="parties">
+            <div class="party">
+                <div class="party-title">수 신</div>
+                <table class="party-table">
+                    <tr><td>업체명</td><td>(주)오토스테이</td></tr>
+                    <tr><td>현장</td><td>성수점</td></tr>
+                    <tr><td>담당자</td><td></td></tr>
+                </table>
+            </div>
+            <div class="party">
+                <div class="party-title">발 신</div>
+                <table class="party-table">
+                    <tr><td>업체명</td><td>주식회사 워크위드</td></tr>
+                    <tr><td>TEL</td><td>1600-9878</td></tr>
+                    <tr><td>FAX</td><td>043-912-9913</td></tr>
+                    <tr><td>주소</td><td>충주시 예성로 392, 롯데프라자 4층 401호</td></tr>
+                    <tr><td>대표</td><td>한 세 은</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 1. 건명 및 개요 -->
+        <div class="section">
+            <div class="section-title"><span class="num">1</span>건명 및 개요</div>
+            <table class="quote-table">
+                <tbody>
+                    <tr><td style="width:120px;"><strong>건 명</strong></td><td style="text-align:left;">오토스테이 성수점 인력운영 위탁도급</td></tr>
+                    <tr><td><strong>계약 형태</strong></td><td style="text-align:left;"><span class="highlight">위탁도급 (정액제)</span></td></tr>
+                    <tr><td><strong>운영 장소</strong></td><td style="text-align:left;">오토스테이 성수점</td></tr>
+                    <tr><td><strong>운영 시간</strong></td><td style="text-align:left;">08:00 ~ 23:00 (주 7일, 연중무휴)</td></tr>
+                    <tr><td><strong>교대 구조</strong></td><td style="text-align:left;">2교대 (조1: 08:00~16:00 / 조2: 15:00~23:00)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 2. 서비스 범위 -->
+        <div class="section">
+            <div class="section-title"><span class="num">2</span>서비스 범위</div>
+            <table class="quote-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px;">No</th>
+                        <th style="text-align:left;">업무 항목</th>
+                        <th style="width:180px;">상세 내용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td style="text-align:left;"><strong>드라잉존 차량 물기 제거</strong></td>
+                        <td>세차 완료 차량 마무리 작업</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td style="text-align:left;"><strong>자동세차 차량 입차 유도</strong></td>
+                        <td>차량 진입 안내 및 유도</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td style="text-align:left;"><strong>현장 고객응대 / CS</strong></td>
+                        <td>고객 안내, 불만 대응, 서비스 안내</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td style="text-align:left;"><strong>매장 환경 관리</strong></td>
+                        <td>작업 구역 청결 유지</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td style="text-align:left;"><strong>인력 채용·교육·관리</strong></td>
+                        <td>당사 자체 채용, 교육, 인사관리 일체</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 3. 견적 금액 -->
+        <div class="section">
+            <div class="section-title"><span class="num">3</span>견적 금액</div>
+
+            <table class="quote-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">항목</th>
+                        <th style="width:140px;">단위</th>
+                        <th style="width:160px;">금액</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align:left;"><strong>성수점 운영 위탁 도급비</strong><br><span style="font-size:11px; color:#888;">08:00~23:00 / 주 7일 / 2교대 전 시간대 커버</span></td>
+                        <td>월 정액</td>
+                        <td>40,000,000원</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left;"><strong>현장관리비</strong><br><span style="font-size:11px; color:#888;">현장관리자 상시 배치, 품질·근태 관리</span></td>
+                        <td>월 정액</td>
+                        <td>3,000,000원</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left;"><strong>관리운영비</strong><br><span style="font-size:11px; color:#888;">보험, 유니폼, 교육, 채용·충원 비용</span></td>
+                        <td>월 정액</td>
+                        <td>2,000,000원</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td style="text-align:left;"><strong>합계 (부가세 별도)</strong></td>
+                        <td></td>
+                        <td class="highlight">45,000,000원</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="note-box" style="margin-top:12px;">
+                <p><strong>서비스 보장 기준</strong></p>
+                <p>· 영업시간(08:00~23:00) 전 시간대 운영인력 배치 보장</p>
+                <p>· 교대당 최소 <strong>4명 이상</strong> 현장 배치</p>
+                <p>· 현장관리자 <strong>상시 1명</strong> 배치</p>
+                <p>· 결원 발생 시 <strong>당일 충원</strong></p>
+                <p style="margin-top:6px; color:#888; font-size:11px;">※ 인력 배치 규모는 당사가 서비스 품질 기준에 따라 자체 결정합니다.</p>
+            </div>
+        </div>
+
+        <!-- 4. 포함/불포함 -->
+        <div class="section">
+            <div class="section-title"><span class="num">4</span>서비스 포함 / 불포함 사항</div>
+            <div style="display:flex; gap:20px;">
+                <div style="flex:1;">
+                    <p style="font-size:12px; font-weight:700; color:#38a169; margin-bottom:8px;">포함사항</p>
+                    <ul class="check-list">
+                        <li>운영인력 인건비 전액 (급여·주휴수당)</li>
+                        <li>4대보험 (국민연금·건강·고용·산재)</li>
+                        <li>퇴직금</li>
+                        <li>현장관리자 배치 및 관리</li>
+                        <li>인력 채용·면접·선발</li>
+                        <li>신입 교육 및 서비스 교육</li>
+                        <li>결원 발생 시 즉시 충원</li>
+                        <li>유니폼 지급 (당사 부담)</li>
+                        <li>근태관리 (출퇴근·휴가·교대)</li>
+                    </ul>
+                </div>
+                <div style="flex:1;">
+                    <p style="font-size:12px; font-weight:700; color:#e53e3e; margin-bottom:8px;">불포함사항</p>
+                    <ul class="check-list uncheck-list">
+                        <li>작업 도구 및 장비 (발주사 제공)</li>
+                        <li>세차 용품·소모품 (발주사 제공)</li>
+                        <li>주차 공간 (발주사 제공)</li>
+                        <li>식대·교통비 (해당 시 별도 협의)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 운영 체계 -->
+        <div class="section">
+            <div class="section-title"><span class="num">5</span>위탁도급 운영 체계</div>
+            <p style="font-size:12px; margin-bottom:12px;">
+                본 견적은 <strong>위탁도급 (정액제)</strong> 방식으로, 당사가 업무 수행에 대한 전반적인 책임을 지고
+                독립적으로 인력을 관리·운영합니다.
+            </p>
+
+            <table class="quote-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">구분</th>
+                        <th>위탁도급 (본 견적)</th>
+                        <th>인력도급 (참고)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align:left;"><strong>계약 성격</strong></td>
+                        <td>업무 결과물 기준</td>
+                        <td>인원 × 단가 기준</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left;"><strong>정산 방식</strong></td>
+                        <td><span class="highlight">월 정액</span></td>
+                        <td>실비 정산</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left;"><strong>인력 관리</strong></td>
+                        <td>당사 (워크위드)</td>
+                        <td>발주사 관여 가능</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left;"><strong>법적 리스크</strong></td>
+                        <td><span style="color:#38a169; font-weight:600;">낮음</span></td>
+                        <td><span style="color:#e53e3e; font-weight:600;">파견 리스크 존재</span></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:left;"><strong>비용 예측</strong></td>
+                        <td>매월 고정 (예산 관리 용이)</td>
+                        <td>변동 가능</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="note-box" style="margin-top:15px;">
+                <p><strong>지휘체계:</strong> 오토스테이 담당자 → <strong>워크위드 현장관리자</strong> → 작업자</p>
+                <p>발주사의 작업자 직접 지시는 적법한 도급 관계 유지를 위해 현장관리자를 통해 전달됩니다.</p>
+            </div>
+        </div>
+
+        <!-- 6. 계약 조건 -->
+        <div class="section">
+            <div class="section-title"><span class="num">6</span>계약 조건</div>
+            <div class="terms-grid">
+                <div class="term-item">
+                    <span class="term-label">초기 구축비</span>
+                    <span class="term-value highlight">무료</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">최소 계약기간</span>
+                    <span class="term-value">3개월</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">정산 주기</span>
+                    <span class="term-value">월 1회 (매월 말일 청구)</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">대금 지급</span>
+                    <span class="term-value">청구일 익월 10일</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">운영 범위 변경</span>
+                    <span class="term-value">30일 전 사전 협의</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">계약 해지</span>
+                    <span class="term-value">30일 전 서면 통보</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. 특기사항 -->
+        <div class="section">
+            <div class="section-title"><span class="num">7</span>특기사항</div>
+            <div class="note-box">
+                <p>1. 본 견적은 <strong>주 7일 (연중무휴)</strong> 운영 기준이며, 운영일 변경 시 금액이 조정됩니다.</p>
+                <p>2. 서비스 마인드가 중요한 업무 특성을 고려하여, <strong>서비스 교육 이수자</strong>를 우선 배치합니다.</p>
+                <p>3. 운영 안정화 기간 (계약 후 2주)에는 당사 본사 관리자가 추가 지원합니다.</p>
+                <p>4. 운영 시간 또는 서비스 범위 변경 시 월 도급비는 협의를 통해 조정합니다.</p>
+                <p>5. 야간수당 (22시 이후) 및 공휴일 가산수당은 도급비에 포함되어 있습니다.</p>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- 푸터 -->
+    <div class="footer">
+        워크위드 | 본 견적서는 견적일로부터 30일간 유효합니다.
+    </div>
+
+</div>
+
+</body>
+</html>

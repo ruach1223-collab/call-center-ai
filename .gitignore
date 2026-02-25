@@ -1,0 +1,6 @@
+node_modules/
+.claude/
+nul
+docs/.bkit-memory.json
+docs/.pdca-snapshots/
+docs/.pdca-status.json
