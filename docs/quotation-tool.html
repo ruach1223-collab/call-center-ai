@@ -569,6 +569,16 @@
                         <input type="text" inputmode="numeric" data-money id="csJuniorSalary" value="2,900,000" onchange="calcCSAgent(); autoSave();">
                     </div>
                 </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">단기 상담사 수 <span class="hint">(0이면 미배치)</span></label>
+                        <input type="number" id="csShortCount" value="0" min="0" max="20" step="0.5" onchange="calcCSAgent(); autoSave();">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">단기 월급 (원)</label>
+                        <input type="text" inputmode="numeric" data-money id="csShortSalary" value="2,500,000" onchange="calcCSAgent(); autoSave();">
+                    </div>
+                </div>
 
                 <div class="form-row">
                     <div class="form-group">
@@ -1399,6 +1409,11 @@ let state = {
 function numVal(id) {
     return parseInt(String(document.getElementById(id)?.value || '0').replace(/,/g, '')) || 0;
 }
+// 요율 값 읽기 (0 입력 허용 - 퇴직금 미적용 등)
+function rateVal(id, def) {
+    const v = parseFloat(document.getElementById(id)?.value);
+    return isNaN(v) ? def : v;
+}
 function numElVal(el) {
     return parseInt(String(el?.value || '0').replace(/,/g, '')) || 0;
 }
@@ -1581,12 +1596,14 @@ function calcCSAgent() {
     const seniorS = numVal('csSeniorSalary');
     const juniorN = parseFloat(document.getElementById('csJuniorCount').value) || 0;
     const juniorS = numVal('csJuniorSalary');
+    const shortN = parseFloat(document.getElementById('csShortCount').value) || 0;
+    const shortS = numVal('csShortSalary');
     const asp = numVal('csASP');
     const mgmtRaw = parseFloat(document.getElementById('csMgmtFee').value);
     const mgmtPct = isNaN(mgmtRaw) ? 8 : mgmtRaw;
 
-    const totalPeople = leaderN + seniorN + juniorN;
-    const laborCost = Math.round(leaderN * leaderS + seniorN * seniorS + juniorN * juniorS);
+    const totalPeople = leaderN + seniorN + juniorN + shortN;
+    const laborCost = Math.round(leaderN * leaderS + seniorN * seniorS + juniorN * juniorS + shortN * shortS);
     const aspCost = Math.round(asp * totalPeople);
     const subtotal = laborCost + aspCost;
     const mgmtCost = Math.round(subtotal * mgmtPct / 100);
@@ -1596,6 +1613,7 @@ function calcCSAgent() {
     if (leaderN > 0) html += '<tr><td>팀장</td><td class="num">' + fmt(leaderS) + '</td><td class="num">' + leaderN + '</td><td class="num">' + fmt(Math.round(leaderN * leaderS)) + '</td></tr>';
     if (seniorN > 0) html += '<tr><td>선임 상담사</td><td class="num">' + fmt(seniorS) + '</td><td class="num">' + seniorN + '</td><td class="num">' + fmt(Math.round(seniorN * seniorS)) + '</td></tr>';
     if (juniorN > 0) html += '<tr><td>일반 상담사</td><td class="num">' + fmt(juniorS) + '</td><td class="num">' + juniorN + '</td><td class="num">' + fmt(Math.round(juniorN * juniorS)) + '</td></tr>';
+    if (shortN > 0) html += '<tr><td>단기 상담사</td><td class="num">' + fmt(shortS) + '</td><td class="num">' + shortN + '</td><td class="num">' + fmt(Math.round(shortN * shortS)) + '</td></tr>';
     html += '<tr style="background:#f7fafc;"><td><strong>직·간접 노무비 소계</strong></td><td></td><td class="num">' + totalPeople + '</td><td class="num highlight">' + fmt(laborCost) + '</td></tr>';
     html += '<tr><td>ASP 패키지</td><td class="num">' + fmt(asp) + '</td><td class="num">' + totalPeople + '</td><td class="num">' + fmt(aspCost) + '</td></tr>';
     html += '<tr><td>원 운영비 (발신비용)</td><td colspan="2" style="text-align:right;color:#718096;">실비 청구</td><td class="num">-</td></tr>';
@@ -1944,7 +1962,7 @@ function calcPersonnel() {
     document.getElementById('personnelDetail').innerHTML = detailHTML;
 
     // 야간수당 자동 계산 (심야가산율 적용)
-    const nightRate = (parseFloat(document.getElementById('rateNight').value) || 50) / 100;
+    const nightRate = rateVal('rateNight', 50) / 100;
     if (totalNightHours > 0) {
         const wage = numVal('hourlyWage') || 10500;
         const monthlyNight = Math.round(wage * nightRate * totalNightHours * personnel * opDays * 52 / 12);
@@ -2024,12 +2042,12 @@ function calcCost() {
     const nightPay = numVal('nightPay');
     const etcCost = numVal('etcCost');
 
-    // 요율 읽기 (조정 가능)
-    const rPension = (parseFloat(document.getElementById('ratePension').value) || 4.5) / 100;
-    const rHealth = (parseFloat(document.getElementById('rateHealth').value) || 3.545) / 100;
-    const rEmploy = (parseFloat(document.getElementById('rateEmploy').value) || 0.9) / 100;
-    const rIndust = (parseFloat(document.getElementById('rateIndust').value) || 1.5) / 100;
-    const rRetire = (parseFloat(document.getElementById('rateRetire').value) || 8.33) / 100;
+    // 요율 읽기 (0 입력 시 해당 항목 제외 가능)
+    const rPension = rateVal('ratePension', 4.5) / 100;
+    const rHealth = rateVal('rateHealth', 3.545) / 100;
+    const rEmploy = rateVal('rateEmploy', 0.9) / 100;
+    const rIndust = rateVal('rateIndust', 1.5) / 100;
+    const rRetire = rateVal('rateRetire', 8.33) / 100;
 
     const baseWage = wage * 209;
     const pension = Math.round(baseWage * rPension);
@@ -2449,13 +2467,13 @@ function generateQuoteLabor() {
 
     const wage = numVal('hourlyWage') || 10500;
     const baseWage = wage * 209;
-    const rPension = (parseFloat(document.getElementById('ratePension').value) || 4.5) / 100;
-    const rHealth = (parseFloat(document.getElementById('rateHealth').value) || 3.545) / 100;
-    const rEmploy = (parseFloat(document.getElementById('rateEmploy').value) || 0.9) / 100;
-    const rIndust = (parseFloat(document.getElementById('rateIndust').value) || 1.5) / 100;
-    const rRetire = (parseFloat(document.getElementById('rateRetire').value) || 8.33) / 100;
-    const longCare = (parseFloat(document.getElementById('laborLongCare')?.value) || 13.14) / 100;
-    const bizTax = (parseFloat(document.getElementById('laborBizTax')?.value) || 0.5) / 100;
+    const rPension = rateVal('ratePension', 4.5) / 100;
+    const rHealth = rateVal('rateHealth', 3.545) / 100;
+    const rEmploy = rateVal('rateEmploy', 0.9) / 100;
+    const rIndust = rateVal('rateIndust', 1.5) / 100;
+    const rRetire = rateVal('rateRetire', 8.33) / 100;
+    const longCare = rateVal('laborLongCare', 13.14) / 100;
+    const bizTax = rateVal('laborBizTax', 0.5) / 100;
     const transport = numVal('laborTransport') || 0;
     const nightPay = numVal('nightPay') || 0;
     const leaderPay = numVal('laborLeaderPay') || 100000;
@@ -2575,13 +2593,13 @@ function generateQuoteDispatch() {
 
     const wage = numVal('hourlyWage') || 10500;
     const baseWage = wage * 209;
-    const rPension = (parseFloat(document.getElementById('ratePension').value) || 4.5) / 100;
-    const rHealth = (parseFloat(document.getElementById('rateHealth').value) || 3.545) / 100;
-    const rEmploy = (parseFloat(document.getElementById('rateEmploy').value) || 0.9) / 100;
-    const rIndust = (parseFloat(document.getElementById('rateIndust').value) || 1.5) / 100;
-    const rRetire = (parseFloat(document.getElementById('rateRetire').value) || 8.33) / 100;
-    const longCare = (parseFloat(document.getElementById('laborLongCare')?.value) || 13.14) / 100;
-    const bizTax = (parseFloat(document.getElementById('laborBizTax')?.value) || 0.5) / 100;
+    const rPension = rateVal('ratePension', 4.5) / 100;
+    const rHealth = rateVal('rateHealth', 3.545) / 100;
+    const rEmploy = rateVal('rateEmploy', 0.9) / 100;
+    const rIndust = rateVal('rateIndust', 1.5) / 100;
+    const rRetire = rateVal('rateRetire', 8.33) / 100;
+    const longCare = rateVal('laborLongCare', 13.14) / 100;
+    const bizTax = rateVal('laborBizTax', 0.5) / 100;
     const transport = numVal('laborTransport') || 0;
     const nightPay = numVal('nightPay') || 0;
     const leaderPay = numVal('laborLeaderPay') || 100000;
@@ -2703,6 +2721,8 @@ function generateQuoteCSAgent() {
     const seniorS = numVal('csSeniorSalary');
     const juniorN = parseFloat(document.getElementById('csJuniorCount').value) || 0;
     const juniorS = numVal('csJuniorSalary');
+    const shortN = parseFloat(document.getElementById('csShortCount').value) || 0;
+    const shortS = numVal('csShortSalary');
     const asp = numVal('csASP');
     const csMgmtRaw = parseFloat(document.getElementById('csMgmtFee').value);
     const mgmtPct = isNaN(csMgmtRaw) ? 8 : csMgmtRaw;
@@ -2711,8 +2731,8 @@ function generateQuoteCSAgent() {
     const workCond = document.getElementById('csWorkCond').value || '';
     const workScope = document.getElementById('csWorkScope').value || '';
 
-    const totalPeople = leaderN + seniorN + juniorN;
-    const laborCost = Math.round(leaderN * leaderS + seniorN * seniorS + juniorN * juniorS);
+    const totalPeople = leaderN + seniorN + juniorN + shortN;
+    const laborCost = Math.round(leaderN * leaderS + seniorN * seniorS + juniorN * juniorS + shortN * shortS);
     const aspCost = Math.round(asp * totalPeople);
     const subtotal = laborCost + aspCost;
     const mgmtCost = Math.round(subtotal * mgmtPct / 100);
@@ -2722,11 +2742,12 @@ function generateQuoteCSAgent() {
     const noteLines = (document.getElementById('csAgentNotes').value || '').split('\n').filter(l => l.trim());
 
     let peopleRows = '';
-    const laborRowCount = (leaderN > 0 ? 1 : 0) + (seniorN > 0 ? 1 : 0) + (juniorN > 0 ? 1 : 0);
+    const laborRowCount = (leaderN > 0 ? 1 : 0) + (seniorN > 0 ? 1 : 0) + (juniorN > 0 ? 1 : 0) + (shortN > 0 ? 1 : 0);
     let laborLabelDone = false;
     if (leaderN > 0) { peopleRows += `<tr><td style="text-align:left;"${laborRowCount > 1 ? ' rowspan="'+laborRowCount+'"' : ''}><strong>직·간접<br>노무비</strong></td><td style="text-align:left;">팀장</td><td>${fmt(leaderS)}</td><td>${leaderN}</td><td style="text-align:right;">${fmt(Math.round(leaderN*leaderS))}</td></tr>`; laborLabelDone = true; }
     if (seniorN > 0) { peopleRows += `<tr>${!laborLabelDone ? '<td style="text-align:left;"'+(laborRowCount > 1 ? ' rowspan="'+laborRowCount+'"' : '')+'><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">선임 상담사</td><td>${fmt(seniorS)}</td><td>${seniorN}</td><td style="text-align:right;">${fmt(Math.round(seniorN*seniorS))}</td></tr>`; laborLabelDone = true; }
-    if (juniorN > 0) { peopleRows += `<tr>${!laborLabelDone ? '<td style="text-align:left;"><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">일반 상담사</td><td>${fmt(juniorS)}</td><td>${juniorN}</td><td style="text-align:right;">${fmt(Math.round(juniorN*juniorS))}</td></tr>`; }
+    if (juniorN > 0) { peopleRows += `<tr>${!laborLabelDone ? '<td style="text-align:left;"><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">일반 상담사</td><td>${fmt(juniorS)}</td><td>${juniorN}</td><td style="text-align:right;">${fmt(Math.round(juniorN*juniorS))}</td></tr>`; laborLabelDone = true; }
+    if (shortN > 0) { peopleRows += `<tr>${!laborLabelDone ? '<td style="text-align:left;"><strong>직·간접<br>노무비</strong></td>' : ''}<td style="text-align:left;">단기 상담사</td><td>${fmt(shortS)}</td><td>${shortN}</td><td style="text-align:right;">${fmt(Math.round(shortN*shortS))}</td></tr>`; }
 
     const quoteHTML = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>위드콜 견적서 - ${client}</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -3254,6 +3275,8 @@ function autoSave() {
         csSeniorSalary: elVal('csSeniorSalary'),
         csJuniorCount: elVal('csJuniorCount'),
         csJuniorSalary: elVal('csJuniorSalary'),
+        csShortCount: elVal('csShortCount'),
+        csShortSalary: elVal('csShortSalary'),
         csASP: elVal('csASP'),
         csMgmtFee: elVal('csMgmtFee'),
         csSetupFee: elVal('csSetupFee'),
@@ -3334,7 +3357,7 @@ function loadSaved() {
         'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
         'nightStart','nightEnd',
         's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
-        'csLeaderCount','csLeaderSalary','csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
+        'csLeaderCount','csLeaderSalary','csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary','csShortCount','csShortSalary',
         'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice','csAgentNotes',
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice','csShareNotes',
@@ -3552,7 +3575,8 @@ function saveToHistory() {
     if (qt === 'cs-agent') {
         metaPersonnel = (parseFloat(elVal('csLeaderCount')) || 0)
             + (parseFloat(elVal('csSeniorCount')) || 0)
-            + (parseFloat(elVal('csJuniorCount')) || 0);
+            + (parseFloat(elVal('csJuniorCount')) || 0)
+            + (parseFloat(elVal('csShortCount')) || 0);
     } else if (qt === 'recruit') {
         const recruitEl = document.getElementById('recruitRows');
         if (recruitEl) {
@@ -3657,7 +3681,7 @@ function loadFromHistory(idx) {
         'ratePension','rateHealth','rateEmploy','rateIndust','rateRetire','rateNight',
         'nightStart','nightEnd',
         's1Start','s1End','s1OT','s2Start','s2End','s2OT','s3Start','s3End','s3OT',
-        'csLeaderCount','csLeaderSalary','csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary',
+        'csLeaderCount','csLeaderSalary','csSeniorCount','csSeniorSalary','csJuniorCount','csJuniorSalary','csShortCount','csShortSalary',
         'csASP','csMgmtFee','csSetupFee','csOpTime','csWorkCond','csWorkScope','csAgentFinalPrice','csAgentNotes',
         'shareBaseCall','shareBaseFee','sharePerCall','shareComm','shareOpTime','shareSetupFee',
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice','csShareNotes',
@@ -3997,7 +4021,8 @@ function collectSheetData() {
     if (qt === 'cs-agent') {
         personnel = (parseFloat(elVal('csLeaderCount')) || 0)
             + (parseFloat(elVal('csSeniorCount')) || 0)
-            + (parseFloat(elVal('csJuniorCount')) || 0);
+            + (parseFloat(elVal('csJuniorCount')) || 0)
+            + (parseFloat(elVal('csShortCount')) || 0);
     } else if (qt === 'recruit') {
         const rows = document.getElementById('recruitRows');
         if (rows) rows.querySelectorAll('tr').forEach(row => {
