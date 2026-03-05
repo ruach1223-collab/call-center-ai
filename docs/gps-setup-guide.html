@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPS 출퇴근 시스템 설정 가이드</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'Pretendard', 'Noto Sans KR', sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    line-height: 1.8;
+  }
+  .container { max-width: 800px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+  h1 small { font-size: 14px; color: #64748b; font-weight: 400; }
+  h2 {
+    font-size: 18px; font-weight: 700; margin: 32px 0 16px;
+    padding-bottom: 8px; border-bottom: 2px solid #2563eb;
+    display: flex; align-items: center; gap: 8px;
+  }
+  h2 .step-num {
+    background: #2563eb; color: white; width: 28px; height: 28px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  h3 { font-size: 15px; font-weight: 600; margin: 16px 0 8px; color: #334155; }
+  p { margin-bottom: 12px; font-size: 14px; }
+  .note {
+    background: #eff6ff; border-left: 4px solid #2563eb;
+    padding: 12px 16px; margin: 12px 0; border-radius: 0 8px 8px 0;
+    font-size: 13px; color: #1e40af;
+  }
+  .warn {
+    background: #fef3c7; border-left: 4px solid #f59e0b;
+    padding: 12px 16px; margin: 12px 0; border-radius: 0 8px 8px 0;
+    font-size: 13px; color: #92400e;
+  }
+  .success {
+    background: #dcfce7; border-left: 4px solid #22c55e;
+    padding: 12px 16px; margin: 12px 0; border-radius: 0 8px 8px 0;
+    font-size: 13px; color: #166534;
+  }
+  table {
+    width: 100%; border-collapse: collapse; margin: 12px 0;
+    font-size: 13px; background: white; border-radius: 8px;
+    overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  th {
+    background: #f1f5f9; padding: 10px 12px; text-align: left;
+    font-weight: 600; border-bottom: 1px solid #e2e8f0;
+  }
+  td {
+    padding: 10px 12px; border-bottom: 1px solid #f1f5f9;
+  }
+  code {
+    background: #f1f5f9; padding: 2px 6px; border-radius: 4px;
+    font-family: 'Consolas', monospace; font-size: 12px; color: #7c3aed;
+  }
+  pre {
+    background: #1e293b; color: #e2e8f0; padding: 16px;
+    border-radius: 8px; overflow-x: auto; margin: 12px 0;
+    font-size: 13px; line-height: 1.6;
+  }
+  .copy-btn {
+    display: inline-block; padding: 6px 14px; background: #2563eb;
+    color: white; border: none; border-radius: 6px; font-size: 13px;
+    cursor: pointer; font-weight: 600; margin: 4px 0;
+  }
+  .copy-btn:hover { background: #1d4ed8; }
+  .flow-box {
+    background: white; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 20px; margin: 16px 0;
+  }
+  .flow-box .flow-step {
+    display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px;
+  }
+  .flow-box .flow-step:last-child { margin-bottom: 0; }
+  .flow-box .flow-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .flow-box .flow-text { font-size: 14px; padding-top: 4px; }
+  .checklist {
+    list-style: none; margin: 12px 0;
+  }
+  .checklist li {
+    padding: 8px 0; font-size: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .checklist li::before {
+    content: ''; width: 18px; height: 18px;
+    border: 2px solid #d1d5db; border-radius: 4px; flex-shrink: 0;
+  }
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 24px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>GPS 출퇴근 시스템 설정 가이드 <br><small>워크위드 — 설정 완료까지 약 15분</small></h1>
+
+<hr>
+
+<!-- ==================== STEP 1 ==================== -->
+<h2><span class="step-num">1</span> 구글 스프레드시트 만들기</h2>
+
+<p><a href="https://sheets.new" target="_blank" style="color:#2563eb; font-weight:600;">sheets.new</a> 접속 → 새 스프레드시트 생성 → 이름: <strong>"GPS출퇴근"</strong></p>
+
+<h3>탭 1: "근로자" (시트 하단 탭 이름 변경)</h3>
+<table>
+  <thead><tr><th>A: 토큰</th><th>B: 이름</th><th>C: 전화번호</th><th>D: 소속현장</th><th>E: 기기ID</th><th>F: 링크</th></tr></thead>
+  <tbody>
+    <tr><td>test001</td><td>테스트</td><td>010-0000-0000</td><td>서울식품</td><td><em>(빈칸 — 자동입력됨)</em></td><td><em>(수식)</em></td></tr>
+  </tbody>
+</table>
+
+<p><strong>F2 수식 (링크 자동생성):</strong></p>
+<pre>="https://ruach1223-collab.github.io/call-center-ai/gps-checkin.html?t="&A2</pre>
+<p>F2에 입력 후 아래로 드래그하면 전체 적용됩니다.</p>
+
+<div class="note">
+  <strong>토큰 규칙:</strong> 영문+숫자 조합 추천 (예: kim01, park02, nguyen03)<br>
+  한 사람당 하나의 고유 토큰. 카톡으로 F열의 링크를 보내면 됩니다.
+</div>
+
+<h3>탭 2: "현장" (+ 버튼으로 새 탭 추가)</h3>
+<table>
+  <thead><tr><th>A: 현장명</th><th>B: 위도</th><th>C: 경도</th><th>D: 반경(m)</th></tr></thead>
+  <tbody>
+    <tr><td>서울식품</td><td>37.3219</td><td>126.8311</td><td>300</td></tr>
+    <tr><td>유니투스</td><td>37.2851</td><td>127.0103</td><td>200</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>위도/경도 찾기:</strong> 구글맵에서 현장 주소 검색 → 지도 우클릭 → 좌표 복사<br>
+  <strong>반경:</strong> 현장 크기에 따라 200~500m 설정. 이 안에 있으면 "정상", 밖이면 "현장외"
+</div>
+
+<h3>탭 3: "체크인기록" (자동으로 채워짐)</h3>
+<table>
+  <thead><tr><th>A: 날짜</th><th>B: 이름</th><th>C: 구분</th><th>D: 시간</th><th>E: 위도</th><th>F: 경도</th><th>G: 현장명</th><th>H: 거리(m)</th><th>I: 상태</th></tr></thead>
+  <tbody>
+    <tr><td colspan="9" style="text-align:center; color:#94a3b8;"><em>1행에 헤더만 입력. 데이터는 출퇴근 시 자동 추가됨</em></td></tr>
+  </tbody>
+</table>
+
+<div class="warn">
+  <strong>중요:</strong> 1행에 반드시 헤더(날짜, 이름, 구분, 시간, 위도, 경도, 현장명, 거리, 상태)를 입력하세요. 빈 시트면 코드가 오류납니다.
+</div>
+
+<hr>
+
+<!-- ==================== STEP 2 ==================== -->
+<h2><span class="step-num">2</span> Apps Script 배포</h2>
+
+<p>방금 만든 구글시트에서: <strong>확장프로그램 → Apps Script</strong> 클릭</p>
+
+<ol style="font-size:14px; margin-left:20px; margin-bottom:12px;">
+  <li>기존 코드 전체 삭제</li>
+  <li><code>docs/gps-checkin-apps-script.js</code> 파일 내용 전체 복사 → 붙여넣기</li>
+  <li>저장 (Ctrl+S)</li>
+  <li>상단 메뉴: <strong>배포 → 새 배포</strong></li>
+  <li>유형: <strong>웹 앱</strong> 선택</li>
+  <li>실행 주체: <strong>나</strong></li>
+  <li>액세스 권한: <strong>모든 사용자</strong></li>
+  <li><strong>배포</strong> 클릭 → <strong>URL 복사</strong></li>
+</ol>
+
+<div class="success">
+  배포 URL 형태: <code>https://script.google.com/macros/s/AKfycb.../exec</code><br>
+  이 URL을 다음 단계에서 사용합니다.
+</div>
+
+<hr>
+
+<!-- ==================== STEP 3 ==================== -->
+<h2><span class="step-num">3</span> 체크인 페이지에 URL 연결</h2>
+
+<p>GitHub 저장소에서 <code>gps-checkin.html</code> 파일 열기:</p>
+
+<pre>// 이 줄을 찾아서:
+const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+// 배포 URL로 교체:
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycb.../exec';</pre>
+
+<p>수정 후 커밋 → 푸시하면 GitHub Pages에 반영됩니다.</p>
+
+<hr>
+
+<!-- ==================== STEP 4 ==================== -->
+<h2><span class="step-num">4</span> 테스트</h2>
+
+<ol style="font-size:14px; margin-left:20px;">
+  <li><strong>근로자 탭</strong>에 테스트 데이터 입력 (토큰: test001, 이름: 테스트)</li>
+  <li>폰에서 F열 링크 접속</li>
+  <li>위치정보 동의 → 출근 버튼 클릭</li>
+  <li>구글시트 "체크인기록" 탭에 데이터가 추가되면 성공!</li>
+</ol>
+
+<div class="note">
+  <strong>테스트 체크리스트:</strong>
+  <ul style="margin-top:6px; margin-left:16px;">
+    <li>출근 클릭 → 체크인기록에 기록 확인</li>
+    <li>출근 다시 클릭 → "이미 출근 처리됨" 메시지 확인</li>
+    <li>퇴근 클릭 → 퇴근 기록 추가 확인</li>
+    <li>다른 기기(PC)에서 같은 링크 → 기기 불일치 상태 확인</li>
+    <li>페이지 하단 → 이번 달 출근 이력 표시 확인</li>
+  </ul>
+</div>
+
+<hr>
+
+<!-- ==================== STEP 5 ==================== -->
+<h2><span class="step-num">5</span> RAG 시스템 연동 (대시보드 + SMS)</h2>
+
+<h3>5-1. 구글시트 ID 등록</h3>
+<p>스프레드시트 URL에서 ID 복사:</p>
+<pre>https://docs.google.com/spreadsheets/d/<strong style="color:#f59e0b;">여기가_시트_ID</strong>/edit</pre>
+<p><code>rag-system/app/sheets.js</code>에서 <code>GPS_CHECKIN_SPREADSHEET_ID_HERE</code>를 교체</p>
+
+<h3>5-2. 알리고 SMS 환경변수 (.env)</h3>
+<pre>ALIGO_API_KEY=발급받은_API키
+ALIGO_USER_ID=알리고_아이디
+ALIGO_SENDER=발신번호(사전등록필수)</pre>
+
+<h3>5-3. Docker 재빌드</h3>
+<pre>cd rag-system && docker-compose down && docker-compose up -d --build</pre>
+
+<hr>
+
+<!-- ==================== 운영 흐름 ==================== -->
+<h2 style="border-bottom-color:#059669;"><span class="step-num" style="background:#059669;">!</span> 일일 운영 흐름</h2>
+
+<div class="flow-box">
+  <div class="flow-step">
+    <div class="flow-icon" style="background:#ede9fe; color:#7c3aed;">1</div>
+    <div class="flow-text"><strong>[전날 저녁]</strong> 구글시트 "일투입현황"에 내일 투입 인원 기입 (기존 업무)</div>
+  </div>
+  <div class="flow-step">
+    <div class="flow-icon" style="background:#dbeafe; color:#2563eb;">2</div>
+    <div class="flow-text"><strong>[아침]</strong> 근로자들이 카톡 링크 → 출근 체크인 (GPS 자동 수집)</div>
+  </div>
+  <div class="flow-step">
+    <div class="flow-icon" style="background:#dcfce7; color:#16a34a;">3</div>
+    <div class="flow-text"><strong>[출근마감 후]</strong> 관리자 대시보드 접속 → "GPS 동기화" + "투입현황 동기화" 클릭</div>
+  </div>
+  <div class="flow-step">
+    <div class="flow-icon" style="background:#fef3c7; color:#d97706;">4</div>
+    <div class="flow-text"><strong>[즉시 파악]</strong> 투입예정 vs 출근 비교 → 미출근자 빨간색 표시</div>
+  </div>
+  <div class="flow-step">
+    <div class="flow-icon" style="background:#fee2e2; color:#ef4444;">5</div>
+    <div class="flow-text"><strong>[결근 시]</strong> "대체인력 연락하기" → 후보 10명+ 선택 → SMS 단체 발송</div>
+  </div>
+</div>
+
+<hr>
+
+<!-- ==================== 결근 대체 로직 ==================== -->
+<h2 style="border-bottom-color:#ef4444;"><span class="step-num" style="background:#ef4444;">!</span> 당일 결근 시 대체인력 구인 로직</h2>
+
+<div class="flow-box">
+  <h3 style="margin-top:0;">대체인력 후보 선정 기준 (자동)</h3>
+  <table>
+    <thead><tr><th>구분</th><th>조건</th><th>표시 정보</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>최근 근무자</strong></td>
+        <td>최근 1개월 내 근무 이력 있음<br>+ 오늘 출근 기록 없음<br>+ 지역 필터 적용 가능</td>
+        <td>이름, 최근 근무지, 사는 곳, 근무일수, 마지막 근무일, 연락처</td>
+      </tr>
+      <tr>
+        <td><strong>최근 지원자</strong></td>
+        <td>채용일이 있는 전체명단<br>+ 지역 필터 적용 가능</td>
+        <td>이름, 사는 곳, 채용일, 연락처</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>문자 발송 흐름</h3>
+  <ol style="font-size:14px; margin-left:20px;">
+    <li>대시보드에서 결근 현장 확인 → "대체인력 연락하기" 클릭</li>
+    <li>대체 가능 인력 목록에서 <strong>10명 이상 체크</strong> (2~3명만 보내면 전부 거절 위험)</li>
+    <li>현장명 입력 (자동 입력됨)</li>
+    <li>"문자 보내기" 클릭</li>
+    <li><strong>확인 팝업:</strong> 이름, 생년월일, 연락처, 사는곳 목록 확인</li>
+    <li>"문자 발송 확인" → 알리고 SMS 단체 발송</li>
+    <li>발송 메시지: "[워크위드] {현장명} 현장 금일 인원이 필요합니다. 출근 가능하시면 회신 부탁드립니다."</li>
+  </ol>
+
+  <div class="warn" style="margin-top:12px;">
+    <strong>팁:</strong> 충주 지역 현장은 지역 필터를 "충주"로 설정하면 당일 출근 가능한 인력만 표시됩니다. 먼 지역 사람에게 문자 보내도 응답률이 낮으니 지역 필터 활용하세요.
+  </div>
+</div>
+
+<hr>
+
+<h2 style="border-bottom-color:#94a3b8;"><span class="step-num" style="background:#94a3b8;">?</span> 자주 묻는 질문</h2>
+
+<h3>근로자가 폰을 바꾸면?</h3>
+<p>관리자가 구글시트 "근로자" 탭의 E열(기기ID) 셀을 비우면 다음 체크인 시 새 기기로 자동 등록됩니다.</p>
+
+<h3>동명이인이 있으면?</h3>
+<p>대시보드에 노란색 경고가 표시됩니다. 투입현황에 이름 뒤 번호를 붙여주세요 (예: 김철수1, 김철수2). 체크인은 토큰 기반이라 구분됩니다.</p>
+
+<h3>GPS가 안 잡히면?</h3>
+<p>체크인 페이지 하단의 "GPS가 안 되면 여기를 눌러주세요" → 수동 체크인 (위치 없이 시간만 기록, 상태: "수동")</p>
+
+<h3>비용은?</h3>
+<p>GitHub Pages + Google Apps Script + 구글시트 = <strong>전부 무료</strong>. SMS 발송만 알리고 충전금 사용.</p>
+
+</div>
+</body>
+</html>
