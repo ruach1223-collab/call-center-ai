@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>워크위드 출퇴근</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'Pretendard', 'Noto Sans KR', sans-serif;
+    background: #f5f6fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .header {
+    width: 100%;
+    background: #2563eb;
+    color: white;
+    padding: 16px 20px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .container {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .user-card {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .user-card .name { font-size: 22px; font-weight: 700; color: #1e293b; }
+  .user-card .site { font-size: 14px; color: #64748b; margin-top: 4px; }
+  .user-card .date { font-size: 13px; color: #94a3b8; margin-top: 8px; }
+  .today-status {
+    display: flex; gap: 8px; justify-content: center; margin-top: 12px;
+  }
+  .today-status .tag {
+    font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 600;
+  }
+  .tag-done { background: #dcfce7; color: #16a34a; }
+  .tag-pending { background: #fef3c7; color: #d97706; }
+  .btn-area { display: flex; gap: 14px; margin: 16px 0; }
+  .btn-checkin {
+    flex: 1;
+    padding: 28px 0;
+    border: none;
+    border-radius: 16px;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-checkin:active { transform: scale(0.96); }
+  .btn-checkin:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-in { background: #2563eb; color: white; }
+  .btn-in:hover:not(:disabled) { background: #1d4ed8; }
+  .btn-out { background: #f97316; color: white; }
+  .btn-out:hover:not(:disabled) { background: #ea580c; }
+  .btn-checkin .icon { font-size: 32px; }
+  .btn-checkin .done-label { font-size: 12px; opacity: 0.8; }
+  .status-box {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+    display: none;
+  }
+  .status-box.show { display: block; }
+  .status-box.success { border: 2px solid #22c55e; }
+  .status-box.error { border: 2px solid #ef4444; }
+  .status-box.loading { border: 2px solid #3b82f6; }
+  .status-box .status-icon { font-size: 40px; margin-bottom: 8px; }
+  .status-box .status-title { font-size: 18px; font-weight: 700; }
+  .status-box .status-detail { font-size: 13px; color: #64748b; margin-top: 6px; line-height: 1.6; }
+  .manual-link { text-align: center; margin-top: 8px; }
+  .manual-link button {
+    background: none; border: none; color: #94a3b8;
+    font-size: 13px; cursor: pointer; text-decoration: underline; padding: 8px;
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid #e2e8f0; border-top-color: #3b82f6;
+    border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .consent-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
+  }
+  .consent-box {
+    background: white; border-radius: 16px; padding: 28px 24px;
+    max-width: 380px; width: 100%; max-height: 80vh; overflow-y: auto;
+  }
+  .consent-box h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+  .consent-box p { font-size: 13px; color: #475569; line-height: 1.8; margin-bottom: 12px; }
+  .consent-btn {
+    width: 100%; padding: 14px; background: #2563eb; color: white;
+    border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px;
+  }
+  .error-page { text-align: center; padding: 60px 20px; }
+  .error-page .icon { font-size: 48px; margin-bottom: 16px; }
+  .error-page .title { font-size: 20px; font-weight: 700; color: #1e293b; }
+  .error-page .desc { font-size: 14px; color: #64748b; margin-top: 8px; line-height: 1.6; }
+
+  /* 출근 이력 */
+  .history-section {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-top: 16px;
+  }
+  .history-section h3 {
+    font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .history-section .work-days {
+    font-size: 13px; color: #2563eb; font-weight: 600;
+  }
+  .history-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  .history-table th {
+    background: #f8fafc; padding: 8px 6px; text-align: left;
+    font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0;
+  }
+  .history-table td {
+    padding: 8px 6px; border-bottom: 1px solid #f1f5f9; color: #334155;
+  }
+  .history-table .tag-sm {
+    font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600;
+  }
+  .tag-sm.normal { background: #dcfce7; color: #16a34a; }
+  .tag-sm.outside { background: #fef3c7; color: #d97706; }
+  .tag-sm.manual-tag { background: #e0e7ff; color: #4338ca; }
+</style>
+</head>
+<body>
+
+<div class="header">워크위드 출퇴근</div>
+
+<div class="container" id="mainContainer">
+  <div id="loadingView" style="text-align:center; padding:60px 0;">
+    <div class="spinner"></div>
+    <p style="color:#64748b; font-size:14px;">정보를 불러오는 중...</p>
+  </div>
+</div>
+
+<div class="consent-overlay" id="consentOverlay" style="display:none;">
+  <div class="consent-box">
+    <h2>위치정보 수집 동의</h2>
+    <p>
+      워크위드는 출퇴근 확인 목적으로 다음 정보를 수집합니다.<br><br>
+      <strong>수집 주체:</strong> 워크위드<br>
+      <strong>수집 항목:</strong> GPS 위치 좌표, 체크인 시간<br>
+      <strong>수집 시점:</strong> 출근/퇴근 버튼을 누를 때만 (1일 최대 2회)<br>
+      <strong>보관 기간:</strong> 3년 (근로기준법 임금대장 보존 기간)<br>
+      <strong>이용 목적:</strong> 출퇴근 기록 관리 및 근태 확인<br>
+      <strong>제3자 제공:</strong> 없음<br><br>
+      위치 정보는 버튼을 누르는 순간에만 1회 수집되며, 실시간 추적은 하지 않습니다.
+      동의를 거부할 수 있으나, 이 경우 GPS 출퇴근 기능을 사용할 수 없습니다.
+    </p>
+    <button class="consent-btn" onclick="acceptConsent()">동의하고 시작하기</button>
+  </div>
+</div>
+
+<script>
+// Google Apps Script 배포 URL (배포 후 교체)
+const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+let workerInfo = null;
+
+// 기기 ID 생성/조회
+function getDeviceId(token) {
+  const key = 'gps_device_' + token;
+  let id = localStorage.getItem(key);
+  if (!id) {
+    // crypto.randomUUID 미지원 기기 대응 (아이폰 15.4 미만 등)
+    id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : Date.now().toString(36) + Math.random().toString(36).slice(2);
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
+
+// 오늘 날짜 문자열 (YYYY-MM-DD)
+function getTodayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('t');
+  if (!token) { showError('등록되지 않은 링크입니다', '관리자에게 새 링크를 요청해주세요.'); return; }
+
+  if (!localStorage.getItem('gps_consent_' + token)) {
+    document.getElementById('consentOverlay').style.display = 'flex';
+    window._pendingToken = token;
+    return;
+  }
+  await loadWorkerInfo(token);
+}
+
+function acceptConsent() {
+  const token = window._pendingToken;
+  localStorage.setItem('gps_consent_' + token, 'true');
+  document.getElementById('consentOverlay').style.display = 'none';
+  loadWorkerInfo(token);
+}
+
+async function loadWorkerInfo(token) {
+  try {
+    const res = await fetch(SCRIPT_URL + '?token=' + encodeURIComponent(token) + '&action=verify');
+    const data = await res.json();
+    if (!data.success) { showError('등록되지 않은 링크입니다', '관리자에게 새 링크를 요청해주세요.'); return; }
+    workerInfo = {
+      token,
+      name: data.name,
+      site: data.site,
+      todayCheckin: data.todayCheckin || null,
+      todayCheckout: data.todayCheckout || null
+    };
+  } catch (err) {
+    workerInfo = { token, name: token, site: '', todayCheckin: null, todayCheckout: null };
+  }
+  showMainView();
+  loadHistory();
+}
+
+function showMainView() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+  // 오늘 출퇴근 상태 태그
+  let statusTags = '';
+  if (workerInfo.todayCheckin) {
+    statusTags += `<span class="tag tag-done">${workerInfo.todayCheckin} 출근완료</span>`;
+  }
+  if (workerInfo.todayCheckout) {
+    statusTags += `<span class="tag tag-done">${workerInfo.todayCheckout} 퇴근완료</span>`;
+  }
+  if (!workerInfo.todayCheckin && !workerInfo.todayCheckout) {
+    statusTags = '<span class="tag tag-pending">미출근</span>';
+  }
+
+  // 버튼 상태: 이미 출근했으면 출근 버튼 비활성화
+  const inDisabled = workerInfo.todayCheckin ? 'disabled' : '';
+  const outDisabled = workerInfo.todayCheckout ? 'disabled' : '';
+  const inLabel = workerInfo.todayCheckin
+    ? `<span class="done-label">${workerInfo.todayCheckin} 완료</span>` : '';
+  const outLabel = workerInfo.todayCheckout
+    ? `<span class="done-label">${workerInfo.todayCheckout} 완료</span>` : '';
+
+  document.getElementById('mainContainer').innerHTML = `
+    <div class="user-card">
+      <div class="name">${workerInfo.name}</div>
+      ${workerInfo.site ? `<div class="site">${workerInfo.site}</div>` : ''}
+      <div class="date">${dateStr}</div>
+      <div class="today-status">${statusTags}</div>
+    </div>
+    <div class="btn-area">
+      <button class="btn-checkin btn-in" onclick="doCheckin('출근')" id="btnIn" ${inDisabled}>
+        <span class="icon">&#9757;</span>
+        <span>출근</span>
+        ${inLabel}
+      </button>
+      <button class="btn-checkin btn-out" onclick="doCheckin('퇴근')" id="btnOut" ${outDisabled}>
+        <span class="icon">&#9994;</span>
+        <span>퇴근</span>
+        ${outLabel}
+      </button>
+    </div>
+    <div class="status-box" id="statusBox"></div>
+    <div class="manual-link">
+      <button onclick="doCheckin('출근', true)" ${inDisabled}>GPS가 안 되면 여기를 눌러주세요</button>
+    </div>
+    <div id="historyContainer"></div>
+  `;
+}
+
+async function doCheckin(type, manual = false) {
+  const btnIn = document.getElementById('btnIn');
+  const btnOut = document.getElementById('btnOut');
+  btnIn.disabled = true;
+  btnOut.disabled = true;
+  showStatus('loading', '전송 중...', '');
+
+  let lat = null, lng = null;
+  if (!manual) {
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+      });
+      lat = pos.coords.latitude;
+      lng = pos.coords.longitude;
+    } catch { manual = true; }
+  }
+
+  const deviceId = getDeviceId(workerInfo.token);
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ token: workerInfo.token, type, lat, lng, manual, deviceId })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      // 로컬 상태 업데이트
+      if (type === '출근') workerInfo.todayCheckin = data.time;
+      if (type === '퇴근') workerInfo.todayCheckout = data.time;
+
+      let statusMsg = manual ? '수동 (위치 없음)' : data.status === '정상' ? '정상' : '현장 외 위치';
+      if (data.deviceMismatch) statusMsg += ' (기기 불일치)';
+      let detail = `시간: ${data.time}`;
+      if (data.site && !manual) detail += `\n현장: ${data.site}\n거리: ${data.distance}m`;
+      showStatus('success', type === '출근' ? '출근 완료!' : '퇴근 완료!', `${statusMsg}\n${detail}`);
+
+      // UI 갱신 — 완료된 버튼 비활성화 유지
+      showMainView();
+      loadHistory();
+    } else {
+      showStatus('error', data.duplicate ? '이미 처리됨' : '전송 실패', data.error || '');
+      // 중복이면 로컬 상태 동기화
+      if (data.duplicate) {
+        if (type === '출근') workerInfo.todayCheckin = data.existingTime;
+        if (type === '퇴근') workerInfo.todayCheckout = data.existingTime;
+        showMainView();
+      }
+    }
+  } catch (err) {
+    showStatus('error', '전송 실패', '인터넷 연결을 확인하고 다시 시도해주세요.');
+  }
+
+  // 에러 시 버튼 다시 활성화
+  setTimeout(() => {
+    const bi = document.getElementById('btnIn');
+    const bo = document.getElementById('btnOut');
+    if (bi && !workerInfo.todayCheckin) bi.disabled = false;
+    if (bo && !workerInfo.todayCheckout) bo.disabled = false;
+  }, 3000);
+}
+
+// 이번 달 출근 이력 로드
+async function loadHistory() {
+  const container = document.getElementById('historyContainer');
+  if (!container) return;
+
+  try {
+    const res = await fetch(SCRIPT_URL + '?token=' + encodeURIComponent(workerInfo.token) + '&action=history');
+    const data = await res.json();
+    if (!data.success || !data.history || data.history.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    const rows = data.history.map(h => {
+      const statusClass = (h.상태 || '').includes('정상') ? 'normal' : (h.상태 || '').includes('수동') ? 'manual-tag' : 'outside';
+      const statusLabel = (h.상태 || '').split('/')[0]; // "정상/기기불일치" → "정상"
+      return `
+        <tr>
+          <td>${(h.날짜 || '').slice(5)}</td>
+          <td>${h.출근시간 || '-'}</td>
+          <td>${h.퇴근시간 || '-'}</td>
+          <td>${h.현장명 || '-'}</td>
+          <td><span class="tag-sm ${statusClass}">${statusLabel || '-'}</span></td>
+        </tr>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="history-section">
+        <h3>
+          이번 달 출근 기록
+          <span class="work-days">${data.workDays}일 근무</span>
+        </h3>
+        <table class="history-table">
+          <thead><tr><th>날짜</th><th>출근</th><th>퇴근</th><th>현장</th><th>상태</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+  } catch {
+    container.innerHTML = '';
+  }
+}
+
+function showStatus(type, title, detail) {
+  const box = document.getElementById('statusBox');
+  if (!box) return;
+  const icons = { success: '&#10004;', error: '&#10060;' };
+  box.className = `status-box show ${type}`;
+  box.innerHTML = `
+    ${type === 'loading' ? '<div class="spinner"></div>' : `<div class="status-icon">${icons[type]}</div>`}
+    <div class="status-title">${title}</div>
+    ${detail ? `<div class="status-detail">${detail.replace(/\n/g, '<br>')}</div>` : ''}
+  `;
+}
+
+function showError(title, desc) {
+  document.getElementById('mainContainer').innerHTML = `
+    <div class="error-page">
+      <div class="icon">&#128683;</div>
+      <div class="title">${title}</div>
+      <div class="desc">${desc}</div>
+    </div>
+  `;
+}
+
+init();
+</script>
+</body>
+</html>

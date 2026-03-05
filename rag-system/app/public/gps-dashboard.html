@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPS 출퇴근 관리</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'Pretendard', 'Noto Sans KR', sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+  }
+  .header {
+    background: #1e293b;
+    color: white;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header h1 { font-size: 18px; font-weight: 600; }
+  .header .nav {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+  .header .nav a {
+    color: rgba(255,255,255,.7);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    background: rgba(255,255,255,.1);
+  }
+  .header .nav a:hover { background: rgba(255,255,255,.2); }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+  /* 상단 컨트롤 */
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .controls select, .controls button {
+    padding: 8px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+  }
+  .controls button {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+    font-weight: 600;
+  }
+  .controls button:hover { background: #1d4ed8; }
+  .controls .sync-btn {
+    background: #059669;
+    border-color: #059669;
+  }
+  .controls .sync-btn:hover { background: #047857; }
+  .controls .sync-btn-secondary {
+    background: #7c3aed;
+    border-color: #7c3aed;
+  }
+  .controls .sync-btn-secondary:hover { background: #6d28d9; }
+  .controls .status-text {
+    margin-left: auto;
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  /* 요약 카드 */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .card .label { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
+  .card .value { font-size: 32px; font-weight: 700; }
+  .card .sub { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+  .card .value.blue { color: #2563eb; }
+  .card .value.red { color: #ef4444; }
+  .card .value.green { color: #22c55e; }
+  .card .value.orange { color: #f97316; }
+  .card .value.purple { color: #7c3aed; }
+
+  /* 섹션 */
+  .section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+  }
+  .section h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section h2 .badge {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+  .badge-blue { background: #dbeafe; color: #2563eb; }
+  .badge-red { background: #fee2e2; color: #ef4444; }
+  .badge-green { background: #dcfce7; color: #16a34a; }
+  .badge-purple { background: #ede9fe; color: #7c3aed; }
+
+  /* 테이블 */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid #e5e7eb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 13px;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #4b5563;
+  }
+  tr:hover td { background: #f9fafb; }
+
+  /* 연락처 버튼 */
+  .call-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    background: white;
+    color: #2563eb;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .call-btn:hover { background: #eff6ff; }
+
+  /* 상태 태그 */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .tag-normal { background: #dcfce7; color: #16a34a; }
+  .tag-outside { background: #fef3c7; color: #d97706; }
+  .tag-manual { background: #e5e7eb; color: #6b7280; }
+  .tag-absent { background: #fee2e2; color: #ef4444; }
+  .tag-mismatch { background: #fce7f3; color: #db2777; }
+
+  .empty-msg {
+    text-align: center;
+    padding: 30px;
+    color: #9ca3af;
+    font-size: 14px;
+  }
+
+  .spinner-sm {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid #e2e8f0; border-top-color: #3b82f6;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 투입 예정 테이블 — 현장별 그룹 */
+  .site-group {
+    margin-bottom: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .site-group-header {
+    background: #f8fafc;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .site-group-header .absent-link {
+    font-size: 12px;
+    color: #ef4444;
+    cursor: pointer;
+    text-decoration: underline;
+    font-weight: 500;
+  }
+  .site-group-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 14px;
+  }
+  .worker-chip {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .chip-ok { background: #dcfce7; color: #16a34a; }
+  .chip-absent { background: #fee2e2; color: #ef4444; }
+
+  /* 확인 팝업 */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
+  }
+  .modal {
+    background: white; border-radius: 16px; padding: 24px;
+    max-width: 520px; width: 100%; max-height: 80vh; overflow-y: auto;
+  }
+  .modal h3 { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+  .modal table { width: 100%; font-size: 13px; margin-bottom: 16px; }
+  .modal th { background: #f8fafc; }
+  .modal .btn-row { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal .btn-cancel {
+    padding: 10px 20px; border: 1px solid #d1d5db; border-radius: 8px;
+    background: white; font-size: 14px; cursor: pointer;
+  }
+  .modal .btn-send {
+    padding: 10px 20px; border: none; border-radius: 8px;
+    background: #ef4444; color: white; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .modal .btn-send:hover { background: #dc2626; }
+  .modal .msg-preview {
+    background: #f8fafc; border-radius: 8px; padding: 12px;
+    font-size: 13px; color: #374151; margin-bottom: 14px; line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>GPS 출퇴근 관리</h1>
+  <div class="nav">
+    <a href="/">AI 챗봇</a>
+    <a href="/compliance.html">규정체크</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 컨트롤 -->
+  <div class="controls">
+    <select id="regionFilter" onchange="loadDashboard()">
+      <option value="">전체 지역</option>
+      <option value="충주">충주</option>
+      <option value="안산">안산</option>
+      <option value="서울">서울</option>
+      <option value="화성">화성</option>
+    </select>
+    <button class="sync-btn" onclick="syncSheet('GPS출퇴근')">
+      <span id="syncIcon1">&#8635;</span> GPS 동기화
+    </button>
+    <button class="sync-btn sync-btn-secondary" onclick="syncSheet('일투입현황')">
+      <span id="syncIcon2">&#8635;</span> 투입현황 동기화
+    </button>
+    <span class="status-text" id="statusText">마지막 동기화: -</span>
+  </div>
+
+  <!-- 요약 카드 -->
+  <div class="summary">
+    <div class="card">
+      <div class="label">투입 예정</div>
+      <div class="value purple" id="countScheduled">-</div>
+      <div class="sub" id="subScheduled"></div>
+    </div>
+    <div class="card">
+      <div class="label">출근 완료</div>
+      <div class="value green" id="countIn">-</div>
+    </div>
+    <div class="card">
+      <div class="label">미출근</div>
+      <div class="value red" id="countAbsent">-</div>
+    </div>
+    <div class="card">
+      <div class="label">현장 외 출근</div>
+      <div class="value orange" id="countOutside">-</div>
+    </div>
+    <div class="card">
+      <div class="label">대체 가능 인력</div>
+      <div class="value blue" id="countBackup">-</div>
+    </div>
+  </div>
+
+  <!-- 투입 예정 vs 출근 비교 -->
+  <div class="section" id="scheduledSection" style="display:none;">
+    <h2>오늘 투입 예정 <span class="badge badge-purple" id="badgeScheduled">0명</span></h2>
+    <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">
+      일투입현황 시트 기준 — 미출근자는 <span style="color:#ef4444; font-weight:600;">빨간색</span>으로 표시
+    </p>
+    <div id="scheduledContent"></div>
+  </div>
+
+  <!-- 오늘 출근 현황 -->
+  <div class="section">
+    <h2>오늘 출근 현황 <span class="badge badge-green" id="badgeIn">0명</span></h2>
+    <div id="checkinTable"></div>
+  </div>
+
+  <!-- 대체 가능 인력 (비상연락망) -->
+  <div class="section">
+    <h2>대체 가능 인력 <span class="badge badge-blue" id="badgeBackup">0명</span></h2>
+    <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">
+      최근 1개월 근무자 중 오늘 미출근자 — 결근 시 연락 가능
+    </p>
+
+    <!-- 단체문자 발송 컨트롤 -->
+    <div id="smsControls" style="display:none; margin-bottom:14px; padding:12px; background:#eff6ff; border-radius:8px;">
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <input type="text" id="smsSiteName" placeholder="현장명 (예: 서울식품)" style="padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:14px; width:180px;">
+        <button onclick="sendBackupSMS()" style="padding:8px 16px; background:#ef4444; color:white; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer;">
+          선택한 인력에게 문자 보내기
+        </button>
+        <span id="smsResult" style="font-size:13px; color:#6b7280;"></span>
+      </div>
+      <p style="font-size:12px; color:#6b7280; margin-top:6px;">
+        메시지: "[워크위드] {현장명} 현장 금일 인원이 필요합니다. 출근 가능하시면 회신 부탁드립니다."
+      </p>
+    </div>
+
+    <div id="backupTable"></div>
+  </div>
+
+  <!-- 최근 지원자 -->
+  <div class="section">
+    <h2>최근 지원자 <span class="badge badge-blue" id="badgeApplicant">0명</span></h2>
+    <div id="applicantTable"></div>
+  </div>
+
+</div>
+
+<script>
+async function loadDashboard() {
+  const region = document.getElementById('regionFilter').value;
+  const url = `/api/gps/dashboard${region ? '?region=' + encodeURIComponent(region) : ''}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    renderDashboard(data);
+  } catch (err) {
+    document.getElementById('statusText').textContent = '데이터 로드 실패: ' + err.message;
+  }
+}
+
+function renderDashboard(data) {
+  const checkinList = data.checkedIn.filter(r => r.구분 === '출근');
+  const outsideCount = checkinList.filter(r => r.상태 && r.상태.includes('현장외')).length;
+
+  // 요약 카드
+  document.getElementById('countScheduled').textContent = data.scheduledCount || 0;
+  document.getElementById('countIn').textContent = data.checkedInCount;
+  document.getElementById('countAbsent').textContent = data.absentCount || 0;
+  document.getElementById('countOutside').textContent = outsideCount;
+  document.getElementById('countBackup').textContent = data.recentWorkers.length;
+
+  // 투입예정 현장 수
+  const scheduledSites = [...new Set((data.scheduledWorkers || []).map(w => w.업체))];
+  document.getElementById('subScheduled').textContent = scheduledSites.length ? `${scheduledSites.length}개 현장` : '';
+
+  document.getElementById('badgeIn').textContent = data.checkedInCount + '명';
+  document.getElementById('badgeBackup').textContent = data.recentWorkers.length + '명';
+  document.getElementById('badgeApplicant').textContent = data.recentApplicants.length + '명';
+
+  // === 투입 예정 vs 출근 비교 ===
+  const scheduledWorkers = data.scheduledWorkers || [];
+  const dupeNames = data.duplicateNames || [];
+  const scheduledSection = document.getElementById('scheduledSection');
+
+  if (scheduledWorkers.length === 0) {
+    scheduledSection.style.display = 'none';
+  } else {
+    scheduledSection.style.display = 'block';
+    document.getElementById('badgeScheduled').textContent = scheduledWorkers.length + '명';
+
+    // 동명이인 경고
+    let dupeWarning = '';
+    if (dupeNames.length > 0) {
+      dupeWarning = `<div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:13px; color:#92400e;">
+        <strong>&#9888; 동명이인 주의:</strong> ${dupeNames.map(n => `<strong>${n}</strong>`).join(', ')} — 전체명단에 같은 이름이 2명 이상 있습니다. 투입현황에 이름 뒤 번호를 붙여 구분해주세요 (예: 김철수1, 김철수2)
+      </div>`;
+    }
+
+    // 현장별로 그룹핑
+    const siteMap = {};
+    scheduledWorkers.forEach(w => {
+      if (!siteMap[w.업체]) siteMap[w.업체] = [];
+      siteMap[w.업체].push(w);
+    });
+
+    let html = dupeWarning;
+    Object.keys(siteMap).forEach(site => {
+      const workers = siteMap[site];
+      const absentWorkers = workers.filter(w => !w.출근여부);
+
+      html += `
+        <div class="site-group">
+          <div class="site-group-header">
+            <span>${site} (${workers.length}명 중 ${workers.length - absentWorkers.length}명 출근)</span>
+            ${absentWorkers.length > 0 ? `<span class="absent-link" onclick="fillSiteAndScroll('${site}')">&#8595; 대체인력 연락하기</span>` : '<span style="font-size:12px;color:#16a34a;">전원 출근</span>'}
+          </div>
+          <div class="site-group-body">
+            ${workers.map(w => `
+              <span class="worker-chip ${w.출근여부 ? 'chip-ok' : 'chip-absent'}" ${w.동명이인 ? 'style="border:2px solid #f59e0b;"' : ''}>
+                ${w.이름} ${w.출근여부 ? '(' + w.시간 + ')' : ''} ${w.동명이인 ? '&#9888;' : ''}
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    });
+
+    document.getElementById('scheduledContent').innerHTML = html;
+  }
+
+  // === 오늘 출근 테이블 ===
+  if (data.checkedIn.length === 0) {
+    document.getElementById('checkinTable').innerHTML = '<div class="empty-msg">아직 출근 기록이 없습니다. GPS 데이터를 동기화해보세요.</div>';
+  } else {
+    document.getElementById('checkinTable').innerHTML = `
+      <table>
+        <thead><tr><th>이름</th><th>구분</th><th>시간</th><th>현장</th><th>거리</th><th>상태</th></tr></thead>
+        <tbody>
+          ${data.checkedIn.map(r => {
+            let tagClass = 'tag-normal';
+            if (r.상태 && r.상태.includes('현장외')) tagClass = 'tag-outside';
+            else if (r.상태 && r.상태.includes('수동')) tagClass = 'tag-manual';
+            if (r.상태 && r.상태.includes('기기불일치')) tagClass = 'tag-mismatch';
+            return `
+            <tr>
+              <td><strong>${r.이름}</strong></td>
+              <td>${r.구분}</td>
+              <td>${r.시간}</td>
+              <td>${r.현장명 || '-'}</td>
+              <td>${r.거리 ? r.거리 + 'm' : '-'}</td>
+              <td><span class="tag ${tagClass}">${r.상태}</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // === 대체 가능 인력 테이블 ===
+  const smsControls = document.getElementById('smsControls');
+  if (data.recentWorkers.length === 0) {
+    document.getElementById('backupTable').innerHTML = '<div class="empty-msg">해당 지역에 최근 근무자가 없습니다.</div>';
+    smsControls.style.display = 'none';
+  } else {
+    smsControls.style.display = 'block';
+    document.getElementById('backupTable').innerHTML = `
+      <table>
+        <thead><tr>
+          <th><input type="checkbox" onchange="toggleAllBackup(this)" title="전체 선택"></th>
+          <th>이름</th><th>최근 근무지</th><th>사는 곳</th><th>근무일수</th><th>마지막 근무</th><th>연락</th>
+        </tr></thead>
+        <tbody>
+          ${data.recentWorkers.map(r => `
+            <tr>
+              <td><input type="checkbox" class="backup-check" value="${r.성명}" ${r.연락처 ? '' : 'disabled'}></td>
+              <td><strong>${r.성명}</strong></td>
+              <td>${r.최근근무지 || '-'}</td>
+              <td>${r.사는곳 || '-'}</td>
+              <td>${r.근무일수}일</td>
+              <td>${(r.마지막근무일 || '').substring(0, 10)}</td>
+              <td>${r.연락처 ? `<a href="tel:${r.연락처}" class="call-btn">&#128222; ${r.연락처}</a>` : '<span style="color:#d1d5db">연락처 없음</span>'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // === 최근 지원자 테이블 ===
+  if (data.recentApplicants.length === 0) {
+    document.getElementById('applicantTable').innerHTML = '<div class="empty-msg">해당 지역에 최근 지원자가 없습니다.</div>';
+  } else {
+    document.getElementById('applicantTable').innerHTML = `
+      <table>
+        <thead><tr><th>이름</th><th>사는 곳</th><th>채용일</th><th>연락</th></tr></thead>
+        <tbody>
+          ${data.recentApplicants.map(r => `
+            <tr>
+              <td><strong>${r.성명}</strong></td>
+              <td>${r.사는곳 || '-'}</td>
+              <td>${r.채용일 || '-'}</td>
+              <td>${r.연락처 ? `<a href="tel:${r.연락처}" class="call-btn">&#128222; ${r.연락처}</a>` : '-'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  document.getElementById('statusText').textContent = `${data.today} 기준 | ${data.region} 지역`;
+}
+
+// 미출근 현장 클릭 → 대체인력 섹션으로 이동 + 현장명 자동 입력
+function fillSiteAndScroll(siteName) {
+  const input = document.getElementById('smsSiteName');
+  if (input) input.value = siteName;
+  const target = document.getElementById('smsControls');
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// 시트 동기화 (GPS출퇴근 또는 일투입현황)
+async function syncSheet(sheetName) {
+  const iconId = sheetName === 'GPS출퇴근' ? 'syncIcon1' : 'syncIcon2';
+  const icon = document.getElementById(iconId);
+  icon.innerHTML = '<span class="spinner-sm"></span>';
+
+  try {
+    const res = await fetch(`/api/sheets/sync/${encodeURIComponent(sheetName)}`, { method: 'POST' });
+    const data = await res.json();
+    document.getElementById('statusText').textContent = `${sheetName} 동기화 완료: ${data.synced || 0}건`;
+    await loadDashboard();
+  } catch (err) {
+    document.getElementById('statusText').textContent = `${sheetName} 동기화 실패: ` + err.message;
+  }
+
+  icon.textContent = '\u27F3';
+}
+
+// 전체 선택/해제
+function toggleAllBackup(master) {
+  document.querySelectorAll('.backup-check').forEach(cb => {
+    if (!cb.disabled) cb.checked = master.checked;
+  });
+}
+
+// 문자 보내기 — 확인 팝업 표시
+async function sendBackupSMS() {
+  const siteName = document.getElementById('smsSiteName').value.trim();
+  if (!siteName) { alert('현장명을 입력해주세요.'); return; }
+
+  const selected = [...document.querySelectorAll('.backup-check:checked')].map(cb => cb.value);
+  if (selected.length === 0) { alert('발송할 인력을 선택해주세요.'); return; }
+
+  const resultEl = document.getElementById('smsResult');
+  resultEl.textContent = '정보 조회 중...';
+
+  try {
+    const res = await fetch(`/api/gps/worker-detail?names=${encodeURIComponent(selected.join(','))}`);
+    const workers = await res.json();
+
+    const msg = `[워크위드] ${siteName} 현장 금일 인원이 필요합니다. 출근 가능하시면 회신 부탁드립니다. (워크위드 담당자)`;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'smsModal';
+    modal.innerHTML = `
+      <div class="modal">
+        <h3>${siteName} — 대체인력 문자 발송</h3>
+        <div class="msg-preview">
+          <strong>발송 메시지:</strong><br>${msg}
+        </div>
+        <table>
+          <thead><tr><th>이름</th><th>생년월일</th><th>연락처</th><th>사는 곳</th></tr></thead>
+          <tbody>
+            ${workers.map(w => `
+              <tr>
+                <td><strong>${w.성명}</strong></td>
+                <td>${w.생년월일 || '-'}</td>
+                <td>${w.연락처 || '-'}</td>
+                <td>${w.사는곳 || '-'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <p style="font-size:13px; color:#6b7280; margin-bottom:14px;">
+          총 <strong>${workers.filter(w => w.연락처).length}명</strong>에게 SMS 발송 (연락처 없는 인원 제외)
+        </p>
+        <div class="btn-row">
+          <button class="btn-cancel" onclick="closeModal()">취소</button>
+          <button class="btn-send" onclick="confirmSendSMS('${siteName}', ${JSON.stringify(selected).replace(/'/g, "\\'")})">
+            문자 발송 확인
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    resultEl.textContent = '';
+  } catch (err) {
+    resultEl.textContent = '정보 조회 실패: ' + err.message;
+  }
+}
+
+function closeModal() {
+  const modal = document.getElementById('smsModal');
+  if (modal) modal.remove();
+}
+
+// 실제 문자 발송
+async function confirmSendSMS(siteName, workerIds) {
+  const sendBtn = document.querySelector('#smsModal .btn-send');
+  sendBtn.disabled = true;
+  sendBtn.textContent = '발송 중...';
+
+  try {
+    const res = await fetch('/api/gps/send-backup-sms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ siteName, workerIds })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      closeModal();
+      document.getElementById('smsResult').innerHTML =
+        `<span style="color:#16a34a; font-weight:600;">&#10004; ${data.count}명 발송 완료 (${data.type})</span>`;
+    } else {
+      sendBtn.textContent = '발송 실패 — 다시 시도';
+      sendBtn.disabled = false;
+      alert('발송 실패: ' + (data.error || '알 수 없는 오류'));
+    }
+  } catch (err) {
+    sendBtn.textContent = '발송 실패 — 다시 시도';
+    sendBtn.disabled = false;
+    alert('발송 오류: ' + err.message);
+  }
+}
+
+// 초기 로드
+loadDashboard();
+</script>
+</body>
+</html>
