@@ -558,6 +558,67 @@ app.get('/api/gps/dashboard', (req, res) => {
       recentApplicants = db.prepare(sql).all(...params);
     } catch { /* 테이블 없으면 빈 배열 */ }
 
+    // 5. 현장별 상세 브레이크다운 (대체인력 포함)
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    const threeMonthsAgoStr = threeMonthsAgo.toISOString().split('T')[0];
+
+    const siteNames = [...new Set(scheduledWorkers.map(w => w.업체))];
+    const siteBreakdown = [];
+
+    for (const siteName of siteNames) {
+      const siteWorkers = scheduledWorkers.filter(w => w.업체 === siteName);
+      const siteCheckedIn = siteWorkers.filter(w => w.출근여부);
+      const siteAbsent = siteWorkers.filter(w => !w.출근여부);
+
+      // 해당 현장 최근 3개월 근무자 (오늘 출근자 제외)
+      let siteRecentWorkers = [];
+      try {
+        const excludePlaceholders = checkedInNames.length > 0
+          ? checkedInNames.map(() => '?').join(',')
+          : "''";
+        siteRecentWorkers = db.prepare(`
+          SELECT
+            t.성명, g.연락처, g.사는곳,
+            MAX(substr(t.날짜, 1, 10)) as 마지막근무일,
+            COUNT(*) as 근무일수
+          FROM 근태 t
+          LEFT JOIN gs_전체명단 g ON t.성명 = g.성명
+          WHERE t.업쳬명 LIKE ?
+            AND substr(t.날짜, 1, 10) >= ?
+            AND t.업쳬명 NOT IN ('a업체','b업체','c업체')
+            AND t.성명 NOT IN (${excludePlaceholders})
+          GROUP BY t.성명
+          ORDER BY MAX(t.날짜) DESC
+          LIMIT 15
+        `).all(`%${siteName}%`, threeMonthsAgoStr, ...checkedInNames);
+      } catch { /* 조인 실패 시 빈 배열 */ }
+
+      // 해당 현장 근처 최근 지원자
+      let siteApplicants = [];
+      try {
+        siteApplicants = db.prepare(`
+          SELECT 성명, 연락처, 사는곳, 채용일
+          FROM gs_전체명단
+          WHERE 채용일 != '' AND 채용일 IS NOT NULL
+            AND 성명 NOT IN (${checkedInNames.length > 0 ? checkedInNames.map(() => '?').join(',') : "''"})
+          ORDER BY 채용일 DESC
+          LIMIT 10
+        `).all(...checkedInNames);
+      } catch { /* 무시 */ }
+
+      siteBreakdown.push({
+        siteName,
+        scheduled: siteWorkers.length,
+        checkedIn: siteCheckedIn.length,
+        absent: siteAbsent.length,
+        absentNames: siteAbsent.map(w => w.이름),
+        checkedInList: siteCheckedIn.map(w => ({ 이름: w.이름, 시간: w.시간, 상태: w.상태 })),
+        replacementWorkers: siteRecentWorkers,
+        replacementApplicants: siteApplicants
+      });
+    }
+
     res.json({
       today,
       region: region || '전체',
@@ -568,7 +629,8 @@ app.get('/api/gps/dashboard', (req, res) => {
       absentCount,
       duplicateNames,
       recentWorkers,
-      recentApplicants
+      recentApplicants,
+      siteBreakdown
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

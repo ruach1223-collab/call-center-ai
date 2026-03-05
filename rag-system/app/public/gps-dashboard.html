@@ -79,46 +79,67 @@
   /* 요약 카드 */
   .summary {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
     margin-bottom: 24px;
+  }
+  @media (max-width: 900px) {
+    .summary { grid-template-columns: repeat(3, 1fr); }
+    .site-cards { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 500px) {
+    .summary { grid-template-columns: repeat(2, 1fr); }
   }
   .card {
     background: white;
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
   }
-  .card .label { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
-  .card .value { font-size: 32px; font-weight: 700; }
-  .card .sub { font-size: 12px; color: #9ca3af; margin-top: 2px; }
-  .card .value.blue { color: #2563eb; }
-  .card .value.red { color: #ef4444; }
-  .card .value.green { color: #22c55e; }
-  .card .value.orange { color: #f97316; }
-  .card .value.purple { color: #7c3aed; }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+  .card-purple::before { background: #7c3aed; }
+  .card-green::before { background: #22c55e; }
+  .card-red::before { background: #ef4444; }
+  .card-orange::before { background: #f97316; }
+  .card-blue::before { background: #2563eb; }
+
+  .card .label { font-size: 13px; color: #6b7280; margin-bottom: 6px; }
+  .card .value { font-size: 36px; font-weight: 800; line-height: 1; }
+  .card .sub { font-size: 12px; color: #9ca3af; margin-top: 6px; }
+  .value.blue { color: #2563eb; }
+  .value.red { color: #ef4444; }
+  .value.green { color: #22c55e; }
+  .value.orange { color: #f97316; }
+  .value.purple { color: #7c3aed; }
 
   /* 섹션 */
   .section {
     background: white;
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 14px;
+    padding: 24px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     margin-bottom: 20px;
   }
   .section h2 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 14px;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 16px;
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .section h2 .badge {
+  .badge {
     font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
   }
   .badge-blue { background: #dbeafe; color: #2563eb; }
   .badge-red { background: #fee2e2; color: #ef4444; }
@@ -126,11 +147,7 @@
   .badge-purple { background: #ede9fe; color: #7c3aed; }
 
   /* 테이블 */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th {
     text-align: left;
     padding: 10px 12px;
@@ -138,6 +155,7 @@
     font-weight: 600;
     color: #374151;
     font-size: 13px;
+    white-space: nowrap;
   }
   td {
     padding: 10px 12px;
@@ -146,12 +164,11 @@
   }
   tr:hover td { background: #f9fafb; }
 
-  /* 연락처 버튼 */
   .call-btn {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border: 1px solid #2563eb;
     border-radius: 6px;
     background: white;
@@ -159,16 +176,17 @@
     font-size: 12px;
     cursor: pointer;
     text-decoration: none;
+    font-weight: 500;
   }
   .call-btn:hover { background: #eff6ff; }
 
   /* 상태 태그 */
   .tag {
     display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 3px 10px;
+    border-radius: 6px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
   }
   .tag-normal { background: #dcfce7; color: #16a34a; }
   .tag-outside { background: #fef3c7; color: #d97706; }
@@ -191,16 +209,16 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* 투입 예정 테이블 — 현장별 그룹 */
+  /* 투입 예정 — 현장별 그룹 */
   .site-group {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
   }
   .site-group-header {
     background: #f8fafc;
-    padding: 10px 14px;
+    padding: 12px 16px;
     font-weight: 600;
     font-size: 14px;
     display: flex;
@@ -218,17 +236,208 @@
   .site-group-body {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 10px 14px;
+    gap: 8px;
+    padding: 12px 16px;
   }
   .worker-chip {
-    padding: 4px 10px;
-    border-radius: 6px;
+    padding: 6px 14px;
+    border-radius: 8px;
     font-size: 13px;
     font-weight: 500;
   }
   .chip-ok { background: #dcfce7; color: #16a34a; }
   .chip-absent { background: #fee2e2; color: #ef4444; }
+
+  /* 현장 현황 카드 */
+  .site-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .site-card {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e5e7eb;
+  }
+  .site-card-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .site-card-header .site-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .site-card-header .site-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .status-ok { background: #dcfce7; color: #16a34a; }
+  .status-warn { background: #fef3c7; color: #d97706; }
+  .status-danger { background: #fee2e2; color: #ef4444; }
+
+  .site-card-body { padding: 16px 20px; }
+
+  .site-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .site-stat { text-align: center; }
+  .site-stat .stat-value {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .site-stat .stat-label {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 4px;
+  }
+
+  .attendance-bar {
+    height: 8px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .attendance-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+  .fill-green { background: linear-gradient(90deg, #22c55e, #16a34a); }
+  .fill-yellow { background: linear-gradient(90deg, #f59e0b, #d97706); }
+  .fill-red { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+  .attendance-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 10px;
+  }
+
+  /* 긴급구인 버튼/패널 */
+  .contact-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 6px;
+    background: #ef4444;
+    border: none;
+    font-weight: 600;
+  }
+  .contact-toggle:hover { background: #dc2626; }
+  .contact-toggle.open-state { background: #6b7280; }
+
+  .contact-panel {
+    display: none;
+    margin-bottom: 14px;
+    padding: 14px;
+    background: #fef2f2;
+    border-radius: 10px;
+    border: 1px solid #fecaca;
+  }
+  .contact-panel.open { display: block; }
+  .contact-panel h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #991b1b;
+    margin-bottom: 10px;
+  }
+  .contact-panel h4 .sub-label {
+    font-weight: 400;
+    color: #9ca3af;
+    font-size: 11px;
+    margin-left: 6px;
+  }
+  .worker-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+  }
+  .worker-list table { font-size: 12px; width: 100%; }
+  .worker-list th {
+    font-size: 11px;
+    padding: 6px 8px;
+    background: #fff5f5;
+    border-bottom: 1px solid #fecaca;
+  }
+  .worker-list td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #fef2f2;
+    font-size: 12px;
+  }
+  .panel-send-btn {
+    width: 100%;
+    padding: 10px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .panel-send-btn:hover { background: #dc2626; }
+  .panel-msg {
+    font-size: 11px;
+    color: #991b1b;
+    background: #fff;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border: 1px solid #fecaca;
+    line-height: 1.5;
+  }
+
+  /* SMS 컨트롤 */
+  .sms-box {
+    padding: 14px;
+    background: #eff6ff;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    border: 1px solid #bfdbfe;
+  }
+  .sms-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .sms-input {
+    padding: 8px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    width: 200px;
+  }
+  .sms-send-btn {
+    padding: 8px 18px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sms-send-btn:hover { background: #dc2626; }
 
   /* 확인 팝업 */
   .modal-overlay {
@@ -236,26 +445,27 @@
     display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
   }
   .modal {
-    background: white; border-radius: 16px; padding: 24px;
-    max-width: 520px; width: 100%; max-height: 80vh; overflow-y: auto;
+    background: white; border-radius: 16px; padding: 28px;
+    max-width: 560px; width: 100%; max-height: 80vh; overflow-y: auto;
+    color: #1e293b;
   }
-  .modal h3 { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+  .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
   .modal table { width: 100%; font-size: 13px; margin-bottom: 16px; }
   .modal th { background: #f8fafc; }
-  .modal .btn-row { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal .msg-preview {
+    background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px;
+    font-size: 14px; color: #166534; margin-bottom: 16px; line-height: 1.7;
+  }
+  .modal .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
   .modal .btn-cancel {
-    padding: 10px 20px; border: 1px solid #d1d5db; border-radius: 8px;
+    padding: 10px 24px; border: 1px solid #d1d5db; border-radius: 8px;
     background: white; font-size: 14px; cursor: pointer;
   }
   .modal .btn-send {
-    padding: 10px 20px; border: none; border-radius: 8px;
+    padding: 10px 24px; border: none; border-radius: 8px;
     background: #ef4444; color: white; font-size: 14px; font-weight: 600; cursor: pointer;
   }
   .modal .btn-send:hover { background: #dc2626; }
-  .modal .msg-preview {
-    background: #f8fafc; border-radius: 8px; padding: 12px;
-    font-size: 13px; color: #374151; margin-bottom: 14px; line-height: 1.6;
-  }
 </style>
 </head>
 <body>
@@ -290,27 +500,40 @@
 
   <!-- 요약 카드 -->
   <div class="summary">
-    <div class="card">
+    <div class="card card-purple">
       <div class="label">투입 예정</div>
       <div class="value purple" id="countScheduled">-</div>
       <div class="sub" id="subScheduled"></div>
     </div>
-    <div class="card">
+    <div class="card card-green">
       <div class="label">출근 완료</div>
       <div class="value green" id="countIn">-</div>
+      <div class="sub" id="subRate"></div>
     </div>
-    <div class="card">
+    <div class="card card-red">
       <div class="label">미출근</div>
       <div class="value red" id="countAbsent">-</div>
+      <div class="sub" id="subAbsent"></div>
     </div>
-    <div class="card">
+    <div class="card card-orange">
       <div class="label">현장 외 출근</div>
       <div class="value orange" id="countOutside">-</div>
+      <div class="sub">GPS 이탈</div>
     </div>
-    <div class="card">
-      <div class="label">대체 가능 인력</div>
+    <div class="card card-blue">
+      <div class="label">대체 가능</div>
       <div class="value blue" id="countBackup">-</div>
+      <div class="sub">연락 가능 인력</div>
     </div>
+  </div>
+
+  <!-- 현장 현황 -->
+  <div class="section" id="siteSection" style="display:none;">
+    <h2>현장 현황 <span class="badge badge-purple" id="badgeSites">0개</span></h2>
+    <p style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+      오늘 투입 현장별 출근 현황 — 미출근 발생 시 <strong>긴급구인</strong> 버튼으로 대체인력 문자 발송
+    </p>
+    <div class="site-cards" id="siteCardsContainer"></div>
   </div>
 
   <!-- 투입 예정 vs 출근 비교 -->
@@ -328,23 +551,22 @@
     <div id="checkinTable"></div>
   </div>
 
-  <!-- 대체 가능 인력 (비상연락망) -->
-  <div class="section">
+  <!-- 대체 가능 인력 -->
+  <div class="section" id="backupSection">
     <h2>대체 가능 인력 <span class="badge badge-blue" id="badgeBackup">0명</span></h2>
-    <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">
+    <p style="font-size:13px; color:#6b7280; margin-bottom:14px;">
       최근 1개월 근무자 중 오늘 미출근자 — 결근 시 연락 가능
     </p>
 
-    <!-- 단체문자 발송 컨트롤 -->
-    <div id="smsControls" style="display:none; margin-bottom:14px; padding:12px; background:#eff6ff; border-radius:8px;">
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <input type="text" id="smsSiteName" placeholder="현장명 (예: 서울식품)" style="padding:8px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:14px; width:180px;">
-        <button onclick="sendBackupSMS()" style="padding:8px 16px; background:#ef4444; color:white; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer;">
+    <div class="sms-box" id="smsControls" style="display:none;">
+      <div class="sms-row">
+        <input type="text" class="sms-input" id="smsSiteName" placeholder="현장명 (예: 서울식품)">
+        <button class="sms-send-btn" onclick="sendBackupSMS()">
           선택한 인력에게 문자 보내기
         </button>
         <span id="smsResult" style="font-size:13px; color:#6b7280;"></span>
       </div>
-      <p style="font-size:12px; color:#6b7280; margin-top:6px;">
+      <p style="font-size:12px; color:#6b7280; margin-top:8px;">
         메시지: "[워크위드] {현장명} 현장 금일 인원이 필요합니다. 출근 가능하시면 회신 부탁드립니다."
       </p>
     </div>
@@ -379,19 +601,38 @@ function renderDashboard(data) {
   const outsideCount = checkinList.filter(r => r.상태 && r.상태.includes('현장외')).length;
 
   // 요약 카드
-  document.getElementById('countScheduled').textContent = data.scheduledCount || 0;
+  const scheduledCount = data.scheduledCount || 0;
+  const absentCount = data.absentCount || 0;
+  document.getElementById('countScheduled').textContent = scheduledCount;
   document.getElementById('countIn').textContent = data.checkedInCount;
-  document.getElementById('countAbsent').textContent = data.absentCount || 0;
+  document.getElementById('countAbsent').textContent = absentCount;
   document.getElementById('countOutside').textContent = outsideCount;
   document.getElementById('countBackup').textContent = data.recentWorkers.length;
 
-  // 투입예정 현장 수
+  // 서브 텍스트
   const scheduledSites = [...new Set((data.scheduledWorkers || []).map(w => w.업체))];
-  document.getElementById('subScheduled').textContent = scheduledSites.length ? `${scheduledSites.length}개 현장` : '';
+  document.getElementById('subScheduled').textContent = scheduledSites.length ? scheduledSites.length + '개 현장' : '';
+  if (scheduledCount > 0) {
+    const rate = Math.round((data.checkedInCount / scheduledCount) * 100);
+    document.getElementById('subRate').textContent = '출근율 ' + rate + '%';
+  }
+  document.getElementById('subAbsent').textContent = absentCount > 0 ? '긴급 대체 필요' : '';
 
   document.getElementById('badgeIn').textContent = data.checkedInCount + '명';
   document.getElementById('badgeBackup').textContent = data.recentWorkers.length + '명';
   document.getElementById('badgeApplicant').textContent = data.recentApplicants.length + '명';
+
+  // === 현장 현황 카드 ===
+  const siteBreakdown = data.siteBreakdown || [];
+  const siteSection = document.getElementById('siteSection');
+
+  if (siteBreakdown.length === 0) {
+    siteSection.style.display = 'none';
+  } else {
+    siteSection.style.display = 'block';
+    document.getElementById('badgeSites').textContent = siteBreakdown.length + '개 현장';
+    renderSiteCards(siteBreakdown);
+  }
 
   // === 투입 예정 vs 출근 비교 ===
   const scheduledWorkers = data.scheduledWorkers || [];
@@ -404,15 +645,13 @@ function renderDashboard(data) {
     scheduledSection.style.display = 'block';
     document.getElementById('badgeScheduled').textContent = scheduledWorkers.length + '명';
 
-    // 동명이인 경고
     let dupeWarning = '';
     if (dupeNames.length > 0) {
       dupeWarning = `<div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:8px; padding:10px 14px; margin-bottom:12px; font-size:13px; color:#92400e;">
-        <strong>&#9888; 동명이인 주의:</strong> ${dupeNames.map(n => `<strong>${n}</strong>`).join(', ')} — 전체명단에 같은 이름이 2명 이상 있습니다. 투입현황에 이름 뒤 번호를 붙여 구분해주세요 (예: 김철수1, 김철수2)
+        <strong>&#9888; 동명이인 주의:</strong> ${dupeNames.map(n => '<strong>' + n + '</strong>').join(', ')} — 전체명단에 같은 이름이 2명 이상 있습니다. 투입현황에 이름 뒤 번호를 붙여 구분해주세요 (예: 김철수1, 김철수2)
       </div>`;
     }
 
-    // 현장별로 그룹핑
     const siteMap = {};
     scheduledWorkers.forEach(w => {
       if (!siteMap[w.업체]) siteMap[w.업체] = [];
@@ -423,12 +662,11 @@ function renderDashboard(data) {
     Object.keys(siteMap).forEach(site => {
       const workers = siteMap[site];
       const absentWorkers = workers.filter(w => !w.출근여부);
-
       html += `
         <div class="site-group">
           <div class="site-group-header">
             <span>${site} (${workers.length}명 중 ${workers.length - absentWorkers.length}명 출근)</span>
-            ${absentWorkers.length > 0 ? `<span class="absent-link" onclick="fillSiteAndScroll('${site}')">&#8595; 대체인력 연락하기</span>` : '<span style="font-size:12px;color:#16a34a;">전원 출근</span>'}
+            ${absentWorkers.length > 0 ? '<span class="absent-link" onclick="scrollToSiteCard(\'' + site + '\')">&#8593; 현장카드에서 긴급구인</span>' : '<span style="font-size:12px;color:#16a34a;">전원 출근</span>'}
           </div>
           <div class="site-group-body">
             ${workers.map(w => `
@@ -478,7 +716,7 @@ function renderDashboard(data) {
     document.getElementById('backupTable').innerHTML = '<div class="empty-msg">해당 지역에 최근 근무자가 없습니다.</div>';
     smsControls.style.display = 'none';
   } else {
-    smsControls.style.display = 'block';
+    smsControls.style.display = 'flex';
     document.getElementById('backupTable').innerHTML = `
       <table>
         <thead><tr>
@@ -494,7 +732,7 @@ function renderDashboard(data) {
               <td>${r.사는곳 || '-'}</td>
               <td>${r.근무일수}일</td>
               <td>${(r.마지막근무일 || '').substring(0, 10)}</td>
-              <td>${r.연락처 ? `<a href="tel:${r.연락처}" class="call-btn">&#128222; ${r.연락처}</a>` : '<span style="color:#d1d5db">연락처 없음</span>'}</td>
+              <td>${r.연락처 ? '<a href="tel:' + r.연락처 + '" class="call-btn">&#128222; ' + r.연락처 + '</a>' : '<span style="color:#d1d5db">연락처 없음</span>'}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -515,7 +753,7 @@ function renderDashboard(data) {
               <td><strong>${r.성명}</strong></td>
               <td>${r.사는곳 || '-'}</td>
               <td>${r.채용일 || '-'}</td>
-              <td>${r.연락처 ? `<a href="tel:${r.연락처}" class="call-btn">&#128222; ${r.연락처}</a>` : '-'}</td>
+              <td>${r.연락처 ? '<a href="tel:' + r.연락처 + '" class="call-btn">&#128222; ' + r.연락처 + '</a>' : '-'}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -523,43 +761,225 @@ function renderDashboard(data) {
     `;
   }
 
-  document.getElementById('statusText').textContent = `${data.today} 기준 | ${data.region} 지역`;
+  document.getElementById('statusText').textContent = data.today + ' 기준 | ' + data.region + ' 지역';
 }
 
-// 미출근 현장 클릭 → 대체인력 섹션으로 이동 + 현장명 자동 입력
+// === 현장 현황 카드 렌더링 ===
+function renderSiteCards(sites) {
+  const container = document.getElementById('siteCardsContainer');
+  container.innerHTML = sites.map(site => {
+    const rate = site.scheduled > 0 ? Math.round((site.checkedIn / site.scheduled) * 100) : 0;
+    let statusClass, statusText, fillClass;
+    if (rate === 100) {
+      statusClass = 'status-ok'; statusText = '정상'; fillClass = 'fill-green';
+    } else if (rate >= 60) {
+      statusClass = 'status-warn'; statusText = '인원부족'; fillClass = 'fill-yellow';
+    } else {
+      statusClass = 'status-danger'; statusText = '긴급'; fillClass = 'fill-red';
+    }
+
+    // 대체인력 목록 (근무자 + 지원자)
+    const workers = site.replacementWorkers || [];
+    const applicants = site.replacementApplicants || [];
+    const totalReplace = workers.length + applicants.length;
+    const siteId = site.siteName.replace(/[^a-zA-Z0-9가-힣]/g, '');
+
+    let panelHtml = '';
+    if (totalReplace > 0) {
+      panelHtml = `
+        <div class="contact-panel" id="panel-${siteId}">
+          <h4>${site.siteName} 긴급구인 <span class="sub-label">최근 3개월 근무자 + 최근 지원자</span></h4>
+          <div class="worker-list">
+            <table>
+              <thead><tr>
+                <th><input type="checkbox" onchange="toggleSiteAll(this, '${siteId}')" checked></th>
+                <th>이름</th><th>구분</th><th>사는곳</th><th>최근근무</th><th>연락처</th>
+              </tr></thead>
+              <tbody>
+                ${workers.map(w => `
+                  <tr>
+                    <td><input type="checkbox" class="chk-${siteId}" value="${w.성명}" ${w.연락처 ? 'checked' : 'disabled'}></td>
+                    <td><strong>${w.성명}</strong></td>
+                    <td style="color:#2563eb;">근무자</td>
+                    <td>${w.사는곳 || '-'}</td>
+                    <td>${(w.마지막근무일 || '').substring(5, 10)}</td>
+                    <td>${w.연락처 || '-'}</td>
+                  </tr>
+                `).join('')}
+                ${applicants.map(w => `
+                  <tr style="background:#eff6ff;">
+                    <td><input type="checkbox" class="chk-${siteId}" value="${w.성명}" ${w.연락처 ? 'checked' : 'disabled'}></td>
+                    <td><strong>${w.성명}</strong></td>
+                    <td style="color:#7c3aed;">지원자</td>
+                    <td>${w.사는곳 || '-'}</td>
+                    <td>${(w.채용일 || '').substring(5, 10)} 지원</td>
+                    <td>${w.연락처 || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="panel-msg">
+            <strong>발송 메시지:</strong> [워크위드] ${site.siteName} 현장 금일 인원이 필요합니다. 출근 가능하시면 회신 부탁드립니다. (워크위드 담당자)
+          </div>
+          <button class="panel-send-btn" onclick="sendSiteSMS('${site.siteName}', '${siteId}')">${totalReplace}명에게 단체문자 발송</button>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="site-card" id="card-${siteId}">
+        <div class="site-card-header">
+          <span class="site-name">${site.siteName}</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            ${totalReplace > 0 ? '<button class="contact-toggle" onclick="toggleContact(this)">&#128680; 긴급구인</button>' : ''}
+            <span class="site-status ${statusClass}">${statusText}</span>
+          </div>
+        </div>
+        <div class="site-card-body">
+          ${panelHtml}
+          <div class="site-stats">
+            <div class="site-stat">
+              <div class="stat-value purple">${site.scheduled}</div>
+              <div class="stat-label">투입예정</div>
+            </div>
+            <div class="site-stat">
+              <div class="stat-value green">${site.checkedIn}</div>
+              <div class="stat-label">출근</div>
+            </div>
+            <div class="site-stat">
+              <div class="stat-value ${site.absent > 0 ? 'red' : ''}" ${site.absent === 0 ? 'style="color:#d1d5db;"' : ''}>${site.absent}</div>
+              <div class="stat-label">미출근</div>
+            </div>
+          </div>
+          <div class="attendance-bar">
+            <div class="attendance-fill ${fillClass}" style="width:${rate}%"></div>
+          </div>
+          <div class="attendance-label">
+            <span>출근율 ${rate}%</span>
+            <span>${site.absent > 0 ? '미출근: ' + site.absentNames.join(', ') : '<span style="color:#16a34a; font-weight:600;">전원 출근</span>'}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 현장 카드로 스크롤
+function scrollToSiteCard(siteName) {
+  const siteId = siteName.replace(/[^a-zA-Z0-9가-힣]/g, '');
+  const card = document.getElementById('card-' + siteId);
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// 긴급구인 패널 토글
+function toggleContact(btn) {
+  const panel = btn.closest('.site-card').querySelector('.contact-panel');
+  if (!panel) return;
+  const isOpen = panel.classList.toggle('open');
+  btn.innerHTML = isOpen ? '&#10006; 닫기' : '&#128680; 긴급구인';
+  btn.classList.toggle('open-state', isOpen);
+}
+
+// 현장별 전체 선택
+function toggleSiteAll(master, siteId) {
+  document.querySelectorAll('.chk-' + siteId).forEach(cb => {
+    if (!cb.disabled) cb.checked = master.checked;
+  });
+  updateSiteSendBtn(siteId);
+}
+
+// 발송 버튼 인원수 업데이트
+function updateSiteSendBtn(siteId) {
+  const count = document.querySelectorAll('.chk-' + siteId + ':checked').length;
+  const panel = document.getElementById('panel-' + siteId);
+  if (panel) {
+    const btn = panel.querySelector('.panel-send-btn');
+    if (btn) btn.textContent = count + '명에게 단체문자 발송';
+  }
+}
+
+// 현장별 SMS 발송
+async function sendSiteSMS(siteName, siteId) {
+  const selected = [...document.querySelectorAll('.chk-' + siteId + ':checked')].map(cb => cb.value);
+  if (selected.length === 0) { alert('발송할 인력을 선택해주세요.'); return; }
+
+  const panel = document.getElementById('panel-' + siteId);
+  const btn = panel.querySelector('.panel-send-btn');
+
+  // 확인 팝업
+  try {
+    const res = await fetch('/api/gps/worker-detail?names=' + encodeURIComponent(selected.join(',')));
+    const workers = await res.json();
+    const msg = '[워크위드] ' + siteName + ' 현장 금일 인원이 필요합니다. 출근 가능하시면 회신 부탁드립니다. (워크위드 담당자)';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'smsModal';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    overlay.innerHTML = `
+      <div class="modal">
+        <h3>${siteName} — 대체인력 문자 발송</h3>
+        <div class="msg-preview">
+          <strong>발송 메시지:</strong><br>${msg}
+        </div>
+        <table>
+          <thead><tr><th>이름</th><th>연락처</th><th>사는 곳</th></tr></thead>
+          <tbody>
+            ${workers.map(w => '<tr><td><strong>' + w.성명 + '</strong></td><td>' + (w.연락처 || '-') + '</td><td>' + (w.사는곳 || '-') + '</td></tr>').join('')}
+          </tbody>
+        </table>
+        <p style="font-size:13px; color:#6b7280;">
+          총 <strong>${workers.filter(w => w.연락처).length}명</strong>에게 SMS 발송 (연락처 없는 인원 제외)
+        </p>
+        <div class="btn-row">
+          <button class="btn-cancel" onclick="closeModal()">취소</button>
+          <button class="btn-send" onclick="confirmSendSMS('${siteName}', ${JSON.stringify(selected).replace(/'/g, "\\'")})">
+            문자 발송 확인
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  } catch (err) {
+    alert('정보 조회 실패: ' + err.message);
+  }
+}
+
+// 미출근 현장 → 대체인력 섹션 이동 + 현장명 입력
 function fillSiteAndScroll(siteName) {
   const input = document.getElementById('smsSiteName');
   if (input) input.value = siteName;
-  const target = document.getElementById('smsControls');
+  var target = document.getElementById('smsControls');
   if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// 시트 동기화 (GPS출퇴근 또는 일투입현황)
+// 시트 동기화
 async function syncSheet(sheetName) {
   const iconId = sheetName === 'GPS출퇴근' ? 'syncIcon1' : 'syncIcon2';
   const icon = document.getElementById(iconId);
   icon.innerHTML = '<span class="spinner-sm"></span>';
 
   try {
-    const res = await fetch(`/api/sheets/sync/${encodeURIComponent(sheetName)}`, { method: 'POST' });
+    const res = await fetch('/api/sheets/sync/' + encodeURIComponent(sheetName), { method: 'POST' });
     const data = await res.json();
-    document.getElementById('statusText').textContent = `${sheetName} 동기화 완료: ${data.synced || 0}건`;
+    document.getElementById('statusText').textContent = sheetName + ' 동기화 완료: ' + (data.synced || 0) + '건';
     await loadDashboard();
   } catch (err) {
-    document.getElementById('statusText').textContent = `${sheetName} 동기화 실패: ` + err.message;
+    document.getElementById('statusText').textContent = sheetName + ' 동기화 실패: ' + err.message;
   }
 
   icon.textContent = '\u27F3';
 }
 
-// 전체 선택/해제
+// 전체 선택/해제 (대체인력 섹션)
 function toggleAllBackup(master) {
   document.querySelectorAll('.backup-check').forEach(cb => {
     if (!cb.disabled) cb.checked = master.checked;
   });
 }
 
-// 문자 보내기 — 확인 팝업 표시
+// 대체인력 섹션 SMS
 async function sendBackupSMS() {
   const siteName = document.getElementById('smsSiteName').value.trim();
   if (!siteName) { alert('현장명을 입력해주세요.'); return; }
@@ -571,10 +991,9 @@ async function sendBackupSMS() {
   resultEl.textContent = '정보 조회 중...';
 
   try {
-    const res = await fetch(`/api/gps/worker-detail?names=${encodeURIComponent(selected.join(','))}`);
+    const res = await fetch('/api/gps/worker-detail?names=' + encodeURIComponent(selected.join(',')));
     const workers = await res.json();
-
-    const msg = `[워크위드] ${siteName} 현장 금일 인원이 필요합니다. 출근 가능하시면 회신 부탁드립니다. (워크위드 담당자)`;
+    const msg = '[워크위드] ' + siteName + ' 현장 금일 인원이 필요합니다. 출근 가능하시면 회신 부탁드립니다. (워크위드 담당자)';
 
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
@@ -586,16 +1005,9 @@ async function sendBackupSMS() {
           <strong>발송 메시지:</strong><br>${msg}
         </div>
         <table>
-          <thead><tr><th>이름</th><th>생년월일</th><th>연락처</th><th>사는 곳</th></tr></thead>
+          <thead><tr><th>이름</th><th>연락처</th><th>사는 곳</th></tr></thead>
           <tbody>
-            ${workers.map(w => `
-              <tr>
-                <td><strong>${w.성명}</strong></td>
-                <td>${w.생년월일 || '-'}</td>
-                <td>${w.연락처 || '-'}</td>
-                <td>${w.사는곳 || '-'}</td>
-              </tr>
-            `).join('')}
+            ${workers.map(w => '<tr><td><strong>' + w.성명 + '</strong></td><td>' + (w.연락처 || '-') + '</td><td>' + (w.사는곳 || '-') + '</td></tr>').join('')}
           </tbody>
         </table>
         <p style="font-size:13px; color:#6b7280; margin-bottom:14px;">
@@ -617,11 +1029,11 @@ async function sendBackupSMS() {
 }
 
 function closeModal() {
-  const modal = document.getElementById('smsModal');
-  if (modal) modal.remove();
+  const el = document.getElementById('smsModal');
+  if (el) el.remove();
 }
 
-// 실제 문자 발송
+// 실제 문자 발송 (API)
 async function confirmSendSMS(siteName, workerIds) {
   const sendBtn = document.querySelector('#smsModal .btn-send');
   sendBtn.disabled = true;
@@ -637,8 +1049,10 @@ async function confirmSendSMS(siteName, workerIds) {
 
     if (data.success) {
       closeModal();
-      document.getElementById('smsResult').innerHTML =
-        `<span style="color:#16a34a; font-weight:600;">&#10004; ${data.count}명 발송 완료 (${data.type})</span>`;
+      const resultEl = document.getElementById('smsResult');
+      if (resultEl) {
+        resultEl.innerHTML = '<span style="color:#16a34a; font-weight:600;">&#10004; ' + data.count + '명 발송 완료 (' + data.type + ')</span>';
+      }
     } else {
       sendBtn.textContent = '발송 실패 — 다시 시도';
       sendBtn.disabled = false;
