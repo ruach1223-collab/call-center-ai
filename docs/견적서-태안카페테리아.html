@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>견적서 - 워크위드</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1a365d;
+    --navy-light: #2a4a7f;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-500: #64748b;
+    --gray-700: #334155;
+    --gray-900: #0f172a;
+  }
+
+  @media print {
+    body { margin: 0; background: #fff; }
+    .no-print { display: none !important; }
+    @page { size: A4; margin: 15mm; }
+    .page { box-shadow: none; margin: 0; padding: 15mm; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--gray-900);
+    background: #e2e8f0;
+    line-height: 1.6;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 20px auto;
+    background: #fff;
+    padding: 25mm 22mm;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+
+  /* 헤더 */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--navy);
+    margin-bottom: 28px;
+  }
+  .header-left h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: 0.15em;
+  }
+  .header-right {
+    text-align: right;
+    font-size: 12px;
+    color: var(--gray-500);
+    line-height: 1.8;
+  }
+
+  /* 수신/발신 */
+  .parties {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+  .party {
+    flex: 1;
+    padding: 16px 18px;
+    border: 1px solid var(--gray-200);
+    border-radius: 4px;
+  }
+  .party-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .party-row {
+    display: flex;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .party-label {
+    width: 60px;
+    color: var(--gray-500);
+    flex-shrink: 0;
+    font-weight: 400;
+  }
+  .party-value {
+    font-weight: 500;
+  }
+
+  /* 총액 */
+  .total-bar {
+    background: var(--navy);
+    color: #fff;
+    padding: 16px 24px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+  }
+  .total-bar .label {
+    font-size: 14px;
+    font-weight: 400;
+    opacity: 0.85;
+  }
+  .total-bar .amount {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .total-bar .sub {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+
+  /* 섹션 */
+  .section {
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 12px;
+    padding-left: 10px;
+    border-left: 3px solid var(--navy);
+  }
+
+  /* 개요 테이블 */
+  .info-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .info-table th {
+    background: var(--gray-50);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-500);
+    padding: 9px 14px;
+    border: 1px solid var(--gray-200);
+    text-align: left;
+    width: 90px;
+  }
+  .info-table td {
+    font-size: 13px;
+    padding: 9px 14px;
+    border: 1px solid var(--gray-200);
+  }
+
+  /* 견적 테이블 */
+  .quote-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .quote-table thead th {
+    background: var(--navy);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 10px 14px;
+    text-align: center;
+    border: 1px solid var(--navy-light);
+  }
+  .quote-table tbody td {
+    font-size: 13px;
+    padding: 10px 14px;
+    border: 1px solid var(--gray-200);
+  }
+  .quote-table tbody tr:nth-child(even) { background: var(--gray-50); }
+  .quote-table .center { text-align: center; }
+  .quote-table .right { text-align: right; font-variant-numeric: tabular-nums; }
+  .quote-table .desc { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+  .quote-table tfoot td {
+    font-size: 13px;
+    padding: 10px 14px;
+    border: 1px solid var(--gray-200);
+    font-weight: 500;
+  }
+  .quote-table tfoot tr.total-row td {
+    background: var(--gray-50);
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  /* 리스트 */
+  .check-list {
+    font-size: 13px;
+    line-height: 2;
+    padding-left: 4px;
+  }
+  .check-list li {
+    list-style: none;
+    padding-left: 20px;
+    position: relative;
+  }
+  .check-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--navy);
+    font-weight: 600;
+  }
+  .check-list.x-list li::before {
+    content: "✕";
+    color: #dc2626;
+  }
+
+  .two-col {
+    display: flex;
+    gap: 24px;
+  }
+  .two-col > div { flex: 1; }
+
+  /* 조건 */
+  .terms {
+    font-size: 12px;
+    color: var(--gray-700);
+    line-height: 2;
+  }
+  .terms li {
+    list-style: decimal;
+    margin-left: 16px;
+  }
+
+  /* 서비스 보장 */
+  .guarantee-box {
+    border: 1px solid var(--navy);
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin-top: 12px;
+  }
+  .guarantee-box h4 {
+    font-size: 12px;
+    color: var(--navy);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .guarantee-box ul {
+    font-size: 12px;
+    color: var(--gray-700);
+    line-height: 2;
+    padding-left: 16px;
+  }
+
+  /* 푸터 */
+  .footer {
+    margin-top: 36px;
+    text-align: right;
+    font-size: 13px;
+    color: var(--gray-700);
+    line-height: 2;
+  }
+  .footer .company {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  /* 프린트 버튼 */
+  .print-btn {
+    display: block;
+    margin: 20px auto;
+    padding: 14px 48px;
+    font-size: 15px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 500;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .print-btn:hover { background: var(--navy-light); }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div class="header-left">
+      <img src="로고png.png" alt="워크위드" style="height:36px; margin-bottom:8px; display:block;">
+      <h1>견 적 서</h1>
+    </div>
+    <div class="header-right">
+      문서번호 WW-2026-0306-001<br>
+      견적일자 2026. 03. 06<br>
+      유효기간 발행일로부터 30일
+    </div>
+  </div>
+
+  <!-- 수신/발신 -->
+  <div class="parties">
+    <div class="party">
+      <div class="party-title">수신</div>
+      <div class="party-row"><span class="party-label">업체명</span><span class="party-value">에스디인터내셔날 나인블럭</span></div>
+      <div class="party-row"><span class="party-label">담당자</span><span class="party-value">김승대</span></div>
+      <div class="party-row"><span class="party-label">연락처</span><span class="party-value">010-2322-5563</span></div>
+    </div>
+    <div class="party">
+      <div class="party-title">발신</div>
+      <div class="party-row"><span class="party-label">업체명</span><span class="party-value">(주)워크위드</span></div>
+      <div class="party-row"><span class="party-label">대표자</span><span class="party-value">한 세 은</span></div>
+      <div class="party-row"><span class="party-label">TEL</span><span class="party-value">043-912-9911</span></div>
+      <div class="party-row"><span class="party-label">FAX</span><span class="party-value">043-912-9912</span></div>
+      <div class="party-row"><span class="party-label">주소</span><span class="party-value">충북 충주시 예성로 392, 4층 401호</span></div>
+    </div>
+  </div>
+
+  <!-- 총액 -->
+  <div class="total-bar">
+    <div>
+      <div class="label">견적 총액 (부가가치세 별도)</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="amount">₩ 28,000,000</div>
+      <div class="sub">금 이천팔백만원정</div>
+    </div>
+  </div>
+
+  <!-- 1. 개요 -->
+  <div class="section">
+    <div class="section-title">위탁 개요</div>
+    <table class="info-table">
+      <tr>
+        <th>사업명</th>
+        <td colspan="3">태안 원예 치유박람회 카페테리아 운영 위탁</td>
+      </tr>
+      <tr>
+        <th>운영기간</th>
+        <td>2026. 04. 25 ~ 2026. 05. 24</td>
+        <th>운영장소</th>
+        <td>충남 태안군 (박람회장 내 카페테리아)</td>
+      </tr>
+      <tr>
+        <th>위탁범위</th>
+        <td colspan="3">카페테리아 전체 운영 (음료 제조 · 서빙 · 정리 · 위생관리)</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 2. 업무 범위 -->
+  <div class="section">
+    <div class="section-title">업무 범위</div>
+    <table class="info-table">
+      <tr>
+        <th>음료 제조</th>
+        <td>커피, 음료 제조 및 제공</td>
+      </tr>
+      <tr>
+        <th>고객 응대</th>
+        <td>주문 접수, 서빙, 안내</td>
+      </tr>
+      <tr>
+        <th>위생 관리</th>
+        <td>조리구역 · 홀 위생 유지, 식품위생법 준수</td>
+      </tr>
+      <tr>
+        <th>재고 관리</th>
+        <td>원재료 · 소모품 재고 파악 및 보고</td>
+      </tr>
+      <tr>
+        <th>인력 관리</th>
+        <td>근태 관리, 교대 편성, 결원 즉시 충원</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 3. 견적 금액 -->
+  <div class="section">
+    <div class="section-title">견적 금액</div>
+    <table class="quote-table">
+      <thead>
+        <tr>
+          <th style="width:40px;">No</th>
+          <th>항목</th>
+          <th style="width:130px;">금액 (원)</th>
+          <th style="width:70px;">비율</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="center">1</td>
+          <td>
+            도급운영비
+            <div class="desc">카페테리아 운영 서비스 일체 (인건비 · 4대보험 · 퇴직급여 충당 포함)</div>
+          </td>
+          <td class="right">25,200,000</td>
+          <td class="center">90.0%</td>
+        </tr>
+        <tr>
+          <td class="center">2</td>
+          <td>
+            현장관리비
+            <div class="desc">현장 리더 배치, 근태 · 품질 · 위생 관리</div>
+          </td>
+          <td class="right">500,000</td>
+          <td class="center">1.8%</td>
+        </tr>
+        <tr>
+          <td class="center">3</td>
+          <td>
+            관리운영비
+            <div class="desc">채용 광고비 · 결원 대체 구인 · 교육 · 노무 관리</div>
+          </td>
+          <td class="right">2,300,000</td>
+          <td class="center">8.2%</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td colspan="2" style="text-align:center;">합계 (부가가치세 별도)</td>
+          <td class="right">28,000,000</td>
+          <td class="center">100%</td>
+        </tr>
+        <tr>
+          <td colspan="2" style="text-align:center;">부가가치세 (10%)</td>
+          <td class="right">2,800,000</td>
+          <td></td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="2" style="text-align:center;">총합계 (VAT 포함)</td>
+          <td class="right" style="color:var(--navy);">30,800,000</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="guarantee-box">
+      <h4>서비스 보장 기준</h4>
+      <ul>
+        <li>운영시간 내 서비스 인력 상시 배치 보장</li>
+        <li>결원 발생 시 당일 대체 인력 투입</li>
+        <li>현장관리자 상주를 통한 서비스 품질 유지</li>
+        <li>인력 배치 규모는 당사가 서비스 품질 기준에 따라 자체 결정합니다</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4. 포함/불포함 -->
+  <div class="section">
+    <div class="section-title">포함 · 불포함 사항</div>
+    <div class="two-col">
+      <div>
+        <ul class="check-list">
+          <li>운영 인력 채용 및 배치</li>
+          <li>4대보험 가입 및 납부</li>
+          <li>사전 교육 (위생 · 서비스 · 메뉴)</li>
+          <li>근태 관리 및 급여 지급</li>
+          <li>결원 시 즉시 대체 인력 투입</li>
+        </ul>
+      </div>
+      <div>
+        <ul class="check-list x-list">
+          <li>원재료 · 식자재 구매 비용</li>
+          <li>유니폼 · 소모품 (원청 제공)</li>
+          <li>카페테리아 설비 · 장비</li>
+          <li>임대료 · 전기 · 수도 등 시설 비용</li>
+          <li>POS · 결제 단말기</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 운영 체계 -->
+  <div class="section">
+    <div class="section-title">운영 체계</div>
+    <table class="info-table">
+      <tr>
+        <th>운영 구조</th>
+        <td>당사 현장관리자 주도 운영, 서비스 품질 기준에 따른 자체 인력 편성</td>
+      </tr>
+      <tr>
+        <th>지휘 체계</th>
+        <td>당사 관리자 → 운영 인력 (업무 지시 · 교육 · 평가 일체 당사 수행)</td>
+      </tr>
+      <tr>
+        <th>보고 체계</th>
+        <td>일일 운영 보고 (매출 · 특이사항), 주간 종합 보고</td>
+      </tr>
+      <tr>
+        <th>품질 관리</th>
+        <td>서비스 체크리스트 운영, 위생 점검, CS 모니터링</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 6. 계약 조건 -->
+  <div class="section">
+    <div class="section-title">계약 조건</div>
+    <ol class="terms">
+      <li>계약 기간: 2026. 04. 25 ~ 2026. 05. 24 (1개월)</li>
+      <li>대금 정산: 협의 (선급 / 후급 / 분할)</li>
+      <li>대금 지급: 세금계산서 발행일로부터 30일 이내</li>
+      <li>운영 범위 변경 시 양사 협의 후 단가 조정 가능</li>
+      <li>본 견적은 발행일로부터 30일간 유효합니다</li>
+    </ol>
+  </div>
+
+  <!-- 7. 특기사항 -->
+  <div class="section">
+    <div class="section-title">특기사항</div>
+    <ol class="terms">
+      <li>당사는 8년간 50개 이상 사업장의 인력운영을 수행해온 아웃소싱 전문기업입니다.</li>
+      <li>박람회 특성에 맞춘 사전 교육 (메뉴 숙지, 고객 응대, 위생 관리)을 실시합니다.</li>
+      <li>운영 기간 중 인력 이탈 시 즉시 대체 인력을 투입하여 서비스 공백을 방지합니다.</li>
+      <li>식품위생법 및 관련 법규를 준수하여 운영합니다.</li>
+    </ol>
+  </div>
+
+  <!-- 푸터 -->
+  <div class="footer">
+    <div class="company">(주)워크위드</div>
+    대표이사 한 세 은
+  </div>
+
+</div>
+
+<button class="print-btn no-print" onclick="window.print()">인쇄 / PDF 저장</button>
+
+</body>
+</html>
