@@ -2092,20 +2092,20 @@ function calcCost() {
     document.getElementById('totalCost').textContent = fmt(grandTotal) + '원';
 
     // 원가가 바뀌면 시뮬레이션 제시가 자동 갱신 (수동 입력 잠금 해제)
-    if (state.totalCost !== undefined && state.totalCost !== totalCost) {
+    if (state.totalCost !== undefined && state.totalCost !== grandTotal) {
         state._manualQuote = false;
     }
 
-    state.totalCost = totalCost;
+    state.totalCost = grandTotal;
     state.perPerson = perPerson;
 
     // 시뮬레이션 기본값 자동 설정
-    document.getElementById('simBaseCost').textContent = fmtMan(totalCost) + '만원';
+    document.getElementById('simBaseCost').textContent = fmtMan(grandTotal) + '만원';
 
     // 시나리오 기본값 제안
-    const suggested1 = Math.ceil(totalCost / 10000 * 1.25 / 100) * 100; // 25% 마진
-    const suggested2 = Math.ceil(totalCost / 10000 * 1.20 / 100) * 100; // 20% 마진
-    const suggested3 = Math.ceil(totalCost / 10000 * 1.15 / 100) * 100; // 15% 마진
+    const suggested1 = Math.ceil(grandTotal / 10000 * 1.25 / 100) * 100; // 25% 마진
+    const suggested2 = Math.ceil(grandTotal / 10000 * 1.20 / 100) * 100; // 20% 마진
+    const suggested3 = Math.ceil(grandTotal / 10000 * 1.15 / 100) * 100; // 15% 마진
 
     if (!state._manualQuote) {
         document.getElementById('simQuote1').value = suggested1;
