@@ -2279,6 +2279,10 @@ function showQuotePreview(quoteHTML) {
     doc.open();
     doc.write(quoteHTML);
     doc.close();
+    // iframe 높이를 콘텐츠에 맞게 자동 조정
+    setTimeout(() => {
+        try { iframe.style.height = doc.body.scrollHeight + 60 + 'px'; } catch(e) {}
+    }, 150);
     state.quoteHTML = quoteHTML;
     autoSave();
 }
@@ -2571,10 +2575,8 @@ ${getQuoteParties(client, site || '-', contact)}
                 <td style="text-align:left;">관리 수수료</td><td>${mgmtPct}%</td><td style="text-align:right;">${fmt(mgmtAmt)}</td></tr>
         </tbody>
         <tfoot>
-            <tr><td style="text-align:left;" colspan="2"><strong>총계 (⑤+수수료) — 1인기준 (VAT 별도)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(perPersonTotal)}</td></tr>
-            <tr><td style="text-align:left;" colspan="2"><strong>인건비 소계</strong> (${state.personnel || 0}명 × ${fmt(perPersonTotal)}원)</td><td></td><td style="text-align:right;font-weight:600;">${fmt(perPersonTotal * (state.personnel || 0))}</td></tr>
-            ${etcCost > 0 ? '<tr><td style="text-align:left;" colspan="2">기타비용 (유니폼/교육/채용 등)</td><td></td><td style="text-align:right;">' + fmt(etcCost) + '</td></tr>' : ''}
-            <tr style="background:var(--navy);color:#fff;"><td style="text-align:left;" colspan="2"><strong>월 청구 예상액 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;font-size:15px;">${fmt(monthlyTotal)}</td></tr>
+            <tr><td style="text-align:left;" colspan="2"><strong>1인 단가 합계 (VAT 별도)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(perPersonTotal)}</td></tr>
+            <tr style="background:#1a365d;color:#fff;"><td style="text-align:left;" colspan="2"><strong>월 청구 예상액 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;font-size:15px;">${fmt(state.totalCost || monthlyTotal)}</td></tr>
         </tfoot>
     </table>
 </div>
@@ -2702,10 +2704,8 @@ ${getQuoteParties(client, site || '-', contact)}
                 <td style="text-align:left;">파견 수수료</td><td>${mgmtPct}%</td><td style="text-align:right;">${fmt(mgmtAmt)}</td></tr>
         </tbody>
         <tfoot>
-            <tr><td style="text-align:left;" colspan="2"><strong>총계 (⑤+수수료) — 1인기준 (VAT 별도)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(perPersonTotal)}</td></tr>
-            <tr><td style="text-align:left;" colspan="2"><strong>인건비 소계</strong> (${state.personnel || 0}명 × ${fmt(perPersonTotal)}원)</td><td></td><td style="text-align:right;font-weight:600;">${fmt(perPersonTotal * (state.personnel || 0))}</td></tr>
-            ${etcCost > 0 ? '<tr><td style="text-align:left;" colspan="2">기타비용 (유니폼/교육/채용 등)</td><td></td><td style="text-align:right;">' + fmt(etcCost) + '</td></tr>' : ''}
-            <tr style="background:var(--navy);color:#fff;"><td style="text-align:left;" colspan="2"><strong>월 청구 예상액 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;font-size:15px;">${fmt(monthlyTotal)}</td></tr>
+            <tr><td style="text-align:left;" colspan="2"><strong>1인 단가 합계 (VAT 별도)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(perPersonTotal)}</td></tr>
+            <tr style="background:#1a365d;color:#fff;"><td style="text-align:left;" colspan="2"><strong>월 청구 예상액 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;font-size:15px;">${fmt(state.totalCost || monthlyTotal)}</td></tr>
         </tfoot>
     </table>
 </div>
