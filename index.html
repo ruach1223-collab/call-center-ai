@@ -86,6 +86,76 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        /* 업체명 입력 + 드롭다운 */
+        .company-input-wrap {
+            position: relative;
+        }
+
+        .company-input-wrap input {
+            padding-right: 36px;
+        }
+
+        .dropdown-toggle {
+            position: absolute;
+            right: 2px;
+            top: 2px;
+            bottom: 2px;
+            width: 32px;
+            background: none;
+            border: none;
+            border-left: 1px solid #e0e0e0;
+            cursor: pointer;
+            font-size: 14px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0 6px 6px 0;
+            padding: 0;
+        }
+
+        .dropdown-toggle:hover {
+            background: #f5f5f5;
+            color: #667eea;
+        }
+
+        .company-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #667eea;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .company-dropdown.open {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: #f0f2f5;
+            color: #667eea;
+        }
+
         /* 자주 쓰는 질문 버튼 */
         .quick-buttons {
             margin-bottom: 20px;
@@ -328,6 +398,43 @@
             font-size: 14px;
         }
 
+        /* 업체 선택 버튼 */
+        .company-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .company-btn {
+            padding: 7px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            color: #555;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .company-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .company-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .company-loading, .faq-placeholder {
+            color: #bbb;
+            font-size: 12px;
+            padding: 8px 0;
+        }
+
         /* 반응형 */
         @media (max-width: 768px) {
             .main-layout {
@@ -358,18 +465,20 @@
             <form id="queryForm">
                 <div class="form-group">
                     <label>업체명</label>
-                    <input type="text" id="company" placeholder="예: a업체" required>
+                    <div class="company-input-wrap">
+                        <input type="text" id="company" placeholder="업체를 선택하거나 직접 입력" required>
+                        <button type="button" class="dropdown-toggle" id="dropdownToggle">▼</button>
+                        <div class="company-dropdown" id="companyDropdown"></div>
+                    </div>
+                    <div class="company-selector" id="companySelector">
+                        <span class="company-loading">업체 목록 불러오는 중...</span>
+                    </div>
                 </div>
 
                 <div class="quick-buttons">
                     <label>자주 묻는 질문</label>
-                    <div class="quick-btn-grid">
-                        <button type="button" class="quick-btn" data-q="반품하고 싶어요">반품</button>
-                        <button type="button" class="quick-btn" data-q="교환하고 싶어요">교환</button>
-                        <button type="button" class="quick-btn" data-q="배송이 언제 오나요?">배송</button>
-                        <button type="button" class="quick-btn" data-q="환불은 언제 되나요?">환불</button>
-                        <button type="button" class="quick-btn" data-q="담당자 연결해주세요">담당자</button>
-                        <button type="button" class="quick-btn" data-q="영업시간이 어떻게 되나요?">영업시간</button>
+                    <div class="quick-btn-grid" id="faqGrid">
+                        <span class="faq-placeholder">업체를 먼저 선택해주세요</span>
                     </div>
                 </div>
 
@@ -403,7 +512,7 @@
 
     <script>
         const WEBHOOK_URL = "https://ruda1a.app.n8n.cloud/webhook/baccd3b2-b253-4f4c-a567-4f9cd09c50ec";
-        const HISTORY_WEBHOOK_URL = "https://ruda1a.app.n8n.cloud/webhook/call-center-history";
+        const COMPANIES_URL = "https://ruda1a.app.n8n.cloud/webhook/call-center-companies";
 
         const form = document.getElementById('queryForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -413,16 +522,120 @@
         const statusText = document.getElementById('statusText');
         const questionInput = document.getElementById('question');
         const companyInput = document.getElementById('company');
+        const companySelector = document.getElementById('companySelector');
+        const faqGrid = document.getElementById('faqGrid');
+        const dropdownToggle = document.getElementById('dropdownToggle');
+        const companyDropdown = document.getElementById('companyDropdown');
 
         let count = 0;
+        let companiesData = [];
+        let selectedCompany = null;
 
-        // 자주 쓰는 질문 버튼
-        document.querySelectorAll('.quick-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                questionInput.value = btn.dataset.q;
-                questionInput.focus();
+        // 페이지 로드 시 업체 목록 가져오기
+        async function loadCompanies() {
+            try {
+                const res = await fetch(COMPANIES_URL);
+                const data = await res.json();
+                companiesData = data.companies || [];
+                renderCompanyButtons();
+            } catch (err) {
+                companySelector.innerHTML = '<span class="company-loading">업체 목록을 불러올 수 없습니다</span>';
+            }
+        }
+
+        // 업체 버튼 렌더링
+        function renderCompanyButtons() {
+            companySelector.innerHTML = '';
+            companiesData.forEach(c => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'company-btn';
+                btn.textContent = c.name;
+                btn.addEventListener('click', () => selectCompany(c.name));
+                companySelector.appendChild(btn);
             });
+        }
+
+        // 업체 선택
+        function selectCompany(name) {
+            selectedCompany = name;
+            companyInput.value = name;
+
+            // 활성 버튼 표시
+            companySelector.querySelectorAll('.company-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === name);
+            });
+
+            // 해당 업체의 FAQ 버튼 렌더링
+            const company = companiesData.find(c => c.name === name);
+            if (company && company.faqs.length > 0) {
+                renderFaqButtons(company.faqs);
+            } else {
+                faqGrid.innerHTML = '<span class="faq-placeholder">등록된 자주 묻는 질문이 없습니다</span>';
+            }
+        }
+
+        // FAQ 버튼 동적 생성
+        function renderFaqButtons(faqs) {
+            faqGrid.innerHTML = '';
+            faqs.forEach(q => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'quick-btn';
+                // 버튼 라벨: 10자 넘으면 줄임
+                btn.textContent = q.length > 12 ? q.substring(0, 11) + '…' : q;
+                btn.title = q;
+                btn.addEventListener('click', () => {
+                    questionInput.value = q;
+                    questionInput.focus();
+                });
+                faqGrid.appendChild(btn);
+            });
+        }
+
+        // 드롭다운 토글
+        dropdownToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = companyDropdown.classList.contains('open');
+            companyDropdown.classList.toggle('open');
+            if (!isOpen) renderDropdownItems();
         });
+
+        // 드롭다운 아이템 렌더링
+        function renderDropdownItems() {
+            companyDropdown.innerHTML = '';
+            companiesData.forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                item.textContent = c.name;
+                item.addEventListener('click', () => {
+                    selectCompany(c.name);
+                    companyDropdown.classList.remove('open');
+                });
+                companyDropdown.appendChild(item);
+            });
+        }
+
+        // 바깥 클릭 시 드롭다운 닫기
+        document.addEventListener('click', () => {
+            companyDropdown.classList.remove('open');
+        });
+
+        // 업체명 직접 입력 시 선택 상태 해제
+        companyInput.addEventListener('input', () => {
+            const val = companyInput.value.trim();
+            const match = companiesData.find(c => c.name === val);
+            if (match) {
+                selectCompany(match.name);
+            } else {
+                selectedCompany = null;
+                companySelector.querySelectorAll('.company-btn').forEach(btn => btn.classList.remove('active'));
+                faqGrid.innerHTML = '<span class="faq-placeholder">업체를 먼저 선택해주세요</span>';
+            }
+        });
+
+        // 페이지 로드 시 실행
+        loadCompanies();
 
         // 답변 생성
         form.addEventListener('submit', async function(e) {
