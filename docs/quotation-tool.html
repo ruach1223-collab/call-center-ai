@@ -2076,16 +2076,24 @@ function calcCost() {
     document.getElementById('baseWage').textContent = fmt(baseWage) + '원';
 
     let html = '';
-    html += '<tr><td>기본급 (시급 × 209h)</td><td class="num">' + fmt(baseWage) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr><td>&nbsp;&nbsp;국민연금 (' + (rPension*100).toFixed(1) + '%)</td><td class="num">' + fmt(pension) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr><td>&nbsp;&nbsp;건강보험 (' + (rHealth*100).toFixed(3) + '%)</td><td class="num">' + fmt(health) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr><td>&nbsp;&nbsp;고용보험 (' + (rEmploy*100).toFixed(1) + '%)</td><td class="num">' + fmt(employ) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr><td>&nbsp;&nbsp;산재보험 (' + (rIndust*100).toFixed(1) + '%)</td><td class="num">' + fmt(indust) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr><td>&nbsp;&nbsp;퇴직금충당 (' + (rRetire*100).toFixed(2) + '%)</td><td class="num">' + fmt(retire) + '원</td><td class="num">1인당</td></tr>';
-    html += '<tr style="background:#f7fafc;"><td><strong>1인당 총비용</strong></td><td class="num highlight"><strong>' + fmt(perPerson) + '원</strong></td><td class="num">× ' + multiplier + '</td></tr>';
-    html += '<tr><td>인건비 소계 (' + personnel + '명)</td><td class="num">' + fmt(laborTotal) + '원</td><td></td></tr>';
-    html += '<tr><td>야간수당</td><td class="num">' + fmt(nightPay) + '원</td><td></td></tr>';
-    html += '<tr><td>기타비용 (유니폼/교육/채용)</td><td class="num">' + fmt(etcCost) + '원</td><td></td></tr>';
+    // ── 인건비 ──
+    html += '<tr style="background:#edf2f7;"><td colspan="3"><strong>📋 인건비 (1인당)</strong></td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;기본급 (시급 × 209h)</td><td class="num">' + fmt(baseWage) + '원</td><td class="num"></td></tr>';
+    // ── 4대보험 ──
+    html += '<tr style="background:#edf2f7;"><td colspan="3"><strong>🏥 4대보험 + 퇴직금 (1인당)</strong></td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;국민연금 (' + (rPension*100).toFixed(1) + '%)</td><td class="num">' + fmt(pension) + '원</td><td></td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;건강보험 (' + (rHealth*100).toFixed(3) + '%)</td><td class="num">' + fmt(health) + '원</td><td></td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;고용보험 (' + (rEmploy*100).toFixed(1) + '%)</td><td class="num">' + fmt(employ) + '원</td><td></td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;산재보험 (' + (rIndust*100).toFixed(1) + '%)</td><td class="num">' + fmt(indust) + '원</td><td></td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;퇴직금충당 (' + (rRetire*100).toFixed(2) + '%)</td><td class="num">' + fmt(retire) + '원</td><td></td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;<em>보험+퇴직 소계</em></td><td class="num"><em>' + fmt(insurance + retire) + '원</em></td><td></td></tr>';
+    // ── 1인당 합계 ──
+    html += '<tr style="background:#f0f5ff;"><td><strong>1인당 총비용</strong></td><td class="num highlight"><strong>' + fmt(perPerson) + '원</strong></td><td class="num">기본급의 × ' + multiplier + '</td></tr>';
+    // ── 전체 합산 ──
+    html += '<tr style="background:#edf2f7;"><td colspan="3"><strong>💰 전체 비용 (' + personnel + '명)</strong></td></tr>';
+    html += '<tr><td>&nbsp;&nbsp;인건비 (' + fmt(perPerson) + ' × ' + personnel + '명)</td><td class="num">' + fmt(laborTotal) + '원</td><td></td></tr>';
+    if (nightPay > 0) html += '<tr><td>&nbsp;&nbsp;야간수당</td><td class="num">' + fmt(nightPay) + '원</td><td></td></tr>';
+    if (etcCost > 0) html += '<tr><td>&nbsp;&nbsp;기타비용 (유니폼/교육/채용)</td><td class="num">' + fmt(etcCost) + '원</td><td></td></tr>';
 
     document.getElementById('costDetail').innerHTML = html;
     document.getElementById('totalCost').textContent = fmt(totalCost) + '원';
