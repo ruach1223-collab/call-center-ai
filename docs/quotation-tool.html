@@ -2075,9 +2075,9 @@ function calcCost() {
 
     document.getElementById('baseWage').textContent = fmt(baseWage) + '원';
 
-    // 수수료 계산
+    // 수수료 계산 (인건비+야간+기타 전체에 적용)
     const mgmtPct = parseFloat(document.getElementById('laborMgmtFee')?.value) || 8;
-    const mgmtFee = Math.round(laborTotal * mgmtPct / 100);
+    const mgmtFee = Math.round(totalCost * mgmtPct / 100);
     const grandTotal = totalCost + mgmtFee;
 
     let html = '';
