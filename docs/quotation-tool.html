@@ -1107,13 +1107,6 @@
                 </thead>
                 <tbody id="costDetail">
                 </tbody>
-                <tfoot>
-                    <tr>
-                        <td><strong>총 원가</strong></td>
-                        <td class="num" id="totalCost" style="font-size:16px;">-</td>
-                        <td></td>
-                    </tr>
-                </tfoot>
             </table>
         </div>
 
@@ -2089,7 +2082,7 @@ function calcCost() {
     html += '<tr style="background:#f0f5ff;border-top:2px solid #1a365d;"><td><strong>총 청구액</strong></td><td class="num highlight" style="font-size:16px;"><strong>' + fmt(grandTotal) + '원</strong></td><td></td></tr>';
 
     document.getElementById('costDetail').innerHTML = html;
-    document.getElementById('totalCost').textContent = fmt(grandTotal) + '원';
+    // totalCost는 costDetail 테이블 내 총 청구액 행에 표시됨
 
     // 원가가 바뀌면 시뮬레이션 제시가 자동 갱신 (수동 입력 잠금 해제)
     if (state.totalCost !== undefined && state.totalCost !== grandTotal) {
