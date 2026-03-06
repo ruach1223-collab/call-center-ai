@@ -2098,6 +2098,8 @@ function calcCost() {
 
     state.totalCost = grandTotal;
     state.perPerson = perPerson;
+    state.etcCost = etcCost;
+    state.nightPayTotal = nightPay;
 
     // 시뮬레이션 기본값 자동 설정
     document.getElementById('simBaseCost').textContent = fmtMan(grandTotal) + '만원';
@@ -2510,7 +2512,7 @@ function generateQuoteLabor() {
     const subtotal = laborTotal + insuranceTotal;
     const mgmtAmt = Math.round(subtotal * mgmtPct / 100);
     const perPersonTotal = subtotal + mgmtAmt;
-    const etcCost = numVal('etcCost') || 0;
+    const etcCost = state.etcCost || 0;
     const monthlyTotal = perPersonTotal * (state.personnel || 0) + etcCost;
 
     // 시간 정보
@@ -2642,7 +2644,7 @@ function generateQuoteDispatch() {
     const subtotal = laborTotal + insuranceTotal;
     const mgmtAmt = Math.round(subtotal * mgmtPct / 100);
     const perPersonTotal = subtotal + mgmtAmt;
-    const etcCost = numVal('etcCost') || 0;
+    const etcCost = state.etcCost || 0;
     const monthlyTotal = perPersonTotal * (state.personnel || 0) + etcCost;
 
     const s1s = document.getElementById('s1Start').value || '09:00';
