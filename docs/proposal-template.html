@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>워크위드 도급 제안서</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #1a365d;
+  --blue: #3182ce;
+  --blue-light: #ebf4ff;
+  --blue-mid: #bee3f8;
+  --gray-50: #f7fafc;
+  --gray-100: #edf2f7;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e0;
+  --gray-500: #718096;
+  --gray-600: #4a5568;
+  --gray-700: #2d3748;
+  --gray-800: #1a202c;
+  --white: #ffffff;
+  --red: #e53e3e;
+  --red-light: #fff5f5;
+  --green: #38a169;
+  --green-light: #f0fff4;
+  --orange: #dd6b20;
+  --orange-light: #fffaf0;
+}
+html { font-size: 15px; }
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--gray-100);
+  color: var(--gray-800);
+  line-height: 1.6;
+}
+
+/* ===== Layout ===== */
+.app-header {
+  background: var(--navy);
+  color: var(--white);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.app-header .logo {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.app-header .logo span { color: var(--blue); }
+.app-header .subtitle { font-size: 0.85rem; opacity: 0.8; margin-left: 12px; }
+.header-actions { display: flex; gap: 8px; }
+
+.container {
+  display: flex;
+  gap: 0;
+  min-height: calc(100vh - 56px);
+}
+
+/* ===== Sidebar (Input Form) ===== */
+.sidebar {
+  width: 420px;
+  min-width: 420px;
+  background: var(--white);
+  border-right: 1px solid var(--gray-200);
+  overflow-y: auto;
+  height: calc(100vh - 56px);
+  position: sticky;
+  top: 56px;
+}
+.sidebar-inner { padding: 24px; }
+.form-section {
+  margin-bottom: 24px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.form-section-title {
+  background: var(--gray-50);
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--navy);
+  border-bottom: 1px solid var(--gray-200);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+.form-section-title::after {
+  content: '\25B2';
+  font-size: 0.65rem;
+  transition: transform 0.2s;
+}
+.form-section.collapsed .form-section-title::after {
+  transform: rotate(180deg);
+}
+.form-section.collapsed .form-section-body { display: none; }
+.form-section-body { padding: 16px; }
+.form-group { margin-bottom: 14px; }
+.form-group:last-child { margin-bottom: 0; }
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  margin-bottom: 4px;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(49,130,206,0.1);
+}
+.form-group textarea { resize: vertical; min-height: 60px; }
+.form-row { display: flex; gap: 12px; }
+.form-row .form-group { flex: 1; }
+.calculated {
+  background: var(--blue-light);
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 1.05rem;
+  text-align: right;
+}
+.calculated small { font-weight: 400; font-size: 0.75rem; color: var(--gray-500); display: block; }
+
+/* Reference rows */
+.ref-list { display: flex; flex-direction: column; gap: 8px; }
+.ref-row { display: flex; gap: 8px; align-items: end; }
+.ref-row input { flex: 1; }
+.ref-row .btn-remove {
+  width: 32px; height: 36px;
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.btn-add-ref {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: var(--gray-100);
+  border: 1px dashed var(--gray-300);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--gray-600);
+  width: 100%;
+}
+.btn-add-ref:hover { background: var(--gray-200); }
+
+/* ===== Buttons ===== */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--blue); color: var(--white); }
+.btn-primary:hover { background: #2b6cb0; }
+.btn-outline { background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.4); }
+.btn-outline:hover { background: rgba(255,255,255,0.1); }
+.btn-danger { background: var(--red); color: var(--white); }
+.btn-danger:hover { background: #c53030; }
+
+/* ===== Preview Area ===== */
+.preview-area {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+  height: calc(100vh - 56px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+.a4-page {
+  width: 210mm;
+  min-height: 297mm;
+  background: var(--white);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* ===== Proposal Styles ===== */
+.proposal { padding: 0; font-size: 10.5pt; line-height: 1.7; color: var(--gray-800); }
+
+/* Cover */
+.proposal-cover {
+  height: 297mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(160deg, var(--navy) 0%, #2a4a7f 50%, var(--blue) 100%);
+  color: var(--white);
+  position: relative;
+  overflow: hidden;
+  page-break-after: always;
+}
+.proposal-cover::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -30%;
+  width: 80%;
+  height: 200%;
+  background: rgba(255,255,255,0.03);
+  transform: rotate(15deg);
+}
+.proposal-cover::after {
+  content: '';
+  position: absolute;
+  bottom: -40%;
+  left: -20%;
+  width: 60%;
+  height: 150%;
+  background: rgba(255,255,255,0.02);
+  transform: rotate(-10deg);
+}
+.cover-content { position: relative; z-index: 1; padding: 40px; }
+.cover-logo {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  margin-bottom: 8px;
+}
+.cover-logo-sub { font-size: 0.85rem; opacity: 0.7; letter-spacing: 6px; margin-bottom: 60px; }
+.cover-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+.cover-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.85;
+  margin-bottom: 60px;
+}
+.cover-client {
+  font-size: 1.3rem;
+  font-weight: 600;
+  padding: 16px 40px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  display: inline-block;
+  margin-bottom: 40px;
+}
+.cover-date { font-size: 0.95rem; opacity: 0.6; }
+.cover-bottom {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 1;
+}
+.cover-company { font-size: 0.9rem; opacity: 0.5; }
+
+/* Proposal Body */
+.proposal-body { padding: 48px 52px; }
+.proposal-body h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 48px 0 20px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid var(--blue);
+  display: inline-block;
+}
+.proposal-body h2:first-child { margin-top: 0; }
+.proposal-body h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin: 28px 0 12px;
+}
+.proposal-body p { margin-bottom: 12px; color: var(--gray-700); }
+.proposal-body ul {
+  margin: 8px 0 16px 20px;
+  color: var(--gray-700);
+}
+.proposal-body li { margin-bottom: 6px; }
+
+/* Info box */
+.info-box {
+  background: var(--blue-light);
+  border-left: 4px solid var(--blue);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+.warning-box {
+  background: var(--red-light);
+  border-left: 4px solid var(--red);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+.warning-box strong { color: var(--red); }
+.success-box {
+  background: var(--green-light);
+  border-left: 4px solid var(--green);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+
+/* Compare Table */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 0.9rem;
+}
+.compare-table th {
+  background: var(--navy);
+  color: var(--white);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+}
+.compare-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--gray-200);
+}
+.compare-table tr:nth-child(even) td { background: var(--gray-50); }
+.compare-table .highlight-cell { background: var(--green-light) !important; color: var(--green); font-weight: 600; }
+.compare-table .danger-cell { background: var(--red-light) !important; color: var(--red); font-weight: 600; }
+
+/* Flow chart */
+.flow-chart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 24px 0;
+  flex-wrap: wrap;
+}
+.flow-box {
+  background: var(--navy);
+  color: var(--white);
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+  min-width: 120px;
+}
+.flow-box.client-box { background: var(--gray-600); }
+.flow-box.ww-box { background: var(--blue); }
+.flow-box.worker-box { background: var(--navy); }
+.flow-arrow {
+  font-size: 1.5rem;
+  color: var(--gray-500);
+  padding: 0 8px;
+  font-weight: 700;
+}
+.flow-label {
+  font-size: 0.7rem;
+  color: var(--gray-500);
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* Quote table */
+.quote-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+.quote-table th {
+  background: var(--navy);
+  color: var(--white);
+  padding: 10px 14px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.quote-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--gray-200);
+  text-align: center;
+}
+.quote-table tr:last-child td {
+  border-bottom: 2px solid var(--navy);
+  font-weight: 700;
+}
+.quote-table .amount { font-size: 1.1rem; color: var(--navy); font-weight: 800; }
+
+/* Ref table */
+.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 0.9rem;
+}
+.ref-table th {
+  background: var(--gray-50);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid var(--gray-300);
+  color: var(--navy);
+}
+.ref-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+/* Project overview */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+.overview-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--gray-200);
+  border-right: 1px solid var(--gray-200);
+  display: flex;
+}
+.overview-item:nth-child(2n) { border-right: none; }
+.overview-label {
+  font-weight: 600;
+  color: var(--navy);
+  min-width: 80px;
+  font-size: 0.85rem;
+}
+.overview-value { color: var(--gray-700); font-size: 0.9rem; }
+
+/* Page break helpers */
+.page-break { page-break-before: always; }
+
+/* Footer in proposal */
+.proposal-footer {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 2px solid var(--gray-200);
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 0.8rem;
+}
+.proposal-footer .company-name {
+  font-weight: 800;
+  color: var(--navy);
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+/* ===== Mobile ===== */
+.mobile-toggle {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 200;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .container { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+    height: auto;
+    position: relative;
+    top: 0;
+    max-height: none;
+  }
+  .sidebar.mobile-hidden { display: none; }
+  .preview-area {
+    padding: 16px;
+    height: auto;
+  }
+  .a4-page { width: 100%; min-height: auto; }
+  .proposal-cover { height: auto; min-height: 60vh; padding: 40px 20px; }
+  .proposal-body { padding: 24px 20px; }
+  .mobile-toggle { display: block; }
+  .header-actions .btn span.desktop-only { display: none; }
+  .flow-chart { gap: 4px; }
+  .overview-grid { grid-template-columns: 1fr; }
+  .overview-item { border-right: none; }
+}
+
+/* ===== Print ===== */
+@media print {
+  body { background: white; }
+  .app-header, .sidebar, .mobile-toggle, .no-print { display: none !important; }
+  .container { display: block; }
+  .preview-area {
+    padding: 0;
+    height: auto;
+    overflow: visible;
+  }
+  .a4-page {
+    box-shadow: none;
+    width: 100%;
+    border-radius: 0;
+  }
+  .proposal-cover {
+    height: 100vh;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .proposal-body h2 { break-after: avoid; }
+  .compare-table, .quote-table, .ref-table { break-inside: avoid; }
+  .info-box, .warning-box, .success-box {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .compare-table th, .quote-table th, .flow-box {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ===== Misc ===== */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+.text-center { text-align: center; }
+.mt-2 { margin-top: 8px; }
+.mb-2 { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <div style="display:flex;align-items:center;">
+    <div class="logo">WORK<span>WITH</span></div>
+    <span class="subtitle">도급 제안서 생성기</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline" onclick="resetForm()">&#x21bb; <span class="desktop-only">초기화</span></button>
+    <button class="btn btn-primary" onclick="printProposal()">&#x1F5A8; <span class="desktop-only">인쇄 / PDF</span></button>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Sidebar: Input Form -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+
+      <!-- 고객 정보 -->
+      <div class="form-section" id="sec-client">
+        <div class="form-section-title" onclick="toggleSection('sec-client')">고객사 정보</div>
+        <div class="form-section-body">
+          <div class="form-group">
+            <label>고객사명 *</label>
+            <input type="text" id="clientName" placeholder="예: (주)한국제조" data-save>
+          </div>
+          <div class="form-group">
+            <label>업종</label>
+            <input type="text" id="clientIndustry" placeholder="예: 제조업 (자동차 부품)" data-save>
+          </div>
+          <div class="form-group">
+            <label>담당자명</label>
+            <input type="text" id="clientContact" placeholder="예: 김부장" data-save>
+          </div>
+          <div class="form-group">
+            <label>근무지역</label>
+            <input type="text" id="workLocation" placeholder="예: 경기도 화성시" data-save>
+          </div>
+        </div>
+      </div>
+
+      <!-- 업무 정보 -->
+      <div class="form-section" id="sec-work">
+        <div class="form-section-title" onclick="toggleSection('sec-work')">업무 정보</div>
+        <div class="form-section-body">
+          <div class="form-group">
+            <label>업무 내용</label>
+            <textarea id="workDescription" placeholder="예: 생산라인 조립, 포장, 검수 등" rows="3" data-save></textarea>
+          </div>
+          <div class="form-group">
+            <label>필요 인원</label>
+            <input type="number" id="workerCount" placeholder="예: 20" min="1" data-save>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>근무시간</label>
+              <input type="text" id="workHours" placeholder="예: 08:00~17:00" data-save>
+            </div>
+            <div class="form-group">
+              <label>근무형태</label>
+              <select id="workShift" data-save>
+                <option value="주간">주간 근무</option>
+                <option value="2교대">2교대</option>
+                <option value="3교대">3교대</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>도입 희망시기</label>
+            <input type="text" id="startDate" placeholder="예: 2026년 4월" data-save>
+          </div>
+          <div class="form-group">
+            <label>계약 기간</label>
+            <input type="text" id="contractPeriod" placeholder="예: 1년 (자동갱신)" data-save>
+          </div>
+        </div>
+      </div>
+
+      <!-- 견적 -->
+      <div class="form-section" id="sec-quote">
+        <div class="form-section-title" onclick="toggleSection('sec-quote')">견적 정보</div>
+        <div class="form-section-body">
+          <div class="form-group">
+            <label>인원수</label>
+            <input type="number" id="quoteWorkers" placeholder="20" min="1" data-save>
+          </div>
+          <div class="form-group">
+            <label>1인당 월 단가 (원)</label>
+            <input type="text" id="quoteUnitPrice" placeholder="2,500,000" data-save oninput="formatNumber(this)">
+          </div>
+          <div class="form-group">
+            <label>관리비/마진 (월, 원)</label>
+            <input type="text" id="quoteManagement" placeholder="500,000" data-save oninput="formatNumber(this)">
+          </div>
+          <div class="calculated" id="quoteTotalDisplay">
+            월 예상 비용: -
+            <small>VAT 별도</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- 레퍼런스 -->
+      <div class="form-section" id="sec-ref">
+        <div class="form-section-title" onclick="toggleSection('sec-ref')">레퍼런스 (거래처 실적)</div>
+        <div class="form-section-body">
+          <div class="ref-list" id="refList">
+            <div class="ref-row">
+              <input type="text" placeholder="업체명" class="ref-company" data-save>
+              <input type="text" placeholder="업종" class="ref-industry" data-save>
+              <input type="text" placeholder="인원" class="ref-count" data-save style="width:70px;flex:none;">
+              <input type="text" placeholder="기간" class="ref-period" data-save>
+              <button class="btn-remove" onclick="removeRef(this)" title="삭제">&times;</button>
+            </div>
+          </div>
+          <button class="btn-add-ref" onclick="addRef()">+ 거래처 추가</button>
+        </div>
+      </div>
+
+      <!-- 추가 메모 -->
+      <div class="form-section" id="sec-memo">
+        <div class="form-section-title" onclick="toggleSection('sec-memo')">추가 사항</div>
+        <div class="form-section-body">
+          <div class="form-group">
+            <label>특이사항 / 메모</label>
+            <textarea id="memo" placeholder="고객사에 추가로 전달할 내용" rows="4" data-save></textarea>
+          </div>
+          <div class="form-group">
+            <label>제안 일자</label>
+            <input type="date" id="proposalDate" data-save>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- Preview -->
+  <main class="preview-area" id="previewArea">
+    <div class="a4-page" id="proposalOutput">
+
+      <!-- === COVER === -->
+      <div class="proposal-cover" id="coverPage">
+        <div class="cover-content">
+          <div class="cover-logo">WORKWITH</div>
+          <div class="cover-logo-sub">워 크 위 드</div>
+          <div class="cover-title">도급 운영 제안서</div>
+          <div class="cover-subtitle" id="coverSubtitle">안정적인 인력 운영, 법적 리스크 없는 도급 솔루션</div>
+          <div class="cover-client" id="coverClient">귀사</div>
+          <div class="cover-date" id="coverDate"></div>
+        </div>
+        <div class="cover-bottom">
+          <div class="cover-company">주식회사 워크위드 WORKWITH Co., Ltd.</div>
+        </div>
+      </div>
+
+      <!-- === BODY === -->
+      <div class="proposal-body">
+
+        <!-- 1. 프로젝트 개요 -->
+        <h2>1. 프로젝트 개요</h2>
+        <div class="overview-grid" id="overviewGrid">
+          <div class="overview-item"><span class="overview-label">고객사</span><span class="overview-value" id="ov-client">-</span></div>
+          <div class="overview-item"><span class="overview-label">업종</span><span class="overview-value" id="ov-industry">-</span></div>
+          <div class="overview-item"><span class="overview-label">업무내용</span><span class="overview-value" id="ov-work">-</span></div>
+          <div class="overview-item"><span class="overview-label">필요인원</span><span class="overview-value" id="ov-count">-</span></div>
+          <div class="overview-item"><span class="overview-label">근무시간</span><span class="overview-value" id="ov-hours">-</span></div>
+          <div class="overview-item"><span class="overview-label">근무형태</span><span class="overview-value" id="ov-shift">-</span></div>
+          <div class="overview-item"><span class="overview-label">근무지역</span><span class="overview-value" id="ov-location">-</span></div>
+          <div class="overview-item"><span class="overview-label">도입시기</span><span class="overview-value" id="ov-start">-</span></div>
+        </div>
+
+        <!-- 2. 회사 소개 -->
+        <h2>2. 회사 소개</h2>
+        <p><strong>주식회사 워크위드(WORKWITH)</strong>는 도급, 인력파견, 채용대행, 콜센터 운영 등 종합 인력 아웃소싱 서비스를 제공하는 전문 기업입니다.</p>
+        <p>다년간의 현장 운영 경험을 바탕으로, 고객사의 생산성 향상과 인력 운영 효율화를 위한 맞춤형 솔루션을 제공합니다.</p>
+        <div class="info-box">
+          <strong>핵심 서비스:</strong> 도급 운영 | 인력파견 | 채용대행 | 콜센터 운영<br>
+          <strong>강점:</strong> 자체 채용 네트워크 보유, 현장관리자 상주 운영, 빠른 충원 체계
+        </div>
+
+        <!-- 3. 도급 vs 파견 -->
+        <h2>3. 도급과 파견의 차이</h2>
+        <h3>왜 도급인가?</h3>
+        <p>최근 근로감독 강화로 <strong>불법파견 적발 사례</strong>가 증가하고 있습니다. 파견과 도급의 차이를 정확히 이해하고, 법적으로 안전한 운영 구조를 갖추는 것이 중요합니다.</p>
+
+        <div class="warning-box">
+          <strong>불법파견 적발 시 리스크</strong><br>
+          &#x26A0; 직접고용 의무 발생 (파견근로자 전원 정규직 전환)<br>
+          &#x26A0; 과태료 최대 3,000만원<br>
+          &#x26A0; 형사처벌 가능 (3년 이하 징역 또는 3,000만원 이하 벌금)<br>
+          &#x26A0; 기업 이미지 실추 및 노무 리스크 장기화
+        </div>
+
+        <table class="compare-table">
+          <thead>
+            <tr><th>구분</th><th>파견</th><th>도급</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>계약 형태</strong></td><td>근로자파견계약</td><td>도급(용역)계약</td></tr>
+            <tr><td><strong>지휘·명령</strong></td><td class="danger-cell">고객사가 직접 지시</td><td class="highlight-cell">워크위드 관리자가 지시</td></tr>
+            <tr><td><strong>제조업 적용</strong></td><td class="danger-cell">직접생산공정 파견 금지</td><td class="highlight-cell">업종 제한 없음</td></tr>
+            <tr><td><strong>고용 주체</strong></td><td>파견사업주</td><td>수급사업주 (워크위드)</td></tr>
+            <tr><td><strong>4대보험·급여</strong></td><td>파견사업주 처리</td><td>워크위드 처리</td></tr>
+            <tr><td><strong>근태 관리</strong></td><td class="danger-cell">고객사 관여 → 불법파견 소지</td><td class="highlight-cell">워크위드가 독립적 관리</td></tr>
+            <tr><td><strong>법적 리스크</strong></td><td class="danger-cell">직접고용의무, 형사처벌</td><td class="highlight-cell">적법한 외주 운영</td></tr>
+          </tbody>
+        </table>
+
+        <div class="success-box">
+          <strong>워크위드 도급의 핵심:</strong> 고객사가 근로자에게 직접 업무 지시를 하지 않으므로 불법파견 리스크가 원천 차단됩니다. 모든 지휘·명령은 워크위드 현장관리자를 통해 이루어집니다.
+        </div>
+
+        <h3>4대보험 전원 가입 — 법적 리스크 제로</h3>
+        <p>일부 아웃소싱 업체는 비용 절감을 위해 <strong>3.3% 사업소득 신고</strong>로 근로자를 처리합니다. 이는 근로기준법 위반이며, 고객사에도 연대 책임이 발생할 수 있습니다.</p>
+
+        <div class="warning-box">
+          <strong>3.3% 신고 업체의 리스크</strong><br>
+          &#x26A0; 실질적 근로관계임에도 사업소득 처리 → <strong>근로기준법 위반</strong><br>
+          &#x26A0; 근로자가 신고 시 → 4대보험 소급 가입 + 과태료 부과<br>
+          &#x26A0; 산재 발생 시 → 산재보험 미가입으로 <strong>고객사에 손해배상 청구</strong> 가능<br>
+          &#x26A0; 퇴직금, 연차수당 등 미지급 임금 소송 리스크<br>
+          &#x26A0; 고용노동부 근로감독 시 <strong>원청(고객사)까지 조사 대상</strong>
+        </div>
+
+        <table class="compare-table">
+          <thead>
+            <tr><th>구분</th><th>3.3% 신고 업체</th><th>워크위드</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>4대보험</strong></td><td class="danger-cell">미가입 (불법)</td><td class="highlight-cell">전원 가입</td></tr>
+            <tr><td><strong>근로계약</strong></td><td class="danger-cell">사업소득 계약 (위장)</td><td class="highlight-cell">정식 근로계약</td></tr>
+            <tr><td><strong>산재 발생 시</strong></td><td class="danger-cell">고객사 책임 전가 가능</td><td class="highlight-cell">산재보험 즉시 적용</td></tr>
+            <tr><td><strong>퇴직금</strong></td><td class="danger-cell">미지급 (소송 리스크)</td><td class="highlight-cell">법정 퇴직금 지급</td></tr>
+            <tr><td><strong>근로감독 시</strong></td><td class="danger-cell">원청 연대 책임</td><td class="highlight-cell">적법 운영, 리스크 없음</td></tr>
+            <tr><td><strong>단가</strong></td><td>낮음 (불법으로 비용 절감)</td><td>적정 (법적 비용 포함)</td></tr>
+          </tbody>
+        </table>
+
+        <div class="success-box">
+          <strong>워크위드는 전 근로자 4대보험 가입, 정식 근로계약 체결을 원칙으로 합니다.</strong><br>
+          단가가 다소 높더라도 법적 리스크가 없는 운영이 고객사의 장기적 비용 절감으로 이어집니다. 저렴한 단가의 업체가 불법 운영으로 적발될 경우, 고객사가 부담하는 비용은 정상 단가의 수배에 달합니다.
+        </div>
+
+        <!-- 4. 도급 운영 구조 -->
+        <h2>4. 도급 운영 구조</h2>
+        <h3>지휘체계 분리 구조</h3>
+        <p>도급의 핵심은 <strong>지휘체계의 완전한 분리</strong>입니다. 고객사는 워크위드 현장관리자에게 업무 결과물을 요청하고, 현장관리자가 근로자를 직접 지휘·관리합니다.</p>
+
+        <div class="flow-chart">
+          <div>
+            <div class="flow-box client-box" id="flowClient">고객사</div>
+            <div class="flow-label">발주</div>
+          </div>
+          <div class="flow-arrow">&#x27A1;</div>
+          <div>
+            <div class="flow-box ww-box">워크위드<br>현장관리자</div>
+            <div class="flow-label">지휘·관리</div>
+          </div>
+          <div class="flow-arrow">&#x27A1;</div>
+          <div>
+            <div class="flow-box worker-box">도급 근로자</div>
+            <div class="flow-label">작업 수행</div>
+          </div>
+        </div>
+
+        <h3>워크위드가 책임지는 영역</h3>
+        <table class="compare-table">
+          <thead><tr><th>영역</th><th>내용</th></tr></thead>
+          <tbody>
+            <tr><td><strong>인력 채용</strong></td><td>자체 네트워크를 통한 신속 채용, 내·외국인 근로자 확보</td></tr>
+            <tr><td><strong>근로계약</strong></td><td>워크위드 ↔ 근로자 직접 근로계약 체결</td></tr>
+            <tr><td><strong>4대보험</strong></td><td>국민연금, 건강보험, 고용보험, 산재보험 전액 처리</td></tr>
+            <tr><td><strong>급여 지급</strong></td><td>워크위드가 직접 급여 산정 및 지급</td></tr>
+            <tr><td><strong>근태 관리</strong></td><td>출·퇴근, 연장근로, 휴가 등 독립적 관리</td></tr>
+            <tr><td><strong>현장 관리</strong></td><td>현장관리자(반장) 상주 배치, 업무 배분 및 품질 관리</td></tr>
+            <tr><td><strong>인력 충원</strong></td><td>결근·퇴사 발생 시 즉시 대체 인력 투입</td></tr>
+          </tbody>
+        </table>
+
+        <!-- 5. 현장관리 체계 -->
+        <h2>5. 현장관리 체계</h2>
+        <h3>반장 제도</h3>
+        <p>현장별 <strong>반장(관리자)</strong>을 배치하여 근로자를 직접 관리합니다. 반장은 워크위드 소속으로 고객사와의 원활한 소통 창구 역할을 수행합니다.</p>
+        <ul>
+          <li><strong>일일 근태 확인</strong> — 출·퇴근 관리 및 근무 현황 실시간 파악</li>
+          <li><strong>업무 배분</strong> — 생산 계획에 따른 인원 배치 및 업무 지시</li>
+          <li><strong>품질 관리</strong> — 작업 결과물 품질 검수 및 피드백</li>
+          <li><strong>결근 대응</strong> — 당일 결근 시 예비 인력 즉시 투입</li>
+          <li><strong>안전 관리</strong> — 산업안전 교육 실시, 현장 안전 점검</li>
+        </ul>
+
+        <h3>교대 근무 설계</h3>
+        <p id="shiftDesc">고객사 생산 일정에 맞춰 최적의 교대 근무 체계를 설계합니다. 주간/2교대/3교대 등 고객사 환경에 맞는 유연한 운영이 가능합니다.</p>
+
+        <h3>근태 관리 시스템</h3>
+        <ul>
+          <li>워크위드 자체 근태관리 시스템 운영</li>
+          <li>일일/주간/월간 출근 현황 리포트 제공</li>
+          <li>연장근로, 야간근로, 휴일근로 시간 정확한 산정</li>
+          <li>고객사에 정기적으로 운영 리포트 공유</li>
+        </ul>
+
+        <!-- 6. 구인 능력 -->
+        <h2>6. 구인 능력</h2>
+        <div class="info-box">
+          <strong>워크위드 채용 역량 요약</strong><br>
+          &#x2714; 자체 채용 네트워크 보유 (구인 플랫폼, DB, 소개 등)<br>
+          &#x2714; 내국인 + 외국인(E-9, H-2 등) 근로자 풀 확보<br>
+          &#x2714; 평균 충원 기간: <strong>7일 이내</strong><br>
+          &#x2714; 대량 채용 경험: 시즌 <strong>300명 이상</strong> 동시 운영 실적
+        </div>
+        <p>워크위드는 다년간 축적된 채용 노하우와 네트워크를 보유하고 있어, 빠른 시간 내에 적합한 인력을 확보할 수 있습니다. 외국인 근로자 채용 시 비자 확인 및 합법적 고용 절차를 준수합니다.</p>
+
+        <!-- 7. 견적 요약 -->
+        <h2>7. 견적 요약</h2>
+        <div id="quoteSection">
+          <table class="quote-table">
+            <thead>
+              <tr>
+                <th>항목</th>
+                <th>수량</th>
+                <th>단가 (월)</th>
+                <th>금액 (월)</th>
+              </tr>
+            </thead>
+            <tbody id="quoteTableBody">
+              <tr>
+                <td>도급 인력</td>
+                <td id="qt-count">-</td>
+                <td id="qt-unit">-</td>
+                <td id="qt-subtotal">-</td>
+              </tr>
+              <tr>
+                <td>관리비</td>
+                <td>1식</td>
+                <td id="qt-mgmt">-</td>
+                <td id="qt-mgmt2">-</td>
+              </tr>
+              <tr>
+                <td><strong>월 합계</strong></td>
+                <td></td>
+                <td></td>
+                <td class="amount" id="qt-total">-</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="text-align:right;font-size:0.8rem;color:var(--gray-500);">* 상기 금액은 VAT 별도 기준입니다.<br>* 실제 금액은 협의에 따라 변동될 수 있습니다.</p>
+        </div>
+
+        <!-- 8. 레퍼런스 -->
+        <h2>8. 주요 레퍼런스</h2>
+        <p>워크위드는 다양한 업종의 고객사와 함께 성공적인 도급 운영 실적을 보유하고 있습니다.</p>
+        <table class="ref-table" id="refTable">
+          <thead>
+            <tr><th>No.</th><th>업체명</th><th>업종</th><th>운영 인원</th><th>운영 기간</th></tr>
+          </thead>
+          <tbody id="refTableBody">
+            <tr><td colspan="5" style="text-align:center;color:var(--gray-500);">좌측에서 거래처를 입력하세요</td></tr>
+          </tbody>
+        </table>
+
+        <!-- 추가 메모 -->
+        <div id="memoSection" style="display:none;">
+          <h2>9. 추가 사항</h2>
+          <p id="memoContent"></p>
+        </div>
+
+        <!-- Footer -->
+        <div class="proposal-footer">
+          <div class="company-name">WORKWITH 워크위드</div>
+          <p>본 제안서에 대한 문의사항은 아래로 연락 부탁드립니다.</p>
+          <p>주식회사 워크위드 | 도급사업부</p>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Mobile toggle -->
+<button class="mobile-toggle no-print" id="mobileToggle" onclick="toggleMobileSidebar()" title="입력 폼 열기/닫기">&#x270E;</button>
+
+<script>
+// ===== Utility =====
+function formatNumber(el) {
+  let v = el.value.replace(/[^0-9]/g, '');
+  if (v) el.value = Number(v).toLocaleString('ko-KR');
+}
+function parseNumber(s) {
+  if (!s) return 0;
+  return parseInt(String(s).replace(/[^0-9]/g, ''), 10) || 0;
+}
+function numberWithCommas(n) {
+  return n.toLocaleString('ko-KR');
+}
+
+// ===== Section Toggle =====
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+// ===== Mobile =====
+function toggleMobileSidebar() {
+  document.getElementById('sidebar').classList.toggle('mobile-hidden');
+}
+
+// ===== Reference Rows =====
+function addRef() {
+  const list = document.getElementById('refList');
+  const row = document.createElement('div');
+  row.className = 'ref-row';
+  row.innerHTML = `
+    <input type="text" placeholder="업체명" class="ref-company" data-save>
+    <input type="text" placeholder="업종" class="ref-industry" data-save>
+    <input type="text" placeholder="인원" class="ref-count" data-save style="width:70px;flex:none;">
+    <input type="text" placeholder="기간" class="ref-period" data-save>
+    <button class="btn-remove" onclick="removeRef(this)" title="삭제">&times;</button>
+  `;
+  list.appendChild(row);
+  bindInputListeners();
+}
+function removeRef(btn) {
+  const row = btn.closest('.ref-row');
+  const list = document.getElementById('refList');
+  if (list.children.length > 1) {
+    row.remove();
+    updatePreview();
+    saveData();
+  }
+}
+
+// ===== Update Preview =====
+function updatePreview() {
+  const v = getFormValues();
+
+  // Cover
+  document.getElementById('coverClient').textContent = v.clientName || '귀사';
+  const dateStr = v.proposalDate ? new Date(v.proposalDate).toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'}) : new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('coverDate').textContent = dateStr;
+
+  // Overview
+  document.getElementById('ov-client').textContent = v.clientName || '-';
+  document.getElementById('ov-industry').textContent = v.clientIndustry || '-';
+  document.getElementById('ov-work').textContent = v.workDescription || '-';
+  document.getElementById('ov-count').textContent = v.workerCount ? v.workerCount + '명' : '-';
+  document.getElementById('ov-hours').textContent = v.workHours || '-';
+  document.getElementById('ov-shift').textContent = v.workShift || '-';
+  document.getElementById('ov-location').textContent = v.workLocation || '-';
+  document.getElementById('ov-start').textContent = v.startDate || '-';
+
+  // Flow client name
+  document.getElementById('flowClient').innerHTML = (v.clientName || '고객사');
+
+  // Quote
+  const workers = parseNumber(v.quoteWorkers) || parseNumber(v.workerCount);
+  const unit = parseNumber(v.quoteUnitPrice);
+  const mgmt = parseNumber(v.quoteManagement);
+  const subtotal = workers * unit;
+  const total = subtotal + mgmt;
+
+  document.getElementById('qt-count').textContent = workers ? workers + '명' : '-';
+  document.getElementById('qt-unit').textContent = unit ? numberWithCommas(unit) + '원' : '-';
+  document.getElementById('qt-subtotal').textContent = subtotal ? numberWithCommas(subtotal) + '원' : '-';
+  document.getElementById('qt-mgmt').textContent = mgmt ? numberWithCommas(mgmt) + '원' : '-';
+  document.getElementById('qt-mgmt2').textContent = mgmt ? numberWithCommas(mgmt) + '원' : '-';
+  document.getElementById('qt-total').textContent = total ? numberWithCommas(total) + '원' : '-';
+  document.getElementById('quoteTotalDisplay').innerHTML = total
+    ? '월 예상 비용: ' + numberWithCommas(total) + '원<small>VAT 별도</small>'
+    : '월 예상 비용: -<small>VAT 별도</small>';
+
+  // References
+  const refs = getRefData();
+  const tbody = document.getElementById('refTableBody');
+  if (refs.length === 0 || refs.every(r => !r.company)) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray-500);">좌측에서 거래처를 입력하세요</td></tr>';
+  } else {
+    let html = '';
+    refs.forEach((r, i) => {
+      if (r.company) {
+        html += `<tr><td>${i+1}</td><td>${r.company}</td><td>${r.industry||'-'}</td><td>${r.count||'-'}</td><td>${r.period||'-'}</td></tr>`;
+      }
+    });
+    tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:var(--gray-500);">좌측에서 거래처를 입력하세요</td></tr>';
+  }
+
+  // Memo
+  if (v.memo && v.memo.trim()) {
+    document.getElementById('memoSection').style.display = 'block';
+    document.getElementById('memoContent').textContent = v.memo;
+  } else {
+    document.getElementById('memoSection').style.display = 'none';
+  }
+}
+
+function getFormValues() {
+  return {
+    clientName: document.getElementById('clientName').value,
+    clientIndustry: document.getElementById('clientIndustry').value,
+    clientContact: document.getElementById('clientContact').value,
+    workLocation: document.getElementById('workLocation').value,
+    workDescription: document.getElementById('workDescription').value,
+    workerCount: document.getElementById('workerCount').value,
+    workHours: document.getElementById('workHours').value,
+    workShift: document.getElementById('workShift').value,
+    startDate: document.getElementById('startDate').value,
+    contractPeriod: document.getElementById('contractPeriod').value,
+    quoteWorkers: document.getElementById('quoteWorkers').value,
+    quoteUnitPrice: document.getElementById('quoteUnitPrice').value,
+    quoteManagement: document.getElementById('quoteManagement').value,
+    memo: document.getElementById('memo').value,
+    proposalDate: document.getElementById('proposalDate').value,
+  };
+}
+
+function getRefData() {
+  const rows = document.querySelectorAll('.ref-row');
+  const refs = [];
+  rows.forEach(row => {
+    refs.push({
+      company: row.querySelector('.ref-company').value,
+      industry: row.querySelector('.ref-industry').value,
+      count: row.querySelector('.ref-count').value,
+      period: row.querySelector('.ref-period').value,
+    });
+  });
+  return refs;
+}
+
+// ===== localStorage =====
+const STORAGE_KEY = 'workwith_proposal_data';
+
+function saveData() {
+  const data = {
+    form: getFormValues(),
+    refs: getRefData(),
+  };
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.form) {
+      Object.keys(data.form).forEach(key => {
+        const el = document.getElementById(key);
+        if (el) el.value = data.form[key] || '';
+      });
+    }
+    if (data.refs && data.refs.length > 0) {
+      const list = document.getElementById('refList');
+      // Clear existing rows
+      list.innerHTML = '';
+      data.refs.forEach(r => {
+        const row = document.createElement('div');
+        row.className = 'ref-row';
+        row.innerHTML = `
+          <input type="text" placeholder="업체명" class="ref-company" data-save value="${escHtml(r.company||'')}">
+          <input type="text" placeholder="업종" class="ref-industry" data-save value="${escHtml(r.industry||'')}">
+          <input type="text" placeholder="인원" class="ref-count" data-save style="width:70px;flex:none;" value="${escHtml(r.count||'')}">
+          <input type="text" placeholder="기간" class="ref-period" data-save value="${escHtml(r.period||'')}">
+          <button class="btn-remove" onclick="removeRef(this)" title="삭제">&times;</button>
+        `;
+        list.appendChild(row);
+      });
+    }
+  } catch(e) {}
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function resetForm() {
+  if (!confirm('입력한 데이터를 모두 초기화하시겠습니까?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+// ===== Print =====
+function printProposal() {
+  window.print();
+}
+
+// ===== Input Listeners =====
+function bindInputListeners() {
+  document.querySelectorAll('[data-save]').forEach(el => {
+    el.removeEventListener('input', onInput);
+    el.addEventListener('input', onInput);
+  });
+}
+function onInput() {
+  updatePreview();
+  saveData();
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', function() {
+  // Set default date
+  if (!document.getElementById('proposalDate').value) {
+    document.getElementById('proposalDate').value = new Date().toISOString().split('T')[0];
+  }
+  loadData();
+  bindInputListeners();
+  updatePreview();
+});
+</script>
+</body>
+</html>
