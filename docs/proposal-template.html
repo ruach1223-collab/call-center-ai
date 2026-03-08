@@ -235,8 +235,10 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 6px;
-  background: linear-gradient(90deg, #1e3a2f 0%, #5aab7e 50%, #d4ede0 100%);
+  height: 48px;
+  background: linear-gradient(135deg, #1e3a2f 0%, #2d8659 40%, #5aab7e 70%, #d4ede0 100%);
+  border-bottom: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(30,58,47,0.15);
 }
 .proposal-cover::after {
   content: '';
@@ -244,8 +246,10 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 6px;
-  background: linear-gradient(90deg, #d4ede0 0%, #5aab7e 50%, #1e3a2f 100%);
+  height: 48px;
+  background: linear-gradient(135deg, #d4ede0 0%, #5aab7e 30%, #2d8659 60%, #1e3a2f 100%);
+  border-top: 3px solid #ffffff;
+  box-shadow: 0 -2px 8px rgba(30,58,47,0.15);
 }
 .cover-content { position: relative; z-index: 1; padding: 40px; }
 .cover-logo {
@@ -1352,6 +1356,9 @@ function getFooterHTML(type) {
       <div class="company-name">WALKWITH 워크위드</div>
       <p>본 제안서에 대한 문의사항은 아래로 연락 부탁드립니다.</p>
       <p>주식회사 워크위드 | ${cfg.dept}</p>
+      <p style="margin-top:8px; font-size:0.9em;">
+        <strong>대표번호</strong> 1600-9905 &nbsp;|&nbsp; <strong>홈페이지</strong> walkwithyou.co.kr
+      </p>
     </div>
   `;
 }
