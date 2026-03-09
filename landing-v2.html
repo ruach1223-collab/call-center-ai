@@ -579,7 +579,7 @@
             border-radius: 12px;
             overflow: hidden;
             border: 1px solid var(--border);
-            min-width: 480px;
+            min-width: 640px;
         }
 
         .pricing-table th,
@@ -634,6 +634,23 @@
         }
 
         .pricing-table th.featured-col .tier-price small {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .pricing-table .l-col {
+            background: rgba(0,0,0,0.015);
+        }
+
+        .pricing-table th.l-col {
+            background: #2d2d2d;
+            color: var(--white);
+        }
+
+        .pricing-table th.l-col .tier-price {
+            color: var(--white);
+        }
+
+        .pricing-table th.l-col .tier-price small {
             color: rgba(255,255,255,0.6);
         }
 
@@ -1383,62 +1400,79 @@
                     <th>기능</th>
                     <th>Lite<span class="tier-price">5.9만원 <small>/월</small></span></th>
                     <th class="featured-col">S <small>추천</small><span class="tier-price">18만원 <small>/월</small></span></th>
+                    <th class="l-col">L<span class="tier-price">42만원 <small>/월</small></span></th>
                     <th class="enterprise-col">기업 맞춤<span class="tier-price">별도 협의</span></th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>AI 리뷰 자동답변</td>
-                    <td class="check">&#10003;</td>
-                    <td class="featured-col check">&#10003;</td>
-                    <td class="enterprise-col check">&#10003;</td>
+                    <td>월 300건</td>
+                    <td class="featured-col">월 500건</td>
+                    <td class="l-col">무제한</td>
+                    <td class="enterprise-col">무제한</td>
+                </tr>
+                <tr>
+                    <td>연동 플랫폼</td>
+                    <td>3개</td>
+                    <td class="featured-col">5개</td>
+                    <td class="l-col">무제한</td>
+                    <td class="enterprise-col">무제한</td>
                 </tr>
                 <tr>
                     <td>배송추적 자동응답</td>
-                    <td class="check">&#10003;</td>
-                    <td class="featured-col check">&#10003;</td>
-                    <td class="enterprise-col check">&#10003;</td>
+                    <td>실시간</td>
+                    <td class="featured-col">실시간</td>
+                    <td class="l-col">실시간</td>
+                    <td class="enterprise-col">실시간</td>
                 </tr>
                 <tr>
                     <td>Q&amp;A/문의 자동응답</td>
                     <td class="muted">—</td>
-                    <td class="featured-col check">&#10003;</td>
-                    <td class="enterprise-col check">&#10003;</td>
+                    <td class="featured-col">무제한</td>
+                    <td class="l-col">무제한</td>
+                    <td class="enterprise-col">무제한</td>
                 </tr>
                 <tr>
                     <td>불만 리뷰 알림</td>
-                    <td class="check">&#10003;</td>
-                    <td class="featured-col check">&#10003;</td>
-                    <td class="enterprise-col check">&#10003;</td>
+                    <td>즉시 알림</td>
+                    <td class="featured-col">즉시 알림</td>
+                    <td class="l-col">즉시 알림</td>
+                    <td class="enterprise-col">즉시 알림</td>
                 </tr>
                 <tr>
                     <td>전화 상담</td>
                     <td class="muted">—</td>
                     <td class="featured-col">일 10콜</td>
+                    <td class="l-col">일 30콜</td>
                     <td class="enterprise-col">전담 배정</td>
                 </tr>
                 <tr>
                     <td>맞춤 톤 설정</td>
                     <td>1개</td>
                     <td class="featured-col">3개</td>
+                    <td class="l-col">무제한</td>
                     <td class="enterprise-col">무제한</td>
                 </tr>
                 <tr>
                     <td>리포트</td>
                     <td class="muted">—</td>
                     <td class="featured-col">주간</td>
+                    <td class="l-col">주간+인사이트</td>
                     <td class="enterprise-col">맞춤 리포트</td>
                 </tr>
                 <tr>
                     <td>전담 매니저</td>
                     <td class="muted">—</td>
                     <td class="muted featured-col">—</td>
-                    <td class="enterprise-col check">&#10003;</td>
+                    <td class="muted l-col">—</td>
+                    <td class="enterprise-col">전담 1인 배정</td>
                 </tr>
                 <tr>
                     <td></td>
                     <td><a href="#contact" class="btn-secondary" style="font-size:12px; padding:8px 14px;">14일 무료 시작</a></td>
-                    <td class="featured-col"><a href="#contact" class="btn-primary" style="font-size:12px; padding:8px 14px;">14일 무료 시작</a></td>
+                    <td class="featured-col"><a href="#contact" class="btn-primary" style="font-size:12px; padding:8px 14px;">시작하기</a></td>
+                    <td class="l-col"><a href="#contact" class="btn-secondary" style="font-size:12px; padding:8px 14px;">시작하기</a></td>
                     <td class="enterprise-col"><a href="#contact" class="btn-enterprise">상담 신청</a></td>
                 </tr>
             </tbody>
