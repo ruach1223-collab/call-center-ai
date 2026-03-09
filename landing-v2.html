@@ -201,12 +201,12 @@
             padding: 16px 32px;
             border-radius: 10px;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 15px;
-            border: none;
+            border: 1.5px solid var(--border);
         }
 
-        .btn-secondary:hover { color: var(--dark); }
+        .btn-secondary:hover { color: var(--dark); border-color: var(--dark); }
 
         /* 통계 — 히어로 안으로 통합 */
         .hero-stats {
@@ -1341,37 +1341,6 @@
     </div>
 </div>
 
-<!-- FAQ -->
-<div class="section-bg">
-    <div class="section-wrap">
-        <div class="section-title">
-            <h2>자주 묻는 질문</h2>
-        </div>
-        <div class="faq-list">
-            <details class="faq-item">
-                <summary>무료 체험 기간에 카드 등록이 필요한가요?</summary>
-                <p>네, 카드 등록 후 14일 무료 체험이 시작됩니다. 체험 기간 내 해지하시면 결제되지 않습니다. Google, AWS와 동일한 방식으로, 체험 종료 전 알림을 보내드립니다.</p>
-            </details>
-            <details class="faq-item">
-                <summary>AI 답변이 이상하면 어떡하나요?</summary>
-                <p>불만 리뷰는 자동 등록되지 않고 셀러님의 승인을 거칩니다. 긍정 리뷰도 답변 품질이 97% 이상 적합하도록 업체별 맞춤 톤을 설정합니다.</p>
-            </details>
-            <details class="faq-item">
-                <summary>어떤 플랫폼을 지원하나요?</summary>
-                <p>현재 쿠팡, 네이버 스마트스토어, 11번가, 카페24를 지원합니다. 추가 플랫폼은 순차적으로 확대 예정입니다.</p>
-            </details>
-            <details class="faq-item">
-                <summary>전화 CS는 어떻게 진행되나요?</summary>
-                <p>AI가 불만 리뷰를 감지하면 즉시 전문 CS팀에 전달됩니다. 30분 이내에 고객에게 직접 전화하여 불만을 해결하고, 리뷰 수정을 유도합니다.</p>
-            </details>
-            <details class="faq-item">
-                <summary>중간에 해지할 수 있나요?</summary>
-                <p>네, 위약금 없이 언제든 해지 가능합니다. 계약 기간 제약 없습니다.</p>
-            </details>
-        </div>
-    </div>
-</div>
-
 <!-- 요금제 -->
 <div class="section-wrap" id="pricing">
     <div class="section-title">
@@ -1430,6 +1399,37 @@
         <a href="#contact" class="btn-primary">무료 체험 시작하기</a>
     </div>
     <p class="price-note">부가세 별도 | 14일 무료 체험 | 체험 종료 전 알림 | 언제든 해지 가능</p>
+</div>
+
+<!-- FAQ -->
+<div class="section-bg">
+    <div class="section-wrap">
+        <div class="section-title">
+            <h2>자주 묻는 질문</h2>
+        </div>
+        <div class="faq-list">
+            <details class="faq-item">
+                <summary>무료 체험 기간에 카드 등록이 필요한가요?</summary>
+                <p>네, 카드 등록 후 14일 무료 체험이 시작됩니다. 체험 기간 내 해지하시면 결제되지 않습니다. Google, AWS와 동일한 방식으로, 체험 종료 전 알림을 보내드립니다.</p>
+            </details>
+            <details class="faq-item">
+                <summary>AI 답변이 이상하면 어떡하나요?</summary>
+                <p>불만 리뷰는 자동 등록되지 않고 셀러님의 승인을 거칩니다. 긍정 리뷰도 답변 품질이 97% 이상 적합하도록 업체별 맞춤 톤을 설정합니다.</p>
+            </details>
+            <details class="faq-item">
+                <summary>어떤 플랫폼을 지원하나요?</summary>
+                <p>현재 쿠팡, 네이버 스마트스토어, 11번가, 카페24를 지원합니다. 추가 플랫폼은 순차적으로 확대 예정입니다.</p>
+            </details>
+            <details class="faq-item">
+                <summary>전화 CS는 어떻게 진행되나요?</summary>
+                <p>AI가 불만 리뷰를 감지하면 즉시 전문 CS팀에 전달됩니다. 30분 이내에 고객에게 직접 전화하여 불만을 해결하고, 리뷰 수정을 유도합니다.</p>
+            </details>
+            <details class="faq-item">
+                <summary>중간에 해지할 수 있나요?</summary>
+                <p>네, 위약금 없이 언제든 해지 가능합니다. 계약 기간 제약 없습니다.</p>
+            </details>
+        </div>
+    </div>
 </div>
 
 <!-- CTA -->
