@@ -579,12 +579,12 @@
             border-radius: 12px;
             overflow: hidden;
             border: 1px solid var(--border);
-            min-width: 640px;
+            min-width: 480px;
         }
 
         .pricing-table th,
         .pricing-table td {
-            padding: 14px 16px;
+            padding: 14px 12px;
             text-align: center;
             font-size: 13px;
             border-bottom: 1px solid var(--border);
@@ -594,7 +594,7 @@
             background: var(--light-gray);
             font-weight: 700;
             font-size: 14px;
-            padding: 20px 12px;
+            padding: 20px 10px;
             vertical-align: bottom;
         }
 
@@ -637,6 +637,20 @@
             color: rgba(255,255,255,0.6);
         }
 
+        .pricing-table .enterprise-col {
+            background: rgba(255,155,123,0.04);
+        }
+
+        .pricing-table th.enterprise-col {
+            background: var(--accent);
+            color: var(--white);
+        }
+
+        .pricing-table th.enterprise-col .tier-price {
+            color: var(--white);
+            font-size: 14px;
+        }
+
         .pricing-table .muted {
             color: #ccc;
         }
@@ -644,6 +658,21 @@
         .pricing-table .check {
             color: var(--dark);
             font-weight: 700;
+        }
+
+        .pricing-table .btn-enterprise {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--accent);
+            color: var(--white);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .pricing-table .btn-enterprise:hover {
+            opacity: 0.9;
         }
 
         /* 신뢰 배지 */
@@ -1352,53 +1381,70 @@
             <thead>
                 <tr>
                     <th>기능</th>
-                    <th>체험<span class="tier-price">0원 <small>(14일)</small></span></th>
                     <th>Lite<span class="tier-price">5.9만원 <small>/월</small></span></th>
                     <th class="featured-col">S <small>추천</small><span class="tier-price">18만원 <small>/월</small></span></th>
-                    <th>M<span class="tier-price">28만원 <small>/월</small></span></th>
-                    <th>L<span class="tier-price">42만원 <small>/월</small></span></th>
+                    <th class="enterprise-col">기업 맞춤<span class="tier-price">별도 협의</span></th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>AI 자동답변</td>
-                    <td class="check">&#10003;</td>
+                    <td>AI 리뷰 자동답변</td>
                     <td class="check">&#10003;</td>
                     <td class="featured-col check">&#10003;</td>
-                    <td class="check">&#10003;</td>
-                    <td class="check">&#10003;</td>
+                    <td class="enterprise-col check">&#10003;</td>
                 </tr>
                 <tr>
-                    <td>배송추적</td>
-                    <td class="check">&#10003;</td>
+                    <td>배송추적 자동응답</td>
                     <td class="check">&#10003;</td>
                     <td class="featured-col check">&#10003;</td>
+                    <td class="enterprise-col check">&#10003;</td>
+                </tr>
+                <tr>
+                    <td>Q&amp;A/문의 자동응답</td>
+                    <td class="muted">—</td>
+                    <td class="featured-col check">&#10003;</td>
+                    <td class="enterprise-col check">&#10003;</td>
+                </tr>
+                <tr>
+                    <td>불만 리뷰 알림</td>
                     <td class="check">&#10003;</td>
-                    <td class="check">&#10003;</td>
+                    <td class="featured-col check">&#10003;</td>
+                    <td class="enterprise-col check">&#10003;</td>
                 </tr>
                 <tr>
                     <td>전화 상담</td>
                     <td class="muted">—</td>
-                    <td class="muted">—</td>
-                    <td class="featured-col">상담사</td>
-                    <td>상담사</td>
-                    <td>상담사</td>
+                    <td class="featured-col">일 10콜</td>
+                    <td class="enterprise-col">전담 배정</td>
+                </tr>
+                <tr>
+                    <td>맞춤 톤 설정</td>
+                    <td>1개</td>
+                    <td class="featured-col">3개</td>
+                    <td class="enterprise-col">무제한</td>
                 </tr>
                 <tr>
                     <td>리포트</td>
-                    <td>절감 시간</td>
                     <td class="muted">—</td>
                     <td class="featured-col">주간</td>
-                    <td>절감액</td>
-                    <td>전체+리뷰분석</td>
+                    <td class="enterprise-col">맞춤 리포트</td>
+                </tr>
+                <tr>
+                    <td>전담 매니저</td>
+                    <td class="muted">—</td>
+                    <td class="muted featured-col">—</td>
+                    <td class="enterprise-col check">&#10003;</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><a href="#contact" class="btn-secondary" style="font-size:12px; padding:8px 14px;">14일 무료 시작</a></td>
+                    <td class="featured-col"><a href="#contact" class="btn-primary" style="font-size:12px; padding:8px 14px;">14일 무료 시작</a></td>
+                    <td class="enterprise-col"><a href="#contact" class="btn-enterprise">상담 신청</a></td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <div style="text-align: center; margin-top: 24px;">
-        <a href="#contact" class="btn-primary">무료 체험 시작하기</a>
-    </div>
-    <p class="price-note">부가세 별도 | 14일 무료 체험 | 체험 종료 전 알림 | 언제든 해지 가능</p>
+    <p class="price-note">부가세 별도 | 14일 무료 체험 | 체험 종료 전 알림 | 언제든 해지 가능 | 전화 상담 초과 시 소프트 캡 적용</p>
 </div>
 
 <!-- FAQ -->
