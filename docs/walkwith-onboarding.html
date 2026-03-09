@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>워크위드 영업응대 가이드</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'Pretendard', 'Noto Sans KR', sans-serif;
+  background: #f0f2f5;
+  color: #1e293b;
+  min-height: 100vh;
+}
+
+/* 헤더 */
+.header {
+  background: #1e293b;
+  color: white;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header h1 { font-size: 17px; font-weight: 600; }
+.header .tabs {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.header .tabs button {
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.7);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: .2s;
+}
+.header .tabs button:hover { background: rgba(255,255,255,.2); }
+.header .tabs button.active { background: #2563eb; color: white; }
+
+.container { max-width: 800px; margin: 0 auto; padding: 20px; }
+
+/* 탭 콘텐츠 */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* 카드 */
+.section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.section h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 16px 0 8px;
+  color: #374151;
+}
+
+/* 체크리스트 */
+.checklist { list-style: none; }
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: .15s;
+  cursor: pointer;
+}
+.checklist li:hover { background: #f9fafb; }
+.checklist li.checked { background: #f0fdf4; }
+.checklist li.checked .check-text { text-decoration: line-through; color: #9ca3af; }
+.checklist input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  accent-color: #10b981;
+  flex-shrink: 0;
+}
+.check-num {
+  background: #e0e7ff;
+  color: #3730a3;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.checklist li.checked .check-num { background: #d1fae5; color: #065f46; }
+.check-text { font-size: 14px; line-height: 1.5; }
+.check-example { font-size: 12px; color: #6b7280; margin-top: 2px; }
+.check-progress {
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+  color: #6b7280;
+  border-top: 1px solid #f3f4f6;
+  margin-top: 12px;
+}
+.check-progress strong { color: #10b981; font-size: 18px; }
+
+/* 스크립트 박스 */
+.script-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+}
+.script-box .situation {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.script-box .customer {
+  background: #fef3c7;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 8px;
+  border-left: 3px solid #f59e0b;
+}
+.script-box .response {
+  background: #ecfdf5;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  border-left: 3px solid #10b981;
+  cursor: pointer;
+  transition: .15s;
+}
+.script-box .response:hover { background: #d1fae5; }
+.script-box .response::after {
+  content: '클릭하면 복사';
+  position: absolute;
+  right: 12px;
+  top: 16px;
+  font-size: 10px;
+  color: #9ca3af;
+  background: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.script-box .response.copied::after { content: '복사됨!'; color: #10b981; }
+.script-box .wrong {
+  background: #fef2f2;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 8px;
+  border-left: 3px solid #ef4444;
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+.script-box .tip {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 8px;
+  padding-left: 8px;
+  border-left: 2px solid #d1d5db;
+}
+
+/* 분기 트리 */
+.tree-step {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 12px;
+  transition: .2s;
+}
+.tree-step.active { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.tree-step.done { border-color: #10b981; background: #f0fdf4; }
+.tree-step h3 { margin: 0 0 12px; font-size: 15px; }
+.tree-options { display: flex; flex-direction: column; gap: 8px; }
+.tree-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: .15s;
+}
+.tree-btn:hover { background: #e0e7ff; border-color: #818cf8; }
+.tree-btn.selected { background: #dbeafe; border-color: #2563eb; font-weight: 600; }
+.tree-result {
+  background: #ecfdf5;
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 12px;
+  display: none;
+}
+.tree-result.show { display: block; }
+.tree-result h3 { color: #065f46; margin-bottom: 8px; }
+.tree-reset {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 12px;
+}
+.tree-reset:hover { background: #4b5563; }
+
+/* 경고 박스 */
+.danger-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.danger-box .title { font-weight: 700; color: #dc2626; margin-bottom: 8px; font-size: 14px; }
+.danger-box ul { margin-left: 18px; font-size: 13px; line-height: 1.8; color: #7f1d1d; }
+
+/* 타임라인 */
+.timeline { position: relative; padding-left: 30px; }
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: #d1d5db;
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 16px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px #2563eb;
+}
+.timeline-item .time { font-size: 12px; font-weight: 600; color: #2563eb; }
+.timeline-item .action { font-size: 13px; margin-top: 2px; }
+.timeline-item .script {
+  background: #f0f9ff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-top: 4px;
+  color: #1e40af;
+  cursor: pointer;
+}
+.timeline-item .script:hover { background: #dbeafe; }
+
+/* 퀵 레퍼런스 */
+.quick-ref {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 13px;
+}
+.quick-ref dt { font-weight: 600; color: #4b5563; padding: 4px 0; }
+.quick-ref dd { padding: 4px 0; color: #1e293b; }
+
+/* 서비스 비교 테이블 */
+.compare-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.compare-table th {
+  background: #f8fafc;
+  padding: 8px;
+  text-align: center;
+  border-bottom: 2px solid #e5e7eb;
+  font-size: 11px;
+  color: #6b7280;
+}
+.compare-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: center;
+}
+.compare-table td:first-child { text-align: left; font-weight: 600; color: #374151; }
+.compare-table tr:hover { background: #f9fafb; }
+
+/* 토스트 */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #1e293b;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  transition: .3s;
+  z-index: 999;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 640px) {
+  .container { padding: 12px; }
+  .section { padding: 16px; }
+  .header .tabs button { padding: 5px 8px; font-size: 11px; }
+  .summary { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>워크위드 영업응대 가이드</h1>
+  <div class="tabs">
+    <button class="active" onclick="showTab('call')">전화응대</button>
+    <button onclick="showTab('convert')">서비스전환</button>
+    <button onclick="showTab('faq')">자주묻는질문</button>
+    <button onclick="showTab('followup')">팔로업</button>
+    <button onclick="showTab('ref')">빠른참조</button>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ===== 탭1: 전화응대 ===== -->
+<div id="tab-call" class="tab-content active">
+
+  <div class="section">
+    <h2>전화 받으면 이것부터</h2>
+    <p style="font-size:13px; color:#6b7280; margin-bottom:12px;">
+      "안녕하세요, 워크위드 [이름]입니다." 인사 후 아래 항목을 하나씩 물어보세요.
+    </p>
+    <ul class="checklist" id="phoneChecklist">
+      <li onclick="toggleCheck(this)">
+        <input type="checkbox"><span class="check-num">1</span>
+        <div><div class="check-text">업체명</div><div class="check-example">"어떤 회사에서 연락 주셨나요?"</div></div>
+      </li>
+      <li onclick="toggleCheck(this)">
+        <input type="checkbox"><span class="check-num">2</span>
+        <div><div class="check-text">담당자 이름 / 연락처 / 이메일</div><div class="check-example">"담당자분 성함과 연락처, 이메일 부탁드립니다"</div></div>
+      </li>
+      <li onclick="toggleCheck(this)">
+        <input type="checkbox"><span class="check-num">3</span>
+        <div><div class="check-text">업종</div><div class="check-example">"어떤 업종이신가요?" (제조, 서비스, IT, 병원 등)</div></div>
+      </li>
+      <li onclick="toggleCheck(this)">
+        <input type="checkbox"><span class="check-num">4</span>
+        <div><div class="check-text">필요 인원 수</div><div class="check-example">"몇 분 정도 필요하세요?"</div></div>
+      </li>
+      <li onclick="toggleCheck(this)">
+        <input type="checkbox"><span class="check-num">5</span>
+        <div><div class="check-text">업무 내용</div><div class="check-example">"어떤 업무를 하실 분이 필요하세요?"</div></div>
+      </li>
+      <li onclick="toggleCheck(this)">
+        <input type="checkbox"><span class="check-num">6</span>
+        <div><div class="check-text">근무 시간</div><div class="check-example">"근무 시간은 어떻게 되나요?" (9-18, 교대 등)</div></div>
+      </li>
+      <li onclick="toggleCheck(this)">
+        <input type="checkbox"><span class="check-num">7</span>
+        <div><div class="check-text">기간 (상시 / 단기)</div><div class="check-example">"기간은 상시인가요, 단기인가요?"</div></div>
+      </li>
+      <li onclick="toggleCheck(this)">
+        <input type="checkbox"><span class="check-num">8</span>
+        <div><div class="check-text">근무 지역</div><div class="check-example">"근무 지역이 어디인가요?"</div></div>
+      </li>
+      <li onclick="toggleCheck(this)">
+        <input type="checkbox"><span class="check-num">9</span>
+        <div><div class="check-text">도입 시기</div><div class="check-example">"언제부터 필요하세요?"</div></div>
+      </li>
+      <li onclick="toggleCheck(this)">
+        <input type="checkbox"><span class="check-num">10</span>
+        <div><div class="check-text">유입 경로</div><div class="check-example">"저희를 어디서 보고 연락 주셨나요?"</div></div>
+      </li>
+    </ul>
+    <div class="check-progress">
+      체크: <strong id="checkCount">0</strong>/10
+      <span id="checkDone" style="display:none; color:#10b981; font-weight:600;"> &mdash; 1차 임무 완료! 시트에 기록하세요</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>마무리 멘트</h2>
+
+    <div class="script-box">
+      <div class="situation">서비스 유형이 파악됐을 때</div>
+      <div class="response" onclick="copyScript(this)">말씀하신 내용 확인했습니다. 견적서 준비해서 내일 중으로 메일로 보내드리겠습니다. 추가로 궁금하신 점 있으시면 편하게 연락 주세요.</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">아직 유형이 안 잡힐 때</div>
+      <div class="response" onclick="copyScript(this)">말씀하신 내용 정리해서, 가장 적합한 방식으로 견적을 준비하겠습니다. 내일 중으로 연락드리겠습니다.</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">고객이 바빠서 빨리 끊으려 할 때</div>
+      <div class="response" onclick="copyScript(this)">간단한 내용만 여쭤보고, 상세 견적은 메일로 보내드리겠습니다. 업체명, 필요 인원, 업무, 연락처만 알려주시면 됩니다.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="danger-box">
+      <div class="title">절대 하면 안 되는 말</div>
+      <ul>
+        <li>"저희는 그런 업무 안 합니다"</li>
+        <li>"그건 힘들 것 같습니다"</li>
+        <li>"조건이 안 맞아서요"</li>
+        <li>"예전에 해봤는데 안 됐어요"</li>
+      </ul>
+      <p style="margin-top:10px; font-size:12px; color:#991b1b;">
+        이 말 하는 순간 고객은 끊고 다른 업체에 전화합니다.<br>
+        우리 광고비로 들어온 전화 한 통 = 13만원입니다.
+      </p>
+    </div>
+    <p style="font-size:13px; color:#374151; margin-top:8px;">
+      <strong>혼자 거절 가능한 유일한 경우:</strong> 불법 업무(도박, 성인업종), 사업자 없는 개인 1일 요청<br>
+      <strong>그 외 전부:</strong> "확인 후 안내드리겠습니다" &rarr; 관리자에게 보고
+    </p>
+  </div>
+
+</div>
+
+<!-- ===== 탭2: 서비스전환 ===== -->
+<div id="tab-convert" class="tab-content">
+
+  <div class="section">
+    <h2>워크위드 서비스 분류</h2>
+    <p style="font-size:13px; color:#6b7280; margin-bottom:14px;">우리 서비스는 크게 5가지, 콜센터는 3가지 하위 유형이 있습니다.</p>
+
+    <p style="font-size:13px; color:#6b7280; margin-bottom:6px;">카드를 클릭하면 상세 설명과 응대 멘트가 나옵니다.</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="svc-card" onclick="showService('doggeup')" style="background:#eff6ff; border:2px solid #bfdbfe; border-radius:10px; padding:14px; cursor:pointer; transition:.15s;">
+        <strong style="color:#1d4ed8; font-size:14px;">1. 도급</strong>
+        <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">채용+교육+관리+급여 전부 우리가<br>제조/물류, 10명+, 6개월+</p>
+      </div>
+      <div class="svc-card" onclick="showService('dispatch')" style="background:#f0fdf4; border:2px solid #bbf7d0; border-radius:10px; padding:14px; cursor:pointer; transition:.15s;">
+        <strong style="color:#15803d; font-size:14px;">2. 아웃소싱 파견</strong>
+        <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">사람 보내고 급여 지급, 관리는 고객사<br>사무/전문직, 5명+, 3개월+</p>
+      </div>
+      <div class="svc-card" onclick="showService('recruit')" style="background:#fefce8; border:2px solid #fde68a; border-radius:10px; padding:14px; cursor:pointer; transition:.15s;">
+        <strong style="color:#a16207; font-size:14px;">3. 채용대행</strong>
+        <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">인재 매칭, 채용 확정 시 수수료<br>전 업종, 1~5명, 1회성</p>
+      </div>
+      <div class="svc-card" onclick="showService('alsun')" style="background:#fdf2f8; border:2px solid #fbcfe8; border-radius:10px; padding:14px; cursor:pointer; transition:.15s;">
+        <strong style="color:#be185d; font-size:14px;">5. 알선</strong>
+        <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">구인·구직 연결, 소개 수수료<br>1명~, 1개월+, 전 업종</p>
+      </div>
+    </div>
+
+    <div class="svc-card" onclick="showService('alba')" style="background:#f5f3ff; border:2px solid #c4b5fd; border-radius:10px; padding:14px; margin-top:10px; cursor:pointer; transition:.15s;">
+      <strong style="color:#6d28d9; font-size:14px;">6. 단기 인력 투입</strong>
+      <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">일당/주급제 &middot; 행사/성수기/단기 물량 &middot; 기간 무관</p>
+    </div>
+
+    <div class="svc-card" onclick="showService('callcenter')" style="background:#1e293b; border-radius:10px; padding:16px; margin-top:10px; cursor:pointer; transition:.15s;">
+      <strong style="color:white; font-size:14px;">4. 콜센터</strong>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:10px;">
+        <div style="background:rgba(255,255,255,.1); border-radius:8px; padding:10px;">
+          <strong style="color:#93c5fd; font-size:12px;">콜센터 대행 (전담)</strong>
+          <p style="font-size:11px; color:#d1d5db; margin-top:3px; line-height:1.4;">고객사 전용 상담팀<br>200콜+, 월 300만~</p>
+        </div>
+        <div style="background:rgba(255,255,255,.1); border-radius:8px; padding:10px;">
+          <strong style="color:#86efac; font-size:12px;">CS대행 (아웃소싱)</strong>
+          <p style="font-size:11px; color:#d1d5db; margin-top:3px; line-height:1.4;">CS 통째 위탁 운영<br>100~200콜, 월 150만~</p>
+        </div>
+        <div style="background:rgba(255,255,255,.1); border-radius:8px; padding:10px;">
+          <strong style="color:#fde68a; font-size:12px;">CS 쉐어링 (공유)</strong>
+          <p style="font-size:11px; color:#d1d5db; margin-top:3px; line-height:1.4;">상담원 공유, 소규모<br>100콜 미만, 월 50만~</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 도급 -->
+    <div class="tree-result" id="result-doggeup">
+      <h3>도급이 적합합니다</h3>
+      <p style="font-size:13px; margin-bottom:10px;">우리가 채용 + 교육 + 현장관리 + 급여 지급까지 <strong>전부 담당</strong></p>
+      <div style="background:#f0f9ff; padding:12px; border-radius:8px; font-size:12px; margin-bottom:12px; line-height:1.7;">
+        <strong>도급 = "결과물 납품"</strong><br>
+        - 현장관리자(워크위드 소속)가 상주하며 인원 관리<br>
+        - 고객사는 작업 지시를 현장관리자에게만 함 (근로자 직접 지시 X)<br>
+        - 4대보험, 급여, 교육 모두 워크위드 책임<br>
+        - 적합: 제조/생산/포장/물류, 10명 이상, 6개월+
+      </div>
+      <div class="script-box" style="margin:0">
+        <div class="response" onclick="copyScript(this)">저희가 인력 채용부터 교육, 현장 투입, 관리까지 일괄로 해드리는 도급 방식이 적합합니다. 현장관리자가 상주하며 인원을 관리하고, 고객님께서는 결과물만 받으시면 됩니다. 상세 견적 보내드릴까요?</div>
+      </div>
+      <button class="tree-reset" onclick="resetTree()">처음으로</button>
+    </div>
+
+    <!-- 파견 -->
+    <div class="tree-result" id="result-dispatch">
+      <h3>아웃소싱 파견이 적합합니다</h3>
+      <p style="font-size:13px; margin-bottom:10px;">우리가 채용 + 급여 지급, <strong>현장 관리는 고객사</strong></p>
+      <div style="background:#f0f9ff; padding:12px; border-radius:8px; font-size:12px; margin-bottom:12px; line-height:1.7;">
+        <strong>파견 = "사람을 보내드림"</strong><br>
+        - 고객사 지휘 아래 근무 (고객사가 직접 업무 지시)<br>
+        - 4대보험, 급여는 워크위드가 지급<br>
+        - 교육/관리는 고객사 책임<br>
+        - 적합: 사무/전문직, 5명 이상, 3개월+
+      </div>
+      <div class="script-box" style="margin:0">
+        <div class="response" onclick="copyScript(this)">저희 소속 인력을 고객사에 파견해드리고, 급여와 보험은 저희가 처리합니다. 현장 관리는 고객사에서 직접 하시는 구조입니다. 견적 보내드릴까요?</div>
+      </div>
+      <div class="danger-box" style="margin-top:12px;">
+        <div class="title">파견법 주의</div>
+        <ul>
+          <li><strong>생산직(제조/포장)은 파견 불가</strong> &rarr; 도급으로 안내</li>
+          <li>"도급 형태로 계약하시는 게 법적 리스크 없습니다" 멘트 사용</li>
+        </ul>
+      </div>
+      <button class="tree-reset" onclick="resetTree()">처음으로</button>
+    </div>
+
+    <!-- 채용대행 -->
+    <div class="tree-result" id="result-recruit">
+      <h3>채용대행이 적합합니다</h3>
+      <p style="font-size:13px; margin-bottom:10px;">우리가 구인 + 면접 연결, <strong>채용 확정 시 수수료</strong></p>
+      <div style="background:#f0f9ff; padding:12px; border-radius:8px; font-size:12px; margin-bottom:12px; line-height:1.7;">
+        <strong>채용대행 = "사람 찾아드림"</strong><br>
+        - 구인공고, 지원자 스크리닝, 면접 연결까지 대행<br>
+        - 채용 확정 시에만 수수료 발생 (리스크 낮음)<br>
+        - 채용 후 관리/급여/교육은 고객사 책임<br>
+        - 적합: 전 업종, 1~5명 소규모, 1회성
+      </div>
+      <div class="script-box" style="margin:0">
+        <div class="response" onclick="copyScript(this)">저희가 적합한 인재를 찾아서 면접까지 연결해드리고, 채용 확정 시에만 수수료가 발생하는 채용대행 방식입니다. 부담 없이 진행 가능합니다. 견적 보내드릴까요?</div>
+      </div>
+      <button class="tree-reset" onclick="resetTree()">처음으로</button>
+    </div>
+
+    <!-- 콜센터 (3가지 하위 분류) -->
+    <div class="tree-result" id="result-callcenter">
+      <h3>콜센터 서비스가 적합합니다</h3>
+      <p style="font-size:13px; margin-bottom:12px;">콜량과 운영 방식에 따라 <strong>3가지 유형</strong>이 있습니다.</p>
+
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+        <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:14px; border-radius:10px;">
+          <strong style="color:#1d4ed8;">1. 콜센터 대행 (전담)</strong>
+          <p style="font-size:12px; margin-top:4px; line-height:1.6;">
+            고객사 전용 상담원 배치. 월 200콜 이상, 전문 업무 대응 필요할 때.<br>
+            우리 센터에서 고객사 전담팀으로 운영. 월 300만원~
+          </p>
+        </div>
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:10px;">
+          <strong style="color:#15803d;">2. CS대행 (아웃소싱)</strong>
+          <p style="font-size:12px; margin-top:4px; line-height:1.6;">
+            고객사 CS 업무를 우리가 통째로 운영. 상담원 채용/교육/관리 전부 워크위드.<br>
+            대규모 CS 운영이 필요하지만 자체 센터가 없을 때. 월 150만원~
+          </p>
+        </div>
+        <div style="background:#fefce8; border:1px solid #fde68a; padding:14px; border-radius:10px;">
+          <strong style="color:#a16207;">3. CS 쉐어링 (공유)</strong>
+          <p style="font-size:12px; margin-top:4px; line-height:1.6;">
+            여러 고객사가 상담원을 공유. 월 100콜 미만 소규모일 때 비용 효율적.<br>
+            콜당 과금 구조. 월 50만원~
+          </p>
+        </div>
+      </div>
+
+      <div class="script-box" style="margin:0">
+        <div class="situation">콜량 파악 질문</div>
+        <div class="response" onclick="copyScript(this)">저희 콜센터에서 CS 업무를 대행해드립니다. 월 콜량이 대략 어느 정도 되시나요? 콜량에 따라 전담, 공유 등 비용 효율적인 방식을 안내해드리겠습니다.</div>
+      </div>
+      <div style="background:#f8fafc; padding:10px 14px; border-radius:8px; font-size:12px; margin-top:10px; line-height:1.7;">
+        <strong>콜량별 추천:</strong><br>
+        - 월 100콜 미만 &rarr; <strong>CS 쉐어링</strong> (월 50~80만원)<br>
+        - 월 100~200콜 &rarr; <strong>CS대행 반전담</strong> (월 150만원)<br>
+        - 월 200콜 이상 &rarr; <strong>콜센터 대행 전담</strong> (월 300만원)
+      </div>
+      <button class="tree-reset" onclick="resetTree()">처음으로</button>
+    </div>
+
+    <!-- 알선 -->
+    <div class="tree-result" id="result-alsun">
+      <h3>알선이 적합합니다</h3>
+      <p style="font-size:13px; margin-bottom:10px;">구인·구직을 <strong>연결만</strong> 해주고, 소개 수수료를 받는 구조</p>
+      <div style="background:#f0f9ff; padding:12px; border-radius:8px; font-size:12px; margin-bottom:12px; line-height:1.7;">
+        <strong>알선 = "사람 연결해드림"</strong><br>
+        - 적합한 인력을 찾아서 고객사에 소개<br>
+        - 고용계약은 고객사 ↔ 근로자 직접 체결<br>
+        - 관리/급여/교육 모두 고객사 책임<br>
+        - 워크위드는 소개 수수료만 받음 (1회성)<br>
+        - 적합: 1명~소규모, 1개월+, 특정 직무/기술 불필요
+      </div>
+      <div class="script-box" style="margin:0">
+        <div class="response" onclick="copyScript(this)">저희가 조건에 맞는 인력을 찾아서 소개해드리고, 고용은 고객사에서 직접 하시는 알선 방식입니다. 소개 수수료만 발생하고, 부담 없이 진행 가능합니다.</div>
+      </div>
+      <button class="tree-reset" onclick="resetTree()">처음으로</button>
+    </div>
+
+    <!-- 단기 인력 투입 -->
+    <div class="tree-result" id="result-alba">
+      <h3>단기 인력 투입</h3>
+      <p style="font-size:13px; margin-bottom:10px;">"아르바이트/단기 인력"은 별도 서비스가 아니라, <strong>누가 급여를 주고 소득신고를 하느냐</strong>에 따라 두 가지로 나뉩니다.</p>
+
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+        <div style="background:#eff6ff; border:2px solid #bfdbfe; padding:14px; border-radius:10px;">
+          <strong style="color:#1d4ed8;">A. 단기 도급</strong>
+          <p style="font-size:12px; margin-top:6px; line-height:1.7;">
+            <strong>급여: 워크위드가 지급</strong> / <strong>소득신고: 워크위드가 신고</strong><br>
+            - 워크위드 소속으로 투입 (4대보험 or 일용직 신고)<br>
+            - 관리도 워크위드 (현장관리자 배치 또는 지시)<br>
+            - 고객사는 결과물만 받음<br>
+            - 기간 무관 (1일~수개월), 규모/성격으로 상시 도급과 구분
+          </p>
+        </div>
+        <div style="background:#fdf2f8; border:2px solid #fbcfe8; padding:14px; border-radius:10px;">
+          <strong style="color:#be185d;">B. 알선</strong>
+          <p style="font-size:12px; margin-top:6px; line-height:1.7;">
+            <strong>급여: 고객사가 직접 지급</strong> / <strong>소득신고: 고객사가 직접 신고</strong><br>
+            - 사람만 소개해주고, 고용은 고객사 ↔ 근로자 직접 체결<br>
+            - 워크위드는 소개 수수료만 받음<br>
+            - 관리/교육 모두 고객사 책임
+          </p>
+        </div>
+      </div>
+
+      <div class="script-box" style="margin:0; margin-bottom:10px;">
+        <div class="situation">핵심 질문 (이걸 물어봐야 분류 가능)</div>
+        <div class="response" onclick="copyScript(this)">인력 급여를 저희가 지급하고 관리까지 해드리는 방식과, 인력만 소개해드리고 급여는 고객사에서 직접 지급하시는 방식이 있는데요, 어떤 방식을 원하시나요?</div>
+      </div>
+      <div style="background:#f8fafc; padding:10px 14px; border-radius:8px; font-size:12px; line-height:1.7;">
+        <strong>판단 기준:</strong><br>
+        - "급여/관리 다 맡겨요" → <strong>단기 도급</strong> (도급비 청구)<br>
+        - "사람만 보내줘요, 급여는 우리가" → <strong>알선</strong> (소개 수수료)
+      </div>
+      <button class="tree-reset" onclick="resetTree()">처음으로</button>
+    </div>
+
+    <!-- 모르겠음 -->
+    <div class="tree-result" id="result-unknown">
+      <h3>관리자에게 넘기세요</h3>
+      <div class="script-box" style="margin:0">
+        <div class="response" onclick="copyScript(this)">고객님 상황에 맞는 최적의 방식을 확인해서 내일 중으로 안내드리겠습니다.</div>
+      </div>
+      <p style="font-size:12px; color:#6b7280; margin-top:8px;">시트에 기록 &rarr; 관리자에게 보고 &rarr; 관리자가 서비스 유형 결정</p>
+      <button class="tree-reset" onclick="resetTree()">처음으로</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>헷갈리는 경계 구분</h2>
+    <p style="font-size:13px; color:#6b7280; margin-bottom:14px;">비슷해 보이지만 다릅니다. 핵심 차이를 기억하세요.</p>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+
+      <div style="background:#fef3c7; border-left:4px solid #f59e0b; padding:14px; border-radius:0 10px 10px 0;">
+        <strong style="font-size:13px;">알선 vs 채용대행</strong>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; font-size:12px;">
+          <div style="background:white; padding:10px; border-radius:8px;">
+            <strong style="color:#be185d;">알선</strong><br>
+            - 단순 연결 (소개만)<br>
+            - 특별한 스킬 불필요<br>
+            - 수수료 저렴<br>
+            - "아무나 괜찮은" 요청
+          </div>
+          <div style="background:white; padding:10px; border-radius:8px;">
+            <strong style="color:#a16207;">채용대행</strong><br>
+            - 스크리닝+면접까지<br>
+            - 특정 스킬/경력 필요<br>
+            - 수수료 높음<br>
+            - "이런 사람 찾아줘" 요청
+          </div>
+        </div>
+        <p style="font-size:11px; color:#92400e; margin-top:8px;">
+          <strong>판단 기준:</strong> "아무나 괜찮아요" → 알선 / "경력 3년 이상 OO 가능한 분" → 채용대행
+        </p>
+      </div>
+
+      <div style="background:#fce7f3; border-left:4px solid #ec4899; padding:14px; border-radius:0 10px 10px 0;">
+        <strong style="font-size:13px;">단기 도급 vs 알선 ("아르바이트 필요해요" 라고 하면?)</strong>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; font-size:12px;">
+          <div style="background:white; padding:10px; border-radius:8px;">
+            <strong style="color:#1d4ed8;">단기 도급</strong><br>
+            - <strong>급여: 워크위드</strong><br>
+            - <strong>소득신고: 워크위드</strong><br>
+            - 워크위드 소속으로 투입<br>
+            - 관리도 워크위드
+          </div>
+          <div style="background:white; padding:10px; border-radius:8px;">
+            <strong style="color:#be185d;">알선</strong><br>
+            - <strong>급여: 고객사</strong><br>
+            - <strong>소득신고: 고객사</strong><br>
+            - 사람만 소개<br>
+            - 소개 수수료만 받음
+          </div>
+        </div>
+        <p style="font-size:11px; color:#9d174d; margin-top:8px;">
+          <strong>판단 기준:</strong> "급여/관리 다 맡길게요" → 단기 도급 / "사람만 보내주세요, 급여는 우리가" → 알선
+        </p>
+      </div>
+
+      <div style="background:#e0f2fe; border-left:4px solid #0284c7; padding:14px; border-radius:0 10px 10px 0;">
+        <strong style="font-size:13px;">도급 vs 파견</strong>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; font-size:12px;">
+          <div style="background:white; padding:10px; border-radius:8px;">
+            <strong style="color:#1d4ed8;">도급</strong><br>
+            - 우리가 관리 (현장관리자 상주)<br>
+            - 고객사는 결과물만 받음<br>
+            - 근로자에게 직접 지시 X<br>
+            - 제조/생산직 가능
+          </div>
+          <div style="background:white; padding:10px; border-radius:8px;">
+            <strong style="color:#15803d;">파견</strong><br>
+            - 고객사가 직접 관리<br>
+            - 고객사 지휘 아래 근무<br>
+            - 근로자에게 직접 지시 O<br>
+            - 생산직 불가 (파견법)
+          </div>
+        </div>
+        <p style="font-size:11px; color:#075985; margin-top:8px;">
+          <strong>판단 기준:</strong> "관리까지 해주세요" → 도급 / "사람만 보내주세요" → 파견 / 생산직이면 무조건 → 도급
+        </p>
+      </div>
+
+      <div style="background:#ecfdf5; border-left:4px solid #10b981; padding:14px; border-radius:0 10px 10px 0;">
+        <strong style="font-size:13px;">CS대행 vs CS쉐어링 vs 콜센터 전담</strong>
+        <div style="font-size:12px; margin-top:8px; line-height:1.7;">
+          <strong>콜 수로 구분하면 간단합니다:</strong><br>
+          - 월 100콜 미만 → <strong>CS쉐어링</strong> (상담원 공유, 가성비)<br>
+          - 월 100~200콜 → <strong>CS대행</strong> (반전담, CS 통째 위탁)<br>
+          - 월 200콜 이상 → <strong>콜센터 전담</strong> (전용 상담팀 배치)<br>
+          <span style="color:#6b7280;">* 콜 수 모르면? → "대략적인 월 문의량" 물어보세요</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="danger-box" style="margin-top:14px;">
+      <div class="title">경계가 애매하면?</div>
+      <ul>
+        <li>혼자 판단하지 말고 → <strong>관리자에게 보고 후 확인</strong></li>
+        <li>고객에게는: "가장 적합한 방식 확인해서 안내드리겠습니다"</li>
+        <li>시트에 고객 요청 내용을 <strong>구체적으로</strong> 적어두기</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>서비스 전환 (안 맞으면 바꿔서 제안)</h2>
+    <p style="font-size:13px; color:#6b7280; margin-bottom:16px;">
+      "안 됩니다"로 끝내지 말고, "다른 방법이 있습니다"로 이어가세요.
+    </p>
+
+    <div class="script-box">
+      <div class="situation">상황 1: 채용대행인데 "교육도 해달라"</div>
+      <div class="wrong">"채용대행은 구인, 이력서, 면접까지만 가능합니다"</div>
+      <div class="response" onclick="copyScript(this)">교육까지 포함하시면 도급 형태가 적합합니다. 저희가 인력 채용부터 교육, 현장관리까지 일괄로 해드리는 방식인데요, 견적 보내드릴까요?</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">상황 2: 파견인데 1~2명 소규모</div>
+      <div class="wrong">"소규모는 파견이 어렵습니다"</div>
+      <div class="response" onclick="copyScript(this)">소규모의 경우 채용대행이 더 효율적입니다. 적합한 분을 찾아서 면접까지 연결해드리고, 채용 확정 시에만 수수료가 발생해서 부담이 적으세요. 견적서 보내드릴까요?</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">상황 3: 파견인데 생산직</div>
+      <div class="wrong">(그냥 파견으로 진행 &rarr; 파견법 위반 위험)</div>
+      <div class="response" onclick="copyScript(this)">생산직의 경우 파견법상 도급 형태로 계약하시는 게 안전합니다. 실질적인 운영은 동일하고, 법적 리스크 없이 진행할 수 있어요. 도급 기준으로 견적 보내드릴까요?</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">상황 4: 콜센터 전담인데 콜량 적음 (월 100건 미만)</div>
+      <div class="wrong">"콜량이 적어서 전담은 어렵습니다"</div>
+      <div class="response" onclick="copyScript(this)">콜량 기준으로 보면 쉐어(공유) 형태가 비용 효율적입니다. 전담 대비 비용이 절반 이하이고, 품질은 동일하게 관리됩니다. 쉐어와 전담 비교 견적 함께 보내드릴까요?</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">상황 5: "단기로 사람 필요해요"</div>
+      <div class="wrong">"기간이 너무 짧아서 어렵습니다"</div>
+      <div class="response" onclick="copyScript(this)">단기 인력도 가능합니다. 저희가 급여 지급과 관리까지 해드리는 방식과, 인력만 소개해드리는 방식이 있는데요, 어떤 쪽이 편하세요?</div>
+      <div class="tip">급여/관리 맡기면 → 단기 도급 / 사람만 소개 → 알선</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">상황 6: CS쉐어링인데 "우리 회사 전용으로 해달라"</div>
+      <div class="wrong">"쉐어링은 공유 방식이라 전담은 안 됩니다"</div>
+      <div class="response" onclick="copyScript(this)">전용 상담원 배치를 원하시면 콜센터 전담 방식이 적합합니다. 고객사 전용 팀으로 운영되고, 전문적인 대응이 가능합니다. 쉐어링과 전담 비교 견적 함께 보내드릴까요?</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">상황 7: 도급 요청인데 3명 소규모</div>
+      <div class="wrong">"3명은 도급이 어렵습니다"</div>
+      <div class="response" onclick="copyScript(this)">소규모의 경우 채용대행이나 파견이 더 효율적입니다. 채용대행은 채용 확정 시에만 수수료가 발생하고, 파견은 저희가 급여를 지급하는 구조입니다. 두 가지 비교 견적 보내드릴까요?</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">전환이 뭔지 모르겠을 때</div>
+      <div class="response" onclick="copyScript(this)">고객님 요청에 맞는 최적의 방식을 확인해서 내일 중 안내드리겠습니다.</div>
+      <div class="tip">시트에 기록 &rarr; 관리자에게 보고 &rarr; 관리자가 결정</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== 탭3: 자주묻는질문 ===== -->
+<div id="tab-faq" class="tab-content">
+
+  <div class="section">
+    <h2>고객이 자주 하는 질문</h2>
+
+    <div class="script-box">
+      <div class="situation">"단가가 어떻게 되나요?"</div>
+      <div class="response" onclick="copyScript(this)">인원수, 근무 조건에 따라 달라지는데요, 말씀하신 내용 기준으로 견적서 보내드리겠습니다. 메일 주소 알려주시겠어요?</div>
+      <div class="tip">전화에서 즉석 단가를 말하지 마세요. 견적서로 보내야 비교 검토가 가능하고, 기록도 남습니다.</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">"수수료/마진이 얼마나 되나요?"</div>
+      <div class="response" onclick="copyScript(this)">수수료율은 인원 규모와 계약 조건에 따라 다르고요, 견적서에 상세하게 안내드리겠습니다.</div>
+      <div class="tip">수수료율을 전화에서 구체적으로 말하지 마세요.</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">"급하게 내일부터 필요해요"</div>
+      <div class="response" onclick="copyScript(this)">내일 투입은 준비 기간이 필요해서 어렵지만, 빠른 시일 내 인력 구성해서 투입 가능합니다. 가장 빠르게 가능한 일정 확인 후 바로 안내드리겠습니다.</div>
+      <div class="tip">"안 됩니다"가 아니라 "언제 가능한지"를 안내합니다.</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">"다른 데서도 견적 받고 있어요"</div>
+      <div class="response" onclick="copyScript(this)">네, 비교 검토하시는 거 당연합니다. 저희 견적 함께 검토해보시고, 궁금한 점 있으시면 편하게 연락 주세요.</div>
+      <div class="tip">위축되지 마세요. 견적 보내고 3일 후 반드시 팔로업 하세요.</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">"생각해보고 연락할게요"</div>
+      <div class="response" onclick="copyScript(this)">네, 충분히 검토하시고 편하실 때 연락 주세요. 혹시 다음 주 중으로 제가 한번 확인 연락드려도 될까요?</div>
+      <div class="tip">"연락할게요"는 90%가 안 합니다. 우리가 먼저 팔로업해야 합니다.</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">"4대보험은 어떻게 되나요?"</div>
+      <div class="response" onclick="copyScript(this)">도급이나 파견의 경우 저희 소속으로 4대보험 가입되고, 채용대행의 경우 고객사에서 직접 가입하시는 구조입니다. 견적서에 보험료 포함/미포함 구분해서 보내드리겠습니다.</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">고객이 "됐다"고 끊으려 할 때</div>
+      <div class="wrong">(그냥 끊기)</div>
+      <div class="response" onclick="copyScript(this)">혹시 다른 방식으로도 진행 가능한 부분이 있는데, 간단히 안내드려도 될까요?</div>
+      <div class="tip">"안 돼서 끊는 게 아니라, 다른 방법이 있다"는 걸 알려주세요.</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">"금액 좀 깎아주세요"</div>
+      <div class="response" onclick="copyScript(this)">확인 후 답변드리겠습니다.</div>
+      <div class="tip">절대 혼자 네고하지 않기. 관리자에게 보고 후 결정.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 탭4: 팔로업 ===== -->
+<div id="tab-followup" class="tab-content">
+
+  <div class="section">
+    <h2>견적 발송 후 팔로업</h2>
+    <p style="font-size:13px; color:#ef4444; font-weight:600; margin-bottom:16px;">견적 보내고 끝이 아닙니다. 팔로업이 계약을 만듭니다.</p>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="time">발송 당일</div>
+        <div class="action">발송 확인 문자 보내기</div>
+        <div class="script" onclick="copyScript(this)">견적서 메일로 보내드렸습니다. 확인 부탁드립니다. - 워크위드</div>
+      </div>
+      <div class="timeline-item">
+        <div class="time">발송 +3일</div>
+        <div class="action">1차 팔로업 전화</div>
+        <div class="script" onclick="copyScript(this)">안녕하세요, 워크위드입니다. 보내드린 견적 검토해보셨나요? 궁금한 점 있으시면 안내드리겠습니다.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="time">발송 +7일</div>
+        <div class="action">2차 팔로업 전화</div>
+        <div class="script" onclick="copyScript(this)">안녕하세요, 워크위드입니다. 추가로 궁금하신 점이나 조건 조정이 필요하시면 편하게 말씀해 주세요.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="time">발송 +14일</div>
+        <div class="action">최종 팔로업 &rarr; 응답 없으면 "보류" 처리</div>
+        <div class="script" onclick="copyScript(this)">안녕하세요, 워크위드입니다. 혹시 인력 관련 진행 상황이 어떻게 되셨는지 확인 연락드렸습니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>팔로업 중 고객 반응별 응대</h2>
+
+    <div class="script-box">
+      <div class="situation">"검토 중이다"</div>
+      <div class="response" onclick="copyScript(this)">네, 편하실 때 연락 주세요. 다음 주에 한번 더 확인드려도 될까요?</div>
+      <div class="tip">시트에 팔로업 일정 기록</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">"금액 조정 가능해요?"</div>
+      <div class="response" onclick="copyScript(this)">확인 후 답변드리겠습니다.</div>
+      <div class="tip">관리자에게 보고. 절대 혼자 네고하지 않기.</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">"다른 데로 정했어요"</div>
+      <div class="response" onclick="copyScript(this)">네, 알겠습니다. 추후 인력 필요하시면 편하게 연락 주세요.</div>
+      <div class="tip">시트에 "타사 선정" 기록 후 종결</div>
+    </div>
+
+    <div class="script-box">
+      <div class="situation">전화 안 받음</div>
+      <div class="response" onclick="copyScript(this)">워크위드입니다. 보내드린 견적 관련 확인 연락드렸습니다. 편하실 때 연락 부탁드립니다.</div>
+      <div class="tip">다음 날 재시도 &rarr; 문자 남기기 &rarr; 3회 시도 후 보류</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>시트 기록 방법</h2>
+
+    <h3 style="color:#10b981;">좋은 기록 예시</h3>
+    <div style="background:#f0fdf4; padding:14px; border-radius:8px; font-size:13px; line-height:1.7; margin-bottom:12px; font-family:'D2Coding',monospace;">
+      3/8 초기컨택 - 식품제조업, 포장 인력 20명 필요<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;3월 중순 투입 희망, 통근버스O, 외국인OK<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&rarr; 도급 형태로 견적 준비<br>
+      3/9 견적 발송 - 도급 20명 기준 이메일 발송<br>
+      3/12 1차 팔로업 - 검토 중, 다음 주 회신 예정<br>
+      <strong>[다음 액션] 3/19 2차 팔로업 전화</strong>
+    </div>
+
+    <h3 style="color:#ef4444;">나쁜 기록 예시</h3>
+    <div style="background:#fef2f2; padding:14px; border-radius:8px; font-size:13px; line-height:1.7; font-family:'D2Coding',monospace;">
+      3/8 초기컨택<br>
+      <strong>[다음 액션] (비어있음)</strong><br>
+      <span style="color:#9ca3af;">&rarr; 이러면 다음에 아무도 이 건을 이어갈 수 없음</span>
+    </div>
+
+    <div class="danger-box" style="margin-top:16px;">
+      <div class="title">"다음 액션" 칸이 비어있으면 안 됩니다</div>
+      <ul>
+        <li>"3/12까지 견적서 발송"</li>
+        <li>"3/15에 팔로업 전화"</li>
+        <li>"관리자 판단 대기 중"</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== 탭5: 빠른참조 ===== -->
+<div id="tab-ref" class="tab-content">
+
+  <div class="section">
+    <h2>서비스 한눈에 비교</h2>
+    <div style="overflow-x:auto;">
+    <table class="compare-table">
+      <thead>
+        <tr><th></th><th>도급(상시)</th><th>도급(단기)</th><th>파견</th><th>채용대행</th><th>알선</th><th>콜센터전담</th><th>CS대행</th><th>CS쉐어링</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>한마디로</td><td>우리가 다한다</td><td>단기도 우리가</td><td>사람만 보냄</td><td>스크리닝+매칭</td><td>소개만</td><td>전용팀</td><td>CS위탁</td><td>상담원공유</td></tr>
+        <tr><td>급여 지급</td><td>우리</td><td>우리</td><td>우리</td><td>고객사</td><td>고객사</td><td>우리</td><td>우리</td><td>우리</td></tr>
+        <tr><td>소득신고</td><td>우리</td><td>우리</td><td>우리</td><td>고객사</td><td>고객사</td><td>우리</td><td>우리</td><td>우리</td></tr>
+        <tr><td>관리</td><td>우리</td><td>우리</td><td>고객사</td><td>고객사</td><td>고객사</td><td>우리</td><td>우리</td><td>우리</td></tr>
+        <tr><td>업무지시</td><td>관리자통해</td><td>관리자통해</td><td>고객사직접</td><td>고객사직접</td><td>고객사직접</td><td>우리</td><td>우리</td><td>우리</td></tr>
+        <tr><td>적합 인원</td><td>10명+</td><td>1명~</td><td>5명+</td><td>1~5명</td><td>1명~</td><td>전용배치</td><td>대규모</td><td>소규모</td></tr>
+        <tr><td>기간</td><td>6개월+</td><td>기간 무관</td><td>3개월+</td><td>1회성</td><td>기간 무관</td><td>6개월+</td><td>6개월+</td><td>1개월+</td></tr>
+        <tr><td>비용</td><td>월 도급비</td><td>일당/주급</td><td>월 파견비</td><td>채용수수료</td><td>소개수수료</td><td>월300만~</td><td>월150만~</td><td>월50만~</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>인원 수로 빠른 판단</h2>
+    <dl class="quick-ref">
+      <dt>10명 이상</dt><dd>무조건 진행 (대형 건). 도급 or 파견</dd>
+      <dt>5~9명</dt><dd>진행 가능. 도급/파견 판단</dd>
+      <dt>3~4명</dt><dd>장기(6개월+)면 진행, 단기면 관리자 확인</dd>
+      <dt>1~2명</dt><dd>채용대행 안내. 거절하면 관리자 연결</dd>
+    </dl>
+  </div>
+
+  <div class="section">
+    <h2>업종/상황으로 추가 판단</h2>
+    <dl class="quick-ref">
+      <dt>제조/생산/포장/물류</dt><dd>&rarr; 도급 (관리 포함, 파견법상 파견 불가)</dd>
+      <dt>사무/전문직</dt><dd>&rarr; 파견 (관리는 고객사)</dd>
+      <dt>전 업종 소규모(1~5명)</dt><dd>&rarr; 채용대행 (리스크 낮음)</dd>
+      <dt>CS 대규모(200콜+)</dt><dd>&rarr; 콜센터 대행 전담</dd>
+      <dt>CS 중규모(100~200콜)</dt><dd>&rarr; CS대행 반전담</dd>
+      <dt>CS 소규모(100콜 미만)</dt><dd>&rarr; CS 쉐어링</dd>
+      <dt>"급여/관리 맡길게요" 단기</dt><dd>&rarr; 단기 도급 (워크위드가 급여+소득신고)</dd>
+      <dt>"사람만 보내줘요" 소개</dt><dd>&rarr; 알선 (고객사가 급여+소득신고)</dd>
+      <dt>모르겠다</dt><dd>&rarr; 관리자에게 넘기기</dd>
+    </dl>
+  </div>
+
+  <div class="section" style="background:#1e293b; color:white;">
+    <h2 style="color:white; border-bottom-color:rgba(255,255,255,.2);">전화기 옆에 붙여두기</h2>
+    <ol style="font-size:14px; line-height:2.2; padding-left:20px;">
+      <li>10가지 물어보기</li>
+      <li>시트에 적기</li>
+      <li><strong style="color:#fca5a5;">"안 됩니다" 절대 안 됨</strong></li>
+      <li>서비스: 도급(상시/단기) / 파견 / 채용대행 / 알선 / 콜센터전담 / CS대행 / CS쉐어링</li>
+      <li>안 맞으면 &rarr; 다른 서비스로 전환 제안</li>
+      <li>전환도 모르겠으면 &rarr; "확인 후 연락드리겠습니다"</li>
+      <li>관리자에게 보고</li>
+      <li>견적 후 3일/7일/14일 팔로업</li>
+      <li><strong style="color:#fca5a5;">"다음 액션" 항상 적기</strong></li>
+      <li>모든 거절 판단은 관리자 확인 후</li>
+    </ol>
+  </div>
+
+</div>
+
+</div>
+
+<div class="toast" id="toast">복사되었습니다</div>
+
+<style>
+.svc-card:hover { opacity:.85; transform:scale(1.01); }
+.svc-card.selected { outline:3px solid #2563eb; outline-offset:2px; }
+</style>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelectorAll('.header .tabs button').forEach(function(el) { el.classList.remove('active'); });
+  document.getElementById('tab-' + name).classList.add('active');
+  var btns = document.querySelectorAll('.header .tabs button');
+  var tabNames = ['call','convert','faq','followup','ref'];
+  for (var i = 0; i < tabNames.length; i++) {
+    if (tabNames[i] === name) btns[i].classList.add('active');
+  }
+}
+
+function showService(choice) {
+  document.querySelectorAll('.svc-card').forEach(function(c) { c.classList.remove('selected'); });
+  if (event && event.currentTarget) event.currentTarget.classList.add('selected');
+  document.querySelectorAll('.tree-result').forEach(function(r) { r.classList.remove('show'); });
+  var el = document.getElementById('result-' + choice);
+  if (el) {
+    el.classList.add('show');
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  document.getElementById('treeStep1').classList.remove('active');
+  document.getElementById('treeStep1').classList.add('done');
+}
+
+function toggleCheck(li) {
+  const cb = li.querySelector('input[type="checkbox"]');
+  cb.checked = !cb.checked;
+  li.classList.toggle('checked', cb.checked);
+  const count = document.querySelectorAll('#phoneChecklist li.checked').length;
+  document.getElementById('checkCount').textContent = count;
+  document.getElementById('checkDone').style.display = count === 10 ? 'inline' : 'none';
+}
+
+function copyScript(el) {
+  const text = el.textContent.replace('클릭하면 복사', '').replace('복사됨!', '').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    el.classList.add('copied');
+    showToast();
+    setTimeout(() => el.classList.remove('copied'), 2000);
+  });
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+function selectTree(step, choice) {
+  document.getElementById('treeStep1').classList.remove('active');
+  document.getElementById('treeStep1').classList.add('done');
+  document.querySelectorAll('#treeStep1 .tree-btn').forEach(function(b) { b.classList.remove('selected'); });
+  if (event && event.target) event.target.classList.add('selected');
+  document.querySelectorAll('.tree-result').forEach(function(r) { r.classList.remove('show'); });
+  var el = document.getElementById('result-' + choice);
+  if (el) {
+    el.classList.add('show');
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function resetTree() {
+  document.getElementById('treeStep1').classList.add('active');
+  document.getElementById('treeStep1').classList.remove('done');
+  document.querySelectorAll('#treeStep1 .tree-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.tree-result').forEach(r => r.classList.remove('show'));
+}
+</script>
+</body>
+</html>
