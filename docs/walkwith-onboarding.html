@@ -442,8 +442,7 @@ body {
         <li>"예전에 해봤는데 안 됐어요"</li>
       </ul>
       <p style="margin-top:10px; font-size:12px; color:#991b1b;">
-        이 말 하는 순간 고객은 끊고 다른 업체에 전화합니다.<br>
-        우리 광고비로 들어온 전화 한 통 = 13만원입니다.
+        이 말 하는 순간 고객은 끊고 다른 업체에 전화합니다.
       </p>
     </div>
     <p style="font-size:13px; color:#374151; margin-top:8px;">
@@ -459,55 +458,54 @@ body {
 
   <div class="section">
     <h2>워크위드 서비스 분류</h2>
-    <p style="font-size:13px; color:#6b7280; margin-bottom:14px;">우리 서비스는 크게 5가지, 콜센터는 3가지 하위 유형이 있습니다.</p>
+    <p style="font-size:13px; color:#6b7280; margin-bottom:14px;">우리 서비스는 6가지입니다. 콜센터는 3가지 하위 유형이 있습니다.</p>
 
     <p style="font-size:13px; color:#6b7280; margin-bottom:6px;">카드를 클릭하면 상세 설명과 응대 멘트가 나옵니다.</p>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
       <div class="svc-card" onclick="showService('doggeup')" style="background:#eff6ff; border:2px solid #bfdbfe; border-radius:10px; padding:14px; cursor:pointer; transition:.15s;">
-        <strong style="color:#1d4ed8; font-size:14px;">1. 도급</strong>
+        <strong style="color:#1d4ed8; font-size:14px;">1. 도급(상시)</strong>
         <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">채용+교육+관리+급여 전부 우리가<br>제조/물류, 10명+, 6개월+</p>
       </div>
+      <div class="svc-card" onclick="showService('alba')" style="background:#f5f3ff; border:2px solid #c4b5fd; border-radius:10px; padding:14px; cursor:pointer; transition:.15s;">
+        <strong style="color:#6d28d9; font-size:14px;">2. 도급(단기)</strong>
+        <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">일당/주급제 &middot; 행사/성수기/단기 물량<br>기간 무관, 급여+관리 워크위드</p>
+      </div>
       <div class="svc-card" onclick="showService('dispatch')" style="background:#f0fdf4; border:2px solid #bbf7d0; border-radius:10px; padding:14px; cursor:pointer; transition:.15s;">
-        <strong style="color:#15803d; font-size:14px;">2. 아웃소싱 파견</strong>
-        <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">사람 보내고 급여 지급, 관리는 고객사<br>사무/전문직, 5명+, 3개월+</p>
+        <strong style="color:#15803d; font-size:14px;">3. 파견</strong>
+        <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">사람 보내고 급여 지급, 관리는 고객사<br>사무/전문직, 권장 5명+, 3개월+</p>
       </div>
       <div class="svc-card" onclick="showService('recruit')" style="background:#fefce8; border:2px solid #fde68a; border-radius:10px; padding:14px; cursor:pointer; transition:.15s;">
-        <strong style="color:#a16207; font-size:14px;">3. 채용대행</strong>
+        <strong style="color:#a16207; font-size:14px;">4. 채용대행</strong>
         <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">인재 매칭, 채용 확정 시 수수료<br>전 업종, 1~5명, 1회성</p>
       </div>
       <div class="svc-card" onclick="showService('alsun')" style="background:#fdf2f8; border:2px solid #fbcfe8; border-radius:10px; padding:14px; cursor:pointer; transition:.15s;">
         <strong style="color:#be185d; font-size:14px;">5. 알선</strong>
-        <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">구인·구직 연결, 소개 수수료<br>1명~, 1개월+, 전 업종</p>
+        <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">구인·구직 연결, 소개 수수료<br>1명~, 기간 무관, 전 업종</p>
       </div>
     </div>
 
-    <div class="svc-card" onclick="showService('alba')" style="background:#f5f3ff; border:2px solid #c4b5fd; border-radius:10px; padding:14px; margin-top:10px; cursor:pointer; transition:.15s;">
-      <strong style="color:#6d28d9; font-size:14px;">6. 단기 인력 투입</strong>
-      <p style="font-size:12px; color:#374151; margin-top:4px; line-height:1.5;">일당/주급제 &middot; 행사/성수기/단기 물량 &middot; 기간 무관</p>
-    </div>
-
     <div class="svc-card" onclick="showService('callcenter')" style="background:#1e293b; border-radius:10px; padding:16px; margin-top:10px; cursor:pointer; transition:.15s;">
-      <strong style="color:white; font-size:14px;">4. 콜센터</strong>
+      <strong style="color:white; font-size:14px;">6. 콜센터</strong>
       <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:10px;">
         <div style="background:rgba(255,255,255,.1); border-radius:8px; padding:10px;">
           <strong style="color:#93c5fd; font-size:12px;">콜센터 대행 (전담)</strong>
           <p style="font-size:11px; color:#d1d5db; margin-top:3px; line-height:1.4;">고객사 전용 상담팀<br>200콜+, 월 300만~</p>
         </div>
         <div style="background:rgba(255,255,255,.1); border-radius:8px; padding:10px;">
-          <strong style="color:#86efac; font-size:12px;">CS대행 (아웃소싱)</strong>
-          <p style="font-size:11px; color:#d1d5db; margin-top:3px; line-height:1.4;">CS 통째 위탁 운영<br>100~200콜, 월 150만~</p>
+          <strong style="color:#86efac; font-size:12px;">CS대행 (반전담)</strong>
+          <p style="font-size:11px; color:#d1d5db; margin-top:3px; line-height:1.4;">CS 통째 위탁 운영<br>100콜 내외, 월 150만~</p>
         </div>
         <div style="background:rgba(255,255,255,.1); border-radius:8px; padding:10px;">
           <strong style="color:#fde68a; font-size:12px;">CS 쉐어링 (공유)</strong>
-          <p style="font-size:11px; color:#d1d5db; margin-top:3px; line-height:1.4;">상담원 공유, 소규모<br>100콜 미만, 월 50만~</p>
+          <p style="font-size:11px; color:#d1d5db; margin-top:3px; line-height:1.4;">상담원 공유, 소규모<br>50콜 이하, 월 50~80만</p>
         </div>
       </div>
     </div>
 
     <!-- 도급 -->
     <div class="tree-result" id="result-doggeup">
-      <h3>도급이 적합합니다</h3>
+      <h3>도급(상시)이 적합합니다</h3>
       <p style="font-size:13px; margin-bottom:10px;">우리가 채용 + 교육 + 현장관리 + 급여 지급까지 <strong>전부 담당</strong></p>
       <div style="background:#f0f9ff; padding:12px; border-radius:8px; font-size:12px; margin-bottom:12px; line-height:1.7;">
         <strong>도급 = "결과물 납품"</strong><br>
@@ -524,14 +522,14 @@ body {
 
     <!-- 파견 -->
     <div class="tree-result" id="result-dispatch">
-      <h3>아웃소싱 파견이 적합합니다</h3>
+      <h3>파견이 적합합니다</h3>
       <p style="font-size:13px; margin-bottom:10px;">우리가 채용 + 급여 지급, <strong>현장 관리는 고객사</strong></p>
       <div style="background:#f0f9ff; padding:12px; border-radius:8px; font-size:12px; margin-bottom:12px; line-height:1.7;">
         <strong>파견 = "사람을 보내드림"</strong><br>
         - 고객사 지휘 아래 근무 (고객사가 직접 업무 지시)<br>
         - 4대보험, 급여는 워크위드가 지급<br>
         - 교육/관리는 고객사 책임<br>
-        - 적합: 사무/전문직, 5명 이상, 3개월+
+        - 적합: 사무/전문직, 권장 5명 이상, 3개월+
       </div>
       <div class="script-box" style="margin:0">
         <div class="response" onclick="copyScript(this)">저희 소속 인력을 고객사에 파견해드리고, 급여와 보험은 저희가 처리합니다. 현장 관리는 고객사에서 직접 하시는 구조입니다. 견적 보내드릴까요?</div>
@@ -580,14 +578,14 @@ body {
           <strong style="color:#15803d;">2. CS대행 (아웃소싱)</strong>
           <p style="font-size:12px; margin-top:4px; line-height:1.6;">
             고객사 CS 업무를 우리가 통째로 운영. 상담원 채용/교육/관리 전부 워크위드.<br>
-            대규모 CS 운영이 필요하지만 자체 센터가 없을 때. 월 150만원~
+            중규모 CS 운영이 필요하지만 자체 센터가 없을 때. 월 150만원~
           </p>
         </div>
         <div style="background:#fefce8; border:1px solid #fde68a; padding:14px; border-radius:10px;">
           <strong style="color:#a16207;">3. CS 쉐어링 (공유)</strong>
           <p style="font-size:12px; margin-top:4px; line-height:1.6;">
-            여러 고객사가 상담원을 공유. 월 100콜 미만 소규모일 때 비용 효율적.<br>
-            콜당 과금 구조. 월 50만원~
+            여러 고객사가 상담원을 공유. 월 50콜 이하 소규모일 때 비용 효율적.<br>
+            콜당 과금 구조. 월 50~80만원
           </p>
         </div>
       </div>
@@ -598,8 +596,8 @@ body {
       </div>
       <div style="background:#f8fafc; padding:10px 14px; border-radius:8px; font-size:12px; margin-top:10px; line-height:1.7;">
         <strong>콜량별 추천:</strong><br>
-        - 월 100콜 미만 &rarr; <strong>CS 쉐어링</strong> (월 50~80만원)<br>
-        - 월 100~200콜 &rarr; <strong>CS대행 반전담</strong> (월 150만원)<br>
+        - 월 50콜 이하 &rarr; <strong>CS 쉐어링</strong> (월 50~80만원)<br>
+        - 월 100콜 내외 &rarr; <strong>CS대행 반전담</strong> (월 150만원)<br>
         - 월 200콜 이상 &rarr; <strong>콜센터 대행 전담</strong> (월 300만원)
       </div>
       <button class="tree-reset" onclick="resetTree()">처음으로</button>
@@ -615,7 +613,7 @@ body {
         - 고용계약은 고객사 ↔ 근로자 직접 체결<br>
         - 관리/급여/교육 모두 고객사 책임<br>
         - 워크위드는 소개 수수료만 받음 (1회성)<br>
-        - 적합: 1명~소규모, 1개월+, 특정 직무/기술 불필요
+        - 적합: 1명~소규모, 기간 무관, 특정 직무/기술 불필요
       </div>
       <div class="script-box" style="margin:0">
         <div class="response" onclick="copyScript(this)">저희가 조건에 맞는 인력을 찾아서 소개해드리고, 고용은 고객사에서 직접 하시는 알선 방식입니다. 소개 수수료만 발생하고, 부담 없이 진행 가능합니다.</div>
@@ -625,7 +623,7 @@ body {
 
     <!-- 단기 인력 투입 -->
     <div class="tree-result" id="result-alba">
-      <h3>단기 인력 투입</h3>
+      <h3>도급(단기)이 적합합니다</h3>
       <p style="font-size:13px; margin-bottom:10px;">"아르바이트/단기 인력"은 별도 서비스가 아니라, <strong>누가 급여를 주고 소득신고를 하느냐</strong>에 따라 두 가지로 나뉩니다.</p>
 
       <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
@@ -752,8 +750,8 @@ body {
         <strong style="font-size:13px;">CS대행 vs CS쉐어링 vs 콜센터 전담</strong>
         <div style="font-size:12px; margin-top:8px; line-height:1.7;">
           <strong>콜 수로 구분하면 간단합니다:</strong><br>
-          - 월 100콜 미만 → <strong>CS쉐어링</strong> (상담원 공유, 가성비)<br>
-          - 월 100~200콜 → <strong>CS대행</strong> (반전담, CS 통째 위탁)<br>
+          - 월 50콜 이하 → <strong>CS쉐어링</strong> (상담원 공유, 가성비)<br>
+          - 월 100콜 내외 → <strong>CS대행</strong> (반전담, CS 통째 위탁)<br>
           - 월 200콜 이상 → <strong>콜센터 전담</strong> (전용 상담팀 배치)<br>
           <span style="color:#6b7280;">* 콜 수 모르면? → "대략적인 월 문의량" 물어보세요</span>
         </div>
@@ -796,9 +794,9 @@ body {
     </div>
 
     <div class="script-box">
-      <div class="situation">상황 4: 콜센터 전담인데 콜량 적음 (월 100건 미만)</div>
+      <div class="situation">상황 4: 콜센터 전담인데 콜량 적음 (월 200콜 미만)</div>
       <div class="wrong">"콜량이 적어서 전담은 어렵습니다"</div>
-      <div class="response" onclick="copyScript(this)">콜량 기준으로 보면 쉐어(공유) 형태가 비용 효율적입니다. 전담 대비 비용이 절반 이하이고, 품질은 동일하게 관리됩니다. 쉐어와 전담 비교 견적 함께 보내드릴까요?</div>
+      <div class="response" onclick="copyScript(this)">콜량 기준으로 보면 콜 수에 맞는 방식이 비용 효율적입니다. 50콜 이하면 쉐어링, 100콜 내외면 반전담 방식이 있고, 품질은 동일하게 관리됩니다. 비교 견적 함께 보내드릴까요?</div>
     </div>
 
     <div class="script-box">
@@ -993,7 +991,7 @@ body {
         <tr><td>소득신고</td><td>우리</td><td>우리</td><td>우리</td><td>고객사</td><td>고객사</td><td>우리</td><td>우리</td><td>우리</td></tr>
         <tr><td>관리</td><td>우리</td><td>우리</td><td>고객사</td><td>고객사</td><td>고객사</td><td>우리</td><td>우리</td><td>우리</td></tr>
         <tr><td>업무지시</td><td>관리자통해</td><td>관리자통해</td><td>고객사직접</td><td>고객사직접</td><td>고객사직접</td><td>우리</td><td>우리</td><td>우리</td></tr>
-        <tr><td>적합 인원</td><td>10명+</td><td>1명~</td><td>5명+</td><td>1~5명</td><td>1명~</td><td>전용배치</td><td>대규모</td><td>소규모</td></tr>
+        <tr><td>적합 인원</td><td>10명+</td><td>1명~</td><td>권장 5명+</td><td>1~5명</td><td>1명~</td><td>전용배치</td><td>중규모</td><td>소규모</td></tr>
         <tr><td>기간</td><td>6개월+</td><td>기간 무관</td><td>3개월+</td><td>1회성</td><td>기간 무관</td><td>6개월+</td><td>6개월+</td><td>1개월+</td></tr>
         <tr><td>비용</td><td>월 도급비</td><td>일당/주급</td><td>월 파견비</td><td>채용수수료</td><td>소개수수료</td><td>월300만~</td><td>월150만~</td><td>월50만~</td></tr>
       </tbody>
@@ -1019,7 +1017,7 @@ body {
       <dt>전 업종 소규모(1~5명)</dt><dd>&rarr; 채용대행 (리스크 낮음)</dd>
       <dt>CS 대규모(200콜+)</dt><dd>&rarr; 콜센터 대행 전담</dd>
       <dt>CS 중규모(100~200콜)</dt><dd>&rarr; CS대행 반전담</dd>
-      <dt>CS 소규모(100콜 미만)</dt><dd>&rarr; CS 쉐어링</dd>
+      <dt>CS 소규모(50콜 이하)</dt><dd>&rarr; CS 쉐어링</dd>
       <dt>"급여/관리 맡길게요" 단기</dt><dd>&rarr; 단기 도급 (워크위드가 급여+소득신고)</dd>
       <dt>"사람만 보내줘요" 소개</dt><dd>&rarr; 알선 (고객사가 급여+소득신고)</dd>
       <dt>모르겠다</dt><dd>&rarr; 관리자에게 넘기기</dd>
@@ -1074,8 +1072,6 @@ function showService(choice) {
     el.classList.add('show');
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
-  document.getElementById('treeStep1').classList.remove('active');
-  document.getElementById('treeStep1').classList.add('done');
 }
 
 function toggleCheck(li) {
@@ -1102,23 +1098,8 @@ function showToast() {
   setTimeout(() => t.classList.remove('show'), 1500);
 }
 
-function selectTree(step, choice) {
-  document.getElementById('treeStep1').classList.remove('active');
-  document.getElementById('treeStep1').classList.add('done');
-  document.querySelectorAll('#treeStep1 .tree-btn').forEach(function(b) { b.classList.remove('selected'); });
-  if (event && event.target) event.target.classList.add('selected');
-  document.querySelectorAll('.tree-result').forEach(function(r) { r.classList.remove('show'); });
-  var el = document.getElementById('result-' + choice);
-  if (el) {
-    el.classList.add('show');
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-}
-
 function resetTree() {
-  document.getElementById('treeStep1').classList.add('active');
-  document.getElementById('treeStep1').classList.remove('done');
-  document.querySelectorAll('#treeStep1 .tree-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.svc-card').forEach(c => c.classList.remove('selected'));
   document.querySelectorAll('.tree-result').forEach(r => r.classList.remove('show'));
 }
 </script>
