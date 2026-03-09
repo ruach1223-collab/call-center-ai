@@ -3,766 +3,1586 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>콜센터 AI 답변 시스템</title>
+    <title>리뷰천사 - AI가 답변을 쓰고, 사람이 마음을 잡습니다</title>
+    <meta name="description" content="이커머스 셀러를 위한 AI 리뷰 답변 + 배송추적 자동답변 + 전문 CS팀 전화 대응. 쿠팡, 스마트스토어, 11번가, 카페24 지원. 14일 무료 체험.">
+    <meta name="keywords" content="리뷰 자동 답변, AI 리뷰 관리, 쿠팡 리뷰, 스마트스토어 리뷰, CS 대행, 리뷰천사">
+    <!-- Canonical -->
+    <link rel="canonical" href="https://ruach1223-collab.github.io/review-angel/">
+    <!-- Open Graph -->
+    <meta property="og:title" content="리뷰천사 - AI가 답변을 쓰고, 사람이 마음을 잡습니다">
+    <meta property="og:description" content="AI 리뷰 답변 + 배송추적 자동답변 + 전문 CS팀 전화 대응. 14일 무료 체험.">
+    <meta property="og:image" content="https://ruach1223-collab.github.io/review-angel/angel-logo.png">
+    <meta property="og:url" content="https://ruach1223-collab.github.io/review-angel/">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ko_KR">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="리뷰천사 - AI 리뷰 답변 + 전문 CS팀">
+    <meta name="twitter:description" content="리뷰, 문의, 전화 — 이제 안 하셔도 됩니다. AI 자동답변 + 전문 상담사. 14일 무료 체험.">
+    <meta name="twitter:image" content="https://ruach1223-collab.github.io/review-angel/angel-logo.png">
+    <!-- 폰트 (렌더블로킹 방지) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap">
+    <link rel="icon" href="angel-logo.png" type="image/png">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent: #FF9B7B;
+            --accent-light: rgba(255,155,123,0.08);
+            --dark: #111111;
+            --gray: #666666;
+            --light-gray: #FAFAFA;
+            --border: #E5E5E5;
+            --white: #FFFFFF;
+            --red: #FF4D4D;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            min-height: 100vh;
+            font-family: 'Noto Sans KR', -apple-system, sans-serif;
+            color: var(--dark);
+            line-height: 1.6;
+            background: var(--white);
         }
 
-        /* 상단 헤더 */
-        .top-bar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
+        /* 네비게이션 */
+        nav {
+            position: fixed;
             top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-        }
-
-        .top-bar h1 {
-            font-size: 20px;
-        }
-
-        .top-bar .status {
-            font-size: 13px;
-            opacity: 0.9;
-        }
-
-        /* 메인 레이아웃 */
-        .main-layout {
-            display: flex;
-            height: calc(100vh - 56px);
-        }
-
-        /* 왼쪽: 입력 패널 */
-        .input-panel {
-            width: 360px;
-            min-width: 360px;
-            background: white;
-            border-right: 1px solid #e0e0e0;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-
-        input[type="text"] {
             width: 100%;
-            padding: 10px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-            font-family: inherit;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        /* 업체명 입력 + 드롭다운 */
-        .company-input-wrap {
-            position: relative;
-        }
-
-        .company-input-wrap input {
-            padding-right: 36px;
-        }
-
-        .dropdown-toggle {
-            position: absolute;
-            right: 2px;
-            top: 2px;
-            bottom: 2px;
-            width: 32px;
-            background: none;
-            border: none;
-            border-left: 1px solid #e0e0e0;
-            cursor: pointer;
-            font-size: 14px;
-            color: #999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0 6px 6px 0;
-            padding: 0;
-        }
-
-        .dropdown-toggle:hover {
-            background: #f5f5f5;
-            color: #667eea;
-        }
-
-        .company-dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 2px solid #667eea;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 50;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .company-dropdown.open {
-            display: block;
-        }
-
-        .dropdown-item {
-            padding: 10px 14px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #333;
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(10px);
+            padding: 14px 0;
+            z-index: 1000;
             border-bottom: 1px solid #f0f0f0;
         }
 
-        .dropdown-item:last-child {
-            border-bottom: none;
-        }
-
-        .dropdown-item:hover {
-            background: #f0f2f5;
-            color: #667eea;
-        }
-
-        /* 자주 쓰는 질문 버튼 */
-        .quick-buttons {
-            margin-bottom: 20px;
-        }
-
-        .quick-buttons label {
-            margin-bottom: 10px;
-        }
-
-        .quick-btn-grid {
+        .nav-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 24px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .quick-btn {
-            padding: 7px 14px;
-            border: 1px solid #667eea;
-            border-radius: 20px;
-            background: white;
-            color: #667eea;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex: none;
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--dark);
+            text-decoration: none;
+        }
+
+        .logo-angel {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        .logo em {
+            font-style: normal;
+            color: var(--accent);
+        }
+
+        .nav-links { display: flex; align-items: center; gap: 24px; }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--gray);
+            font-size: 14px;
             font-weight: 500;
         }
 
-        .quick-btn:hover {
-            background: #667eea;
-            color: white;
-        }
+        .nav-links a:hover { color: var(--dark); }
 
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        button {
-            padding: 10px;
-            border: none;
+        .nav-cta {
+            background: var(--dark) !important;
+            color: white !important;
+            padding: 8px 18px;
             border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            font-weight: 600 !important;
         }
 
-        .search-btn {
-            flex: 2;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .search-btn:hover {
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .search-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .reset-btn {
-            flex: 1;
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .reset-btn:hover {
-            background: #e0e0e0;
-        }
-
-        .clear-history-btn {
-            width: 100%;
-            margin-top: 15px;
-            padding: 8px;
-            background: none;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            color: #999;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .clear-history-btn:hover {
-            border-color: #f44;
-            color: #f44;
-        }
-
-        /* 오른쪽: 상담 이력 */
-        .history-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+        /* ========================================
+           히어로 — v2 개선
+           ======================================== */
+        .hero {
+            padding: 120px 24px 0;
+            background: linear-gradient(180deg, #FFF8F5 0%, #FFFFFF 100%);
             overflow: hidden;
         }
 
-        .history-header {
-            padding: 15px 25px;
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .history-count {
-            font-size: 12px;
-            color: #999;
-            font-weight: 400;
-        }
-
-        .history-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 25px;
-        }
-
-        .history-empty {
+        .hero-inner {
+            max-width: 720px;
+            margin: 0 auto;
             text-align: center;
-            color: #bbb;
-            padding: 60px 20px;
-            font-size: 14px;
         }
 
-        /* 상담 카드 */
-        .history-card {
-            background: white;
-            border-radius: 10px;
-            padding: 18px;
-            margin-bottom: 15px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-            animation: slideIn 0.3s ease;
+        @keyframes badge-shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
         }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .card-meta {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .company-badge {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .card-time {
-            color: #999;
-            font-size: 12px;
-        }
-
-        .copy-btn {
-            padding: 4px 10px;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            color: #666;
-            transition: all 0.2s;
-        }
-
-        .copy-btn:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .copy-btn.copied {
-            background: #4caf50;
-            color: white;
-        }
-
-        .card-question {
-            background: #f0f2f5;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #555;
-            margin-bottom: 12px;
-        }
-
-        .card-question strong {
-            color: #333;
-        }
-
-        .card-answer {
-            line-height: 1.7;
-            color: #333;
-            font-size: 14px;
-            white-space: pre-wrap;
-            border-left: 3px solid #667eea;
-            padding-left: 14px;
-        }
-
-        /* 로딩 카드 */
-        .history-card.loading-card {
-            text-align: center;
-            color: #667eea;
-        }
-
-        .spinner {
+        .hero-badge {
             display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid #e0e0e0;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 8px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .error-text {
-            color: #e53935;
-            font-size: 14px;
-        }
-
-        /* 업체 선택 버튼 */
-        .company-selector {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .company-btn {
-            padding: 7px 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
-            color: #555;
+            background: linear-gradient(90deg, #fff 30%, #FFF0EB 50%, #fff 70%);
+            background-size: 200% 100%;
+            animation: badge-shimmer 3s ease-in-out infinite;
+            color: var(--accent);
+            padding: 6px 16px;
+            border-radius: 20px;
             font-size: 13px;
-            cursor: pointer;
+            font-weight: 700;
+            margin-bottom: 24px;
+            border: 1.5px solid rgba(255,155,123,0.3);
+        }
+
+        .hero h1 {
+            font-size: 42px;
+            font-weight: 900;
+            line-height: 1.35;
+            margin-bottom: 20px;
+            color: var(--dark);
+            letter-spacing: -0.5px;
+        }
+
+        .hero h1 em {
+            font-style: normal;
+            color: var(--white);
+            background: var(--dark);
+            padding: 2px 12px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .hero-sub {
+            font-size: 17px;
+            color: var(--gray);
+            margin: 0 0 32px;
+            line-height: 1.8;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 0;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--dark);
+            color: white;
+            padding: 16px 40px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
             transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary:hover {
+            background: #333;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--gray);
+            padding: 16px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-secondary:hover { color: var(--dark); border-color: var(--dark); }
+
+        /* 통계 — 히어로 안으로 통합 */
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin: 40px auto 0;
+            max-width: 560px;
+            background: var(--white);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+
+        .hero-stat {
+            flex: 1;
+            text-align: center;
+            padding: 20px 12px;
+            border-right: 1px solid var(--border);
+        }
+
+        .hero-stat:last-child { border-right: none; }
+
+        .hero-stat-num {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--dark);
+        }
+
+        .hero-stat-label {
+            font-size: 11px;
+            color: var(--gray);
+            margin-top: 2px;
             font-weight: 500;
         }
 
-        .company-btn:hover {
-            border-color: #667eea;
-            color: #667eea;
+        /* 플랫폼 배지 — 강화 */
+        .platform-section {
+            padding: 32px 24px 40px;
+            text-align: center;
+            background: var(--white);
         }
 
-        .company-btn.active {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .company-loading, .faq-placeholder {
-            color: #bbb;
+        .platform-label {
             font-size: 12px;
-            padding: 8px 0;
+            color: #bbb;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .platform-badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .platform-badge {
+            background: var(--light-gray);
+            color: var(--dark);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+        }
+
+        /* 미니 데모 (히어로 하단 시각 증거) */
+        .hero-demo {
+            max-width: 600px;
+            margin: 36px auto 0;
+            background: var(--white);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .hero-demo-header {
+            background: var(--light-gray);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .hero-demo-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            display: inline-block;
+        }
+
+        .hero-demo-body {
+            padding: 20px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .hero-demo-left,
+        .hero-demo-right {
+            flex: 1;
+        }
+
+        .hero-demo-review {
+            background: #FFF5F5;
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .hero-demo-review-stars {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .hero-demo-review-text {
+            color: var(--dark);
+            font-weight: 500;
+        }
+
+        .hero-demo-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--border);
+            padding: 0 4px;
+            align-self: center;
+        }
+
+        .hero-demo-answer {
+            background: var(--light-gray);
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 12px;
+            color: #555;
+            line-height: 1.7;
+            border-left: 3px solid var(--dark);
+        }
+
+        .hero-demo-answer-badge {
+            display: inline-block;
+            background: var(--dark);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+
+        .hero-demo-footer {
+            background: var(--light-gray);
+            padding: 10px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--gray);
+        }
+
+        .hero-demo-footer-action {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        /* ========================================
+           이하 기존 섹션 스타일 유지
+           ======================================== */
+
+        /* 섹션 공통 */
+        .section-wrap {
+            padding: 80px 24px;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .section-bg {
+            background: var(--light-gray);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-title h2 {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .section-title p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* 문제 카드 */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .problem-card {
+            background: var(--white);
+            padding: 28px 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .problem-card .icon {
+            width: 48px;
+            height: 48px;
+            background: var(--light-gray);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 14px;
+        }
+
+        .problem-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .problem-card p {
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.7;
+        }
+
+        /* 차별점 */
+        .diff-section {
+            background: var(--white);
+            color: var(--dark);
+            padding: 80px 24px;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .diff-inner {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .diff-section .section-title h2 {
+            color: var(--dark);
+        }
+
+        .diff-section .section-title p {
+            color: var(--gray);
+        }
+
+        .diff-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .diff-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px 24px;
+        }
+
+        .diff-card .diff-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .diff-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .diff-card p {
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.7;
+        }
+
+        /* 비교 테이블 */
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .compare-table th, .compare-table td {
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .compare-table th {
+            background: var(--light-gray);
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .compare-table td { border-bottom: 1px solid var(--border); }
+        .compare-table .before { color: #bbb; }
+        .compare-table .after { color: var(--dark); font-weight: 600; }
+
+        /* 작동 방식 */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .step {
+            text-align: center;
+        }
+
+        .step-num {
+            width: 44px;
+            height: 44px;
+            background: var(--dark);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 800;
+            margin: 0 auto 12px;
+        }
+
+        .step h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+        .step p { font-size: 12px; color: var(--gray); line-height: 1.6; }
+
+        /* 요금제 */
+        .pricing-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            min-width: 480px;
+        }
+
+        .pricing-table th,
+        .pricing-table td {
+            padding: 14px 12px;
+            text-align: center;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .pricing-table th {
+            background: var(--light-gray);
+            font-weight: 700;
+            font-size: 14px;
+            padding: 20px 10px;
+            vertical-align: bottom;
+        }
+
+        .pricing-table td:first-child,
+        .pricing-table th:first-child {
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .pricing-table .tier-price {
+            display: block;
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-top: 6px;
+        }
+
+        .pricing-table .tier-price small {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--gray);
+        }
+
+        .pricing-table .featured-col {
+            background: rgba(0,0,0,0.025);
+        }
+
+        .pricing-table th.featured-col {
+            background: var(--dark);
+            color: var(--white);
+            position: relative;
+        }
+
+        .pricing-table th.featured-col .tier-price {
+            color: var(--white);
+        }
+
+        .pricing-table th.featured-col .tier-price small {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .pricing-table .enterprise-col {
+            background: rgba(255,155,123,0.04);
+        }
+
+        .pricing-table th.enterprise-col {
+            background: var(--accent);
+            color: var(--white);
+        }
+
+        .pricing-table th.enterprise-col .tier-price {
+            color: var(--white);
+            font-size: 14px;
+        }
+
+        .pricing-table .muted {
+            color: #ccc;
+        }
+
+        .pricing-table .check {
+            color: var(--dark);
+            font-weight: 700;
+        }
+
+        .pricing-table .btn-enterprise {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--accent);
+            color: var(--white);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .pricing-table .btn-enterprise:hover {
+            opacity: 0.9;
+        }
+
+        /* 신뢰 배지 */
+        .trust-bar {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+            padding: 20px 24px 0;
+            font-size: 12px;
+            color: #bbb;
+        }
+
+        /* CTA */
+        .cta-section {
+            text-align: center;
+            padding: 80px 24px;
+            background: var(--white);
+            border-top: 1px solid var(--border);
+        }
+
+        .cta-angel {
+            width: 240px;
+            height: 240px;
+            margin: 0 auto 8px;
+            border-radius: 50%;
+        }
+
+        .cta-section h2 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .cta-section p {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 32px;
+        }
+
+        /* AI 답변 데모 */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .demo-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .demo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .demo-star { font-size: 16px; }
+
+        .demo-label {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 10px;
+        }
+
+        .demo-label.good { background: #E8F5E9; color: #2E7D32; }
+        .demo-label.neutral { background: #FFF8E1; color: #F57F17; }
+        .demo-label.bad { background: #FFEBEE; color: #C62828; }
+
+        .demo-review {
+            background: var(--light-gray);
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--dark);
+        }
+
+        .demo-arrow {
+            text-align: center;
+            font-size: 11px;
+            color: var(--gray);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .demo-answer {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.7;
+            background: var(--light-gray);
+            padding: 14px 16px;
+            border-radius: 10px;
+            border-left: 3px solid var(--dark);
+        }
+
+        /* ROI 성과 */
+        .roi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .roi-card {
+            text-align: center;
+            background: var(--white);
+            padding: 28px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .roi-num {
+            font-size: 36px;
+            font-weight: 900;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .roi-desc {
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        /* 고객 후기 */
+        .review-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .testimonial {
+            background: var(--light-gray);
+            padding: 28px 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .testimonial-stars {
+            color: #FFD166;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .testimonial p {
+            font-size: 14px;
+            color: var(--dark);
+            line-height: 1.7;
+            margin-bottom: 16px;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            font-size: 12px;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        /* FAQ */
+        .faq-list {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .faq-item summary {
+            padding: 16px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-item summary::-webkit-details-marker { display: none; }
+
+        .faq-item summary::after {
+            content: "+";
+            font-size: 20px;
+            color: var(--dark);
+            font-weight: 300;
+        }
+
+        .faq-item[open] summary::after { content: "-"; }
+
+        .faq-item p {
+            padding: 0 20px 16px;
+            font-size: 14px;
+            color: var(--gray);
+            line-height: 1.7;
+        }
+
+        /* 푸터 */
+        footer {
+            padding: 30px 24px;
+            text-align: center;
+            background: var(--dark);
+            color: #999;
+            font-size: 12px;
+        }
+
+        footer .footer-brand {
+            color: var(--white);
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        /* 햄버거 메뉴 */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: var(--dark);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translateY(7px); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translateY(-7px); }
+
+        /* 중간 CTA */
+        .mid-cta {
+            text-align: center;
+            padding: 48px 24px 0;
+        }
+
+        /* 문의 섹션 */
+        .beta-section {
+            text-align: center;
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 40px 24px;
+            border: 1px solid var(--border);
+        }
+
+        .beta-section h3 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .beta-section p {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 28px;
+            line-height: 1.7;
+        }
+
+        .beta-badges {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 28px;
+        }
+
+        .beta-badge {
+            background: white;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--dark);
+            border: 1px solid var(--border);
+        }
+
+        .price-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        /* 포커스 스타일 (접근성) */
+        a:focus-visible, button:focus-visible, summary:focus-visible {
+            outline: 2px solid var(--dark);
+            outline-offset: 2px;
         }
 
         /* 반응형 */
         @media (max-width: 768px) {
-            .main-layout {
+            .hero { padding: 100px 20px 0; }
+            .hero h1 { font-size: 28px; }
+            .hero h1 em { padding: 1px 8px; }
+            .hero-sub { font-size: 15px; }
+            .hero-buttons { justify-content: center; }
+            .hero-stats { flex-wrap: wrap; max-width: 320px; }
+            .hero-stat { flex: 1 1 45%; }
+            .hero-stat:nth-child(2) { border-right: none; }
+            .hero-stat:nth-child(1),
+            .hero-stat:nth-child(2) { border-bottom: 1px solid var(--border); }
+            .hero-demo { margin: 24px auto 0; }
+            .hero-demo-body { flex-direction: column; }
+            .hero-demo-arrow { transform: rotate(90deg); padding: 8px 0; }
+            .platform-badges { justify-content: center; }
+            .problem-grid, .steps, .diff-grid, .demo-grid, .roi-grid { grid-template-columns: 1fr; }
+            .hamburger { display: flex; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(255,255,255,0.98);
                 flex-direction: column;
-                height: auto;
+                padding: 16px 24px;
+                border-bottom: 1px solid #f0f0f0;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             }
-            .input-panel {
-                width: 100%;
-                min-width: auto;
-                border-right: none;
-                border-bottom: 1px solid #e0e0e0;
-            }
-            .history-list {
-                min-height: 50vh;
-            }
+            .nav-links.open { display: flex; }
+            .nav-links a { padding: 10px 0; font-size: 15px; }
+            .section-wrap { padding: 50px 20px; }
+            .diff-section { padding: 50px 20px; }
+            .cta-section { padding: 50px 20px; }
         }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <h1>콜센터 AI 답변 시스템</h1>
-        <span class="status" id="statusText">대기 중</span>
+
+<nav>
+    <div class="nav-inner">
+        <a href="#" class="logo">
+            <img class="logo-angel" src="angel-logo.png" alt="리뷰천사 로고" width="32" height="32"/>
+            리뷰<em>천사</em>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="#pain">고민</a>
+            <a href="#why">차별점</a>
+            <a href="#pricing">요금제</a>
+            <a href="#contact" class="nav-cta">무료 시작</a>
+        </div>
+        <button class="hamburger" id="hamburgerBtn" aria-label="메뉴 열기">
+            <span></span><span></span><span></span>
+        </button>
     </div>
+</nav>
 
-    <div class="main-layout">
-        <!-- 왼쪽 입력 패널 -->
-        <div class="input-panel">
-            <form id="queryForm">
-                <div class="form-group">
-                    <label>업체명</label>
-                    <div class="company-input-wrap">
-                        <input type="text" id="company" placeholder="업체를 선택하거나 직접 입력" required>
-                        <button type="button" class="dropdown-toggle" id="dropdownToggle">▼</button>
-                        <div class="company-dropdown" id="companyDropdown"></div>
-                    </div>
-                    <div class="company-selector" id="companySelector">
-                        <span class="company-loading">업체 목록 불러오는 중...</span>
-                    </div>
-                </div>
-
-                <div class="quick-buttons">
-                    <label>자주 묻는 질문</label>
-                    <div class="quick-btn-grid" id="faqGrid">
-                        <span class="faq-placeholder">업체를 먼저 선택해주세요</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>고객 질문</label>
-                    <input type="text" id="question" placeholder="직접 입력 또는 위 버튼 클릭" required>
-                </div>
-
-                <div class="button-group">
-                    <button type="submit" class="search-btn" id="submitBtn">답변 생성</button>
-                    <button type="reset" class="reset-btn">초기화</button>
-                </div>
-            </form>
-
-            <button class="clear-history-btn" id="clearHistoryBtn">상담 이력 전체 삭제</button>
+<main>
+<!-- ========================================
+     히어로 v2
+     ======================================== -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-badge">14일 무료 체험 &middot; 카드 등록 후 바로 시작</div>
+        <h1>리뷰, 문의, 전화<br><em>이제 안 하셔도 됩니다</em></h1>
+        <p class="hero-sub">AI가 리뷰 답변·배송 조회·일반 문의를 자동 처리하고,<br>화난 고객에게는 사람이 전화합니다.</p>
+        <div class="hero-buttons">
+            <a href="#contact" class="btn-primary">14일 무료 체험 시작</a>
+            <a href="#why" class="btn-secondary">어떻게 작동하나요? &darr;</a>
         </div>
 
-        <!-- 오른쪽 상담 이력 -->
-        <div class="history-panel">
-            <div class="history-header">
-                <span>상담 이력</span>
-                <span class="history-count" id="historyCount">0건</span>
+        <!-- 통계 (히어로 안) -->
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-num">5초</div>
+                <div class="hero-stat-label">AI 답변 생성</div>
             </div>
-            <div class="history-list" id="historyList">
-                <div class="history-empty" id="emptyState">
-                    아직 상담 이력이 없습니다.<br>업체명과 질문을 입력하고 답변을 생성해보세요.
+            <div class="hero-stat">
+                <div class="hero-stat-num">30분</div>
+                <div class="hero-stat-label">불만 CS 전화</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">97%</div>
+                <div class="hero-stat-label">답변 적합도</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">24/7</div>
+                <div class="hero-stat-label">리뷰 모니터링</div>
+            </div>
+        </div>
+
+        <!-- 미니 데모 (시각 증거) -->
+        <div class="hero-demo">
+            <div class="hero-demo-header">
+                <span class="hero-demo-dot" style="background:#FF5F57;"></span>
+                <span class="hero-demo-dot" style="background:#FFBD2E;"></span>
+                <span class="hero-demo-dot" style="background:#28C840;"></span>
+                리뷰천사 대시보드
+            </div>
+            <div class="hero-demo-body">
+                <div class="hero-demo-left">
+                    <div class="hero-demo-review">
+                        <div class="hero-demo-review-stars" style="color: var(--red);">&#9733;&#9734;&#9734;&#9734;&#9734;</div>
+                        <div class="hero-demo-review-text">"파손된 채로 왔는데 교환도 안 해줌. 최악."</div>
+                    </div>
                 </div>
+                <div class="hero-demo-arrow">&rarr;</div>
+                <div class="hero-demo-right">
+                    <div class="hero-demo-answer">
+                        <div class="hero-demo-answer-badge">AI 답변 생성 5초</div>
+                        고객님, 제품 상태가 좋지 않은 채로 도착하여 정말 죄송합니다. 바로 확인 후 교환 절차 안내드리겠습니다.
+                    </div>
+                </div>
+            </div>
+            <div class="hero-demo-footer">
+                <span>별 1점 감지 → 전문 CS팀 전달</span>
+                <span class="hero-demo-footer-action">&#9742; 30분 내 고객 전화</span>
             </div>
         </div>
     </div>
+</section>
 
-    <script>
-        const WEBHOOK_URL = "https://ruda1a.app.n8n.cloud/webhook/baccd3b2-b253-4f4c-a567-4f9cd09c50ec";
-        const COMPANIES_URL = "https://ruda1a.app.n8n.cloud/webhook/call-center-companies";
+<!-- 플랫폼 배지 -->
+<div class="platform-section">
+    <div class="platform-label">연동 플랫폼</div>
+    <div class="platform-badges">
+        <span class="platform-badge">쿠팡</span>
+        <span class="platform-badge">네이버 스마트스토어</span>
+        <span class="platform-badge">11번가</span>
+        <span class="platform-badge">G마켓</span>
+        <span class="platform-badge">옥션</span>
+        <span class="platform-badge">SSG</span>
+        <span class="platform-badge">카페24</span>
+        <span class="platform-badge">쇼피파이</span>
+        <span class="platform-badge">아임웹</span>
+    </div>
+</div>
 
-        const form = document.getElementById('queryForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const historyList = document.getElementById('historyList');
-        const historyCount = document.getElementById('historyCount');
-        const emptyState = document.getElementById('emptyState');
-        const statusText = document.getElementById('statusText');
-        const questionInput = document.getElementById('question');
-        const companyInput = document.getElementById('company');
-        const companySelector = document.getElementById('companySelector');
-        const faqGrid = document.getElementById('faqGrid');
-        const dropdownToggle = document.getElementById('dropdownToggle');
-        const companyDropdown = document.getElementById('companyDropdown');
+<!-- 고민 -->
+<div class="section-bg">
+    <div class="section-wrap" id="pain">
+        <div class="section-title">
+            <h2>셀러님, 이런 고민 있지 않으세요?</h2>
+            <p>방치된 별 1개 리뷰 하나가 매출 23%를 떨어뜨립니다</p>
+        </div>
+        <div class="problem-grid">
+            <div class="problem-card">
+                <div class="icon">&#x23F0;</div>
+                <h3>리뷰 답변 쓸 시간이 없다</h3>
+                <p>매일 쌓이는 리뷰를 일일이 확인하고 답변 쓰는 데 하루 1~2시간. 그 시간에 상품 하나 더 올릴 수 있습니다.</p>
+            </div>
+            <div class="problem-card">
+                <div class="icon">&#x2B50;</div>
+                <h3>별 1개 리뷰가 방치되고 있다</h3>
+                <p>불만 리뷰 3일 방치 = 구매 전환율 급락. 잠재 고객은 별점 낮은 리뷰의 셀러 답변부터 확인합니다.</p>
+            </div>
+            <div class="problem-card">
+                <div class="icon">&#x1F4A2;</div>
+                <h3>악성 리뷰·문의에 시달린다</h3>
+                <p>환불 요구, 협박성 리뷰, 반복 문의까지. 직접 대응하다 감정 소모만 커집니다. 셀러님이 직접 하실 필요 없습니다.</p>
+            </div>
+            <div class="problem-card">
+                <div class="icon">&#x1F4AC;</div>
+                <h3>답변이 복붙 느낌이다</h3>
+                <p>"감사합니다" 한마디로 끝나는 답변, 고객은 다 압니다. 브랜드 톤에 맞는 진심 담긴 답변이 필요합니다.</p>
+            </div>
+        </div>
+    </div>
+</div>
 
-        let count = 0;
-        let companiesData = [];
-        let selectedCompany = null;
+<!-- 차별점 (핵심 섹션) -->
+<div class="diff-section" id="why">
+    <div class="diff-inner">
+        <div class="section-title">
+            <h2>왜 리뷰천사인가?</h2>
+            <p>다른 리뷰 서비스와 근본적으로 다릅니다</p>
+        </div>
+        <div class="diff-grid">
+            <div class="diff-card">
+                <div class="diff-label">핵심 차별점</div>
+                <h3>AI + 사람, 하이브리드</h3>
+                <p>다른 서비스는 AI가 답변 써주고 끝. 리뷰천사는 불만 고객에게 전문 상담사가 직접 전화합니다. 별 1개 리뷰가 별 5개로 바뀝니다.</p>
+            </div>
+            <div class="diff-card">
+                <div class="diff-label">전문 CS팀</div>
+                <h3>자체 상담원 인프라 보유</h3>
+                <p>외주가 아닙니다. 자체 콜센터 운영 경험을 가진 전문 CS팀이 셀러님의 고객을 내 고객처럼 케어합니다.</p>
+            </div>
+            <div class="diff-card">
+                <div class="diff-label">올인원</div>
+                <h3>리뷰 + 배송문의 + CS 통합</h3>
+                <p>리뷰 답변 따로, 배송 문의 따로, CS 따로? 리뷰천사는 답변 자동화부터 배송추적, 전화 CS까지 한 곳에서 해결합니다.</p>
+            </div>
+            <div class="diff-card">
+                <div class="diff-label">전 플랫폼</div>
+                <h3>마켓플레이스 + 자체몰 모두 지원</h3>
+                <p>쿠팡, 스마트스토어, 11번가 같은 마켓플레이스는 물론 카페24 자체몰까지. 추가 플랫폼도 순차 확대됩니다.</p>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // 페이지 로드 시 업체 목록 가져오기
-        async function loadCompanies() {
-            try {
-                const res = await fetch(COMPANIES_URL);
-                const data = await res.json();
-                companiesData = data.companies || [];
-                renderCompanyButtons();
-            } catch (err) {
-                companySelector.innerHTML = '<span class="company-loading">업체 목록을 불러올 수 없습니다</span>';
+<!-- 배송추적 + 절감 대시보드 -->
+<div class="section-bg">
+    <div class="section-wrap">
+        <div class="section-title">
+            <h2>리뷰 답변만이 아닙니다</h2>
+            <p>고객 문의부터 배송 추적까지, 셀러님의 시간을 돌려드립니다</p>
+        </div>
+        <div class="diff-grid">
+            <div class="diff-card">
+                <div class="diff-label">배송추적 자동답변</div>
+                <h3>"배송 어디예요?" — AI가 실시간 답변</h3>
+                <p>고객이 배송 상태를 물으면 AI가 택배사 API와 연동해 실시간 위치를 자동 답변합니다. 가장 많은 문의인 배송 관련 CS를 자동화합니다.</p>
+            </div>
+            <div class="diff-card">
+                <div class="diff-label">절감 시간 대시보드</div>
+                <h3>얼마나 시간을 아꼈는지 숫자로 보여드립니다</h3>
+                <p>이번 달 자동 처리된 리뷰 답변 수, 배송 문의 처리 건수, 절감된 시간을 한눈에 확인하세요. 리뷰천사의 가치를 숫자로 증명합니다.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 비교 테이블 -->
+<div class="section-wrap">
+    <div class="section-title">
+        <h2>경쟁사 비교</h2>
+        <p>AI만으로는 화난 고객의 마음을 돌릴 수 없습니다</p>
+    </div>
+    <table class="compare-table">
+        <tr>
+            <th>항목</th>
+            <th>A사 (AI SaaS)</th>
+            <th>리뷰천사</th>
+        </tr>
+        <tr>
+            <td>리뷰 답변</td>
+            <td class="before">AI 자동 생성</td>
+            <td class="after">AI 생성 + 전문가 검수</td>
+        </tr>
+        <tr>
+            <td>불만 고객 대응</td>
+            <td class="before">알림만 전달</td>
+            <td class="after">전문 CS팀이 직접 전화</td>
+        </tr>
+        <tr>
+            <td>브랜드 톤</td>
+            <td class="before">기본 템플릿</td>
+            <td class="after">업체별 맞춤 톤 설정</td>
+        </tr>
+        <tr>
+            <td>지원 플랫폼</td>
+            <td class="before">자체몰 위주</td>
+            <td class="after">쿠팡·스마트스토어·11번가·카페24</td>
+        </tr>
+        <tr>
+            <td>배송추적 자동답변</td>
+            <td class="before">없음</td>
+            <td class="after">실시간 배송 상태 자동 답변</td>
+        </tr>
+        <tr>
+            <td>에스컬레이션</td>
+            <td class="before">없음</td>
+            <td class="after">위기 감지 → 즉시 전화 CS 연결</td>
+        </tr>
+        <tr>
+            <td>절감 리포트</td>
+            <td class="before">없음</td>
+            <td class="after">절감 시간·비용 대시보드 제공</td>
+        </tr>
+    </table>
+</div>
+
+<!-- 작동 방식 -->
+<div class="section-bg">
+    <div class="section-wrap">
+        <div class="section-title">
+            <h2>어떻게 작동하나요?</h2>
+            <p>셀러님은 승인만 누르면 됩니다</p>
+        </div>
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <h3>리뷰 자동 수집</h3>
+                <p>모든 플랫폼의<br>새 리뷰를 실시간 수집</p>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <h3>AI 답변 생성</h3>
+                <p>별점 + 내용 분석 후<br>브랜드 톤에 맞게 생성</p>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <h3>검수 및 등록</h3>
+                <p>긍정 리뷰 자동 등록<br>불만 리뷰 승인 후 등록</p>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <h3>전화 CS 대응</h3>
+                <p>불만 고객에게<br>전문 상담사가 직접 전화</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI 답변 데모 -->
+<div class="section-wrap">
+    <div class="section-title">
+        <h2>실제 AI 답변을 확인하세요</h2>
+        <p>별점에 따라 톤과 전략이 달라집니다</p>
+    </div>
+    <div class="demo-grid">
+        <div class="demo-card">
+            <div class="demo-header">
+                <span class="demo-star" style="color: #FFD166;">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                <span class="demo-label good">감사 답변</span>
+            </div>
+            <div class="demo-review">"배터리 오래가요 좋아요!"</div>
+            <div class="demo-arrow">AI 답변</div>
+            <div class="demo-answer">고객님, 무선 이어폰을 만족스럽게 사용해 주셔서 감사합니다. 배터리 성능에 만족하셨다니 정말 기쁩니다. 앞으로도 좋은 경험 드릴 수 있도록 하겠습니다.</div>
+        </div>
+        <div class="demo-card">
+            <div class="demo-header">
+                <span class="demo-star" style="color: #aaa;">&#9733;&#9733;&#9733;&#9734;&#9734;</span>
+                <span class="demo-label neutral">경청 답변</span>
+            </div>
+            <div class="demo-review">"생각보다 좀 작아요"</div>
+            <div class="demo-arrow">AI 답변</div>
+            <div class="demo-answer">고객님, 사이즈가 기대와 달랐던 점 안내가 부족했습니다. 해당 제품은 소형 모델로, 상세 페이지에 실측 사이즈를 보강하겠습니다. 소중한 의견 감사합니다.</div>
+        </div>
+        <div class="demo-card">
+            <div class="demo-header">
+                <span class="demo-star" style="color: var(--red);">&#9733;&#9734;&#9734;&#9734;&#9734;</span>
+                <span class="demo-label bad">위기 대응</span>
+            </div>
+            <div class="demo-review">"파손된 채로 왔음 환불해주세요"</div>
+            <div class="demo-arrow">AI 답변 + 전화 CS</div>
+            <div class="demo-answer"><strong style="color: var(--red);">[에스컬레이션]</strong> 고객님, 제품 상태가 좋지 않은 채로 도착하여 죄송합니다. 바로 확인 후 교환/환불 절차 안내드리겠습니다. <strong>담당자가 곧 전화드리겠습니다.</strong></div>
+        </div>
+    </div>
+</div>
+
+<!-- 결과/성과 (ROI) -->
+<div class="section-bg">
+    <div class="section-wrap">
+        <div class="section-title">
+            <h2>리뷰 관리 = 매출 상승</h2>
+            <p>데이터가 증명합니다</p>
+        </div>
+        <div class="roi-grid">
+            <div class="roi-card">
+                <div class="roi-num">+25%</div>
+                <div class="roi-desc">별점 0.5점 상승 시<br><strong>매출 증가율</strong><br><span style="font-size:11px;color:#bbb;">출처: Harvard Business Review</span></div>
+            </div>
+            <div class="roi-card">
+                <div class="roi-num">+18%</div>
+                <div class="roi-desc">셀러 답변이 있는 상품의<br><strong>구매 전환율 상승</strong><br><span style="font-size:11px;color:#bbb;">출처: Spiegel Research Center</span></div>
+            </div>
+            <div class="roi-card">
+                <div class="roi-num">-23%</div>
+                <div class="roi-desc">불만 리뷰 방치 시<br><strong>매출 하락률</strong><br><span style="font-size:11px;color:#bbb;">출처: ReviewTrackers 2024</span></div>
+            </div>
+            <div class="roi-card">
+                <div class="roi-num">73%</div>
+                <div class="roi-desc">구매 전 리뷰 답변을<br><strong>확인하는 소비자 비율</strong><br><span style="font-size:11px;color:#bbb;">출처: BrightLocal Survey</span></div>
+            </div>
+        </div>
+        <!-- 중간 CTA -->
+        <div class="mid-cta">
+            <a href="#contact" class="btn-primary">지금 무료로 시작하기</a>
+        </div>
+    </div>
+</div>
+
+<!-- 문의하기 -->
+<div class="section-wrap">
+    <div class="beta-section">
+        <h3>궁금한 점이 있으신가요?</h3>
+        <p>카카오톡으로 편하게 문의해주세요. 셀러님의 상황에 맞는 플랜을 안내해드립니다.</p>
+        <!-- TODO: 실제 카카오 오픈프로필 URL로 교체 -->
+        <a href="https://open.kakao.com/" class="btn-primary">카카오톡 문의하기</a>
+        <div class="beta-badges">
+            <span class="beta-badge">14일 무료 체험</span>
+            <span class="beta-badge">체험 종료 전 알림</span>
+            <span class="beta-badge">위약금 없음</span>
+        </div>
+    </div>
+</div>
+
+<!-- 요금제 -->
+<div class="section-wrap" id="pricing">
+    <div class="section-title">
+        <h2>합리적인 요금제</h2>
+        <p>14일 무료 체험으로 먼저 경험해보세요</p>
+    </div>
+    <div class="pricing-table-wrap">
+        <table class="pricing-table">
+            <thead>
+                <tr>
+                    <th>기능</th>
+                    <th>Lite<span class="tier-price">5.9만원 <small>/월</small></span></th>
+                    <th class="featured-col">S <small>추천</small><span class="tier-price">18만원 <small>/월</small></span></th>
+                    <th class="enterprise-col">기업 맞춤<span class="tier-price">별도 협의</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>AI 리뷰 자동답변</td>
+                    <td class="check">&#10003;</td>
+                    <td class="featured-col check">&#10003;</td>
+                    <td class="enterprise-col check">&#10003;</td>
+                </tr>
+                <tr>
+                    <td>배송추적 자동응답</td>
+                    <td class="check">&#10003;</td>
+                    <td class="featured-col check">&#10003;</td>
+                    <td class="enterprise-col check">&#10003;</td>
+                </tr>
+                <tr>
+                    <td>Q&amp;A/문의 자동응답</td>
+                    <td class="muted">—</td>
+                    <td class="featured-col check">&#10003;</td>
+                    <td class="enterprise-col check">&#10003;</td>
+                </tr>
+                <tr>
+                    <td>불만 리뷰 알림</td>
+                    <td class="check">&#10003;</td>
+                    <td class="featured-col check">&#10003;</td>
+                    <td class="enterprise-col check">&#10003;</td>
+                </tr>
+                <tr>
+                    <td>전화 상담</td>
+                    <td class="muted">—</td>
+                    <td class="featured-col">일 10콜</td>
+                    <td class="enterprise-col">전담 배정</td>
+                </tr>
+                <tr>
+                    <td>맞춤 톤 설정</td>
+                    <td>1개</td>
+                    <td class="featured-col">3개</td>
+                    <td class="enterprise-col">무제한</td>
+                </tr>
+                <tr>
+                    <td>리포트</td>
+                    <td class="muted">—</td>
+                    <td class="featured-col">주간</td>
+                    <td class="enterprise-col">맞춤 리포트</td>
+                </tr>
+                <tr>
+                    <td>전담 매니저</td>
+                    <td class="muted">—</td>
+                    <td class="muted featured-col">—</td>
+                    <td class="enterprise-col check">&#10003;</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><a href="#contact" class="btn-secondary" style="font-size:12px; padding:8px 14px;">14일 무료 시작</a></td>
+                    <td class="featured-col"><a href="#contact" class="btn-primary" style="font-size:12px; padding:8px 14px;">14일 무료 시작</a></td>
+                    <td class="enterprise-col"><a href="#contact" class="btn-enterprise">상담 신청</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="price-note">부가세 별도 | 14일 무료 체험 | 체험 종료 전 알림 | 언제든 해지 가능 | 전화 상담 초과 시 소프트 캡 적용</p>
+</div>
+
+<!-- FAQ -->
+<div class="section-bg">
+    <div class="section-wrap">
+        <div class="section-title">
+            <h2>자주 묻는 질문</h2>
+        </div>
+        <div class="faq-list">
+            <details class="faq-item">
+                <summary>무료 체험 기간에 카드 등록이 필요한가요?</summary>
+                <p>네, 카드 등록 후 14일 무료 체험이 시작됩니다. 체험 기간 내 해지하시면 결제되지 않습니다. Google, AWS와 동일한 방식으로, 체험 종료 전 알림을 보내드립니다.</p>
+            </details>
+            <details class="faq-item">
+                <summary>AI 답변이 이상하면 어떡하나요?</summary>
+                <p>불만 리뷰는 자동 등록되지 않고 셀러님의 승인을 거칩니다. 긍정 리뷰도 답변 품질이 97% 이상 적합하도록 업체별 맞춤 톤을 설정합니다.</p>
+            </details>
+            <details class="faq-item">
+                <summary>어떤 플랫폼을 지원하나요?</summary>
+                <p>현재 쿠팡, 네이버 스마트스토어, 11번가, 카페24를 지원합니다. 추가 플랫폼은 순차적으로 확대 예정입니다.</p>
+            </details>
+            <details class="faq-item">
+                <summary>전화 CS는 어떻게 진행되나요?</summary>
+                <p>AI가 불만 리뷰를 감지하면 즉시 전문 CS팀에 전달됩니다. 30분 이내에 고객에게 직접 전화하여 불만을 해결하고, 리뷰 수정을 유도합니다.</p>
+            </details>
+            <details class="faq-item">
+                <summary>중간에 해지할 수 있나요?</summary>
+                <p>네, 위약금 없이 언제든 해지 가능합니다. 계약 기간 제약 없습니다.</p>
+            </details>
+        </div>
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section" id="contact">
+    <img class="cta-angel" src="angel-logo.png" alt="리뷰천사 로고" width="80" height="80"/>
+    <h2>별 1개 리뷰, 더 이상 두렵지 않습니다</h2>
+    <p>14일 무료 체험으로 직접 경험해보세요</p>
+    <!-- TODO: 실제 카카오 오픈프로필 URL로 교체하세요 (예: https://open.kakao.com/me/리뷰천사) -->
+    <a href="https://open.kakao.com/" class="btn-primary" style="font-size: 17px; padding: 16px 40px;">카카오톡으로 시작하기</a>
+    <p style="margin-top: 24px; font-size: 12px; color: #bbb;">14일 내 해지 시 결제 없음 · 체험 종료 전 알림</p>
+</div>
+
+<!-- 푸터 -->
+</main>
+<footer>
+    <div class="footer-brand">리뷰천사</div>
+    <p>루다(Ruda) | 대표: 홍석화</p>
+    <p style="margin-top:4px;">사업자등록번호: XXX-XX-XXXXX | 이메일: contact@reviewangel.kr</p>
+    <p style="margin-top:6px; color: #666;">Copyright 2025 Ruda. All rights reserved.</p>
+</footer>
+
+<!-- GA4 (TODO: G-XXXXXXXXXX를 실제 추적 ID로 교체) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-XXXXXXXXXX');
+</script>
+
+<!-- 햄버거 메뉴 -->
+<script>
+document.getElementById('hamburgerBtn').addEventListener('click', function() {
+    this.classList.toggle('active');
+    document.getElementById('navLinks').classList.toggle('open');
+    this.setAttribute('aria-label', this.classList.contains('active') ? '메뉴 닫기' : '메뉴 열기');
+});
+document.querySelectorAll('#navLinks a').forEach(function(link) {
+    link.addEventListener('click', function() {
+        document.getElementById('navLinks').classList.remove('open');
+        document.getElementById('hamburgerBtn').classList.remove('active');
+    });
+});
+</script>
+
+<!-- 구조화 데이터: FAQPage -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "무료 체험 기간에 카드 등록이 필요한가요?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "네, 카드 등록 후 14일 무료 체험이 시작됩니다. 체험 기간 내 해지하시면 결제되지 않습니다. Google, AWS와 동일한 방식으로, 체험 종료 전 알림을 보내드립니다."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "AI 답변이 이상하면 어떡하나요?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "불만 리뷰는 자동 등록되지 않고 셀러님의 승인을 거칩니다. 긍정 리뷰도 답변 품질이 97% 이상 적합하도록 업체별 맞춤 톤을 설정합니다."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "어떤 플랫폼을 지원하나요?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "현재 쿠팡, 네이버 스마트스토어, 11번가, 카페24를 지원합니다. 추가 플랫폼은 순차적으로 확대 예정입니다."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "전화 CS는 어떻게 진행되나요?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "AI가 불만 리뷰를 감지하면 즉시 전문 CS팀에 전달됩니다. 30분 이내에 고객에게 직접 전화하여 불만을 해결하고, 리뷰 수정을 유도합니다."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "중간에 해지할 수 있나요?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "네, 위약금 없이 언제든 해지 가능합니다. 계약 기간 제약 없습니다."
             }
         }
+    ]
+}
+</script>
 
-        // 업체 버튼 렌더링
-        function renderCompanyButtons() {
-            companySelector.innerHTML = '';
-            companiesData.forEach(c => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'company-btn';
-                btn.textContent = c.name;
-                btn.addEventListener('click', () => selectCompany(c.name));
-                companySelector.appendChild(btn);
-            });
-        }
+<!-- 구조화 데이터: Organization -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "리뷰천사",
+    "alternateName": "Review Angel",
+    "url": "https://ruach1223-collab.github.io/review-angel/",
+    "logo": "https://ruach1223-collab.github.io/review-angel/angel-logo.png",
+    "description": "이커머스 셀러를 위한 AI 리뷰 답변 + 배송추적 자동답변 + 전문 CS팀 전화 대응 서비스"
+}
+</script>
 
-        // 업체 선택
-        function selectCompany(name) {
-            selectedCompany = name;
-            companyInput.value = name;
-
-            // 활성 버튼 표시
-            companySelector.querySelectorAll('.company-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.textContent === name);
-            });
-
-            // 해당 업체의 FAQ 버튼 렌더링
-            const company = companiesData.find(c => c.name === name);
-            if (company && company.faqs.length > 0) {
-                renderFaqButtons(company.faqs);
-            } else {
-                faqGrid.innerHTML = '<span class="faq-placeholder">등록된 자주 묻는 질문이 없습니다</span>';
-            }
-        }
-
-        // FAQ 버튼 동적 생성
-        function renderFaqButtons(faqs) {
-            faqGrid.innerHTML = '';
-            faqs.forEach(q => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'quick-btn';
-                // 버튼 라벨: 10자 넘으면 줄임
-                btn.textContent = q.length > 12 ? q.substring(0, 11) + '…' : q;
-                btn.title = q;
-                btn.addEventListener('click', () => {
-                    questionInput.value = q;
-                    questionInput.focus();
-                });
-                faqGrid.appendChild(btn);
-            });
-        }
-
-        // 드롭다운 토글
-        dropdownToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isOpen = companyDropdown.classList.contains('open');
-            companyDropdown.classList.toggle('open');
-            if (!isOpen) renderDropdownItems();
-        });
-
-        // 드롭다운 아이템 렌더링
-        function renderDropdownItems() {
-            companyDropdown.innerHTML = '';
-            companiesData.forEach(c => {
-                const item = document.createElement('div');
-                item.className = 'dropdown-item';
-                item.textContent = c.name;
-                item.addEventListener('click', () => {
-                    selectCompany(c.name);
-                    companyDropdown.classList.remove('open');
-                });
-                companyDropdown.appendChild(item);
-            });
-        }
-
-        // 바깥 클릭 시 드롭다운 닫기
-        document.addEventListener('click', () => {
-            companyDropdown.classList.remove('open');
-        });
-
-        // 업체명 직접 입력 시 선택 상태 해제
-        companyInput.addEventListener('input', () => {
-            const val = companyInput.value.trim();
-            const match = companiesData.find(c => c.name === val);
-            if (match) {
-                selectCompany(match.name);
-            } else {
-                selectedCompany = null;
-                companySelector.querySelectorAll('.company-btn').forEach(btn => btn.classList.remove('active'));
-                faqGrid.innerHTML = '<span class="faq-placeholder">업체를 먼저 선택해주세요</span>';
-            }
-        });
-
-        // 페이지 로드 시 실행
-        loadCompanies();
-
-        // 답변 생성
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const company = companyInput.value.trim();
-            const question = questionInput.value.trim();
-
-            if (!company || !question) {
-                alert('업체명과 질문을 모두 입력해주세요.');
-                return;
-            }
-
-            // 로딩 카드 추가
-            emptyState.style.display = 'none';
-            const loadingCard = document.createElement('div');
-            loadingCard.className = 'history-card loading-card';
-            loadingCard.innerHTML = '<div class="spinner"></div><div>AI가 답변을 생성하고 있습니다...</div>';
-            historyList.prepend(loadingCard);
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = '생성 중...';
-            statusText.textContent = '답변 생성 중...';
-
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-
-            try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ company: company.toLowerCase(), question })
-                });
-
-                if (!response.ok) throw new Error("서버 응답 오류: " + response.status);
-
-                const data = await response.json();
-                loadingCard.remove();
-
-                if (data.answer) {
-                    count++;
-                    addHistoryCard(company, question, data.answer, timeStr);
-                    questionInput.value = '';
-
-                    // 상담 이력은 n8n 메인 워크플로우에서 자동 저장
-                } else {
-                    addErrorCard(company, question, '해당 업체 정보를 찾을 수 없습니다. 업체명을 확인해주세요.', timeStr);
-                }
-            } catch (err) {
-                loadingCard.remove();
-                addErrorCard(company, question, '답변 생성 실패: ' + err.message, timeStr);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '답변 생성';
-                statusText.textContent = '대기 중';
-            }
-        });
-
-        function addHistoryCard(company, question, answer, time) {
-            const card = document.createElement('div');
-            card.className = 'history-card';
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="card-meta">
-                        <span class="company-badge">${escapeHtml(company)}</span>
-                        <span class="card-time">${time}</span>
-                    </div>
-                    <button class="copy-btn" onclick="copyAnswer(this)">복사</button>
-                </div>
-                <div class="card-question"><strong>Q.</strong> ${escapeHtml(question)}</div>
-                <div class="card-answer">${escapeHtml(answer)}</div>
-            `;
-            historyList.prepend(card);
-            historyCount.textContent = count + '건';
-        }
-
-        function addErrorCard(company, question, errorMsg, time) {
-            count++;
-            const card = document.createElement('div');
-            card.className = 'history-card';
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="card-meta">
-                        <span class="company-badge">${escapeHtml(company)}</span>
-                        <span class="card-time">${time}</span>
-                    </div>
-                </div>
-                <div class="card-question"><strong>Q.</strong> ${escapeHtml(question)}</div>
-                <div class="card-answer error-text">${escapeHtml(errorMsg)}</div>
-            `;
-            historyList.prepend(card);
-            historyCount.textContent = count + '건';
-        }
-
-        function copyAnswer(btn) {
-            const answer = btn.closest('.history-card').querySelector('.card-answer').textContent;
-            navigator.clipboard.writeText(answer).then(() => {
-                btn.textContent = '복사됨';
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.textContent = '복사';
-                    btn.classList.remove('copied');
-                }, 1500);
-            });
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // 초기화
-        form.addEventListener('reset', function() {
-            // 폼만 초기화, 이력은 유지
-        });
-
-        // 이력 전체 삭제
-        document.getElementById('clearHistoryBtn').addEventListener('click', function() {
-            if (confirm('상담 이력을 전체 삭제하시겠습니까?')) {
-                historyList.innerHTML = '';
-                emptyState.style.display = '';
-                historyList.appendChild(emptyState);
-                count = 0;
-                historyCount.textContent = '0건';
-            }
-        });
-    </script>
 </body>
 </html>
