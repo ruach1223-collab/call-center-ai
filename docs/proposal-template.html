@@ -860,6 +860,21 @@ body {
           </div>
           <div class="form-row">
             <div class="form-group">
+              <label>성별</label>
+              <select id="workerGender" data-save>
+                <option value="">무관</option>
+                <option value="male">남성</option>
+                <option value="female">여성</option>
+                <option value="both">남녀 모두</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>연령</label>
+              <input type="text" id="workerAge" placeholder="예: 20~40대, 50세 이하" data-save>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
               <label>근무시간</label>
               <input type="text" id="workHours" placeholder="예: 08:00~17:00" data-save>
             </div>
@@ -919,6 +934,10 @@ body {
           <div class="form-group">
             <label>특이사항 / 메모</label>
             <textarea id="memo" placeholder="고객사에 추가로 전달할 내용" rows="4" data-save></textarea>
+          </div>
+          <div class="form-group">
+            <label>견적 추가사항 <button type="button" onclick="resetQuoteNotes()" style="font-size:0.65rem;padding:1px 6px;margin-left:6px;cursor:pointer;">기본값 복원</button></label>
+            <textarea id="quoteNotes" rows="10" data-save style="font-size:0.75rem;line-height:1.6;"></textarea>
           </div>
           <div class="form-group">
             <label>제안 일자</label>
@@ -1417,6 +1436,9 @@ function getBodyHTML(type, v) {
   const clientIndustry = escHtml(v.clientIndustry || '-');
   const workDesc = escHtml(v.workDescription || '-');
   const workerCount = v.workerCount ? v.workerCount + '명' : '-';
+  const genderMap = { male: '남성', female: '여성', both: '남녀 모두' };
+  const workerGender = genderMap[v.workerGender] || '';
+  const workerAge = escHtml(v.workerAge || '');
   const workHours = escHtml(v.workHours || '-');
   const workShift = escHtml(v.workShift || '-');
   const workLocation = escHtml(v.workLocation || '-');
@@ -1429,7 +1451,8 @@ function getBodyHTML(type, v) {
       <div class="overview-item"><span class="overview-label">고객사</span><span class="overview-value">${clientName}</span></div>
       <div class="overview-item"><span class="overview-label">업종</span><span class="overview-value">${clientIndustry}</span></div>
       <div class="overview-item"><span class="overview-label">업무내용</span><span class="overview-value">${workDesc}</span></div>
-      <div class="overview-item"><span class="overview-label">필요인원</span><span class="overview-value">${workerCount}</span></div>
+      <div class="overview-item"><span class="overview-label">필요인원</span><span class="overview-value">${workerCount}${workerGender ? ' (' + workerGender + ')' : ''}</span></div>
+      ${workerAge ? `<div class="overview-item"><span class="overview-label">연령</span><span class="overview-value">${workerAge}</span></div>` : ''}
       <div class="overview-item"><span class="overview-label">근무시간</span><span class="overview-value">${workHours}</span></div>
       <div class="overview-item"><span class="overview-label">근무형태</span><span class="overview-value">${workShift}</span></div>
       <div class="overview-item"><span class="overview-label">근무지역</span><span class="overview-value">${workLocation}</span></div>
@@ -2220,9 +2243,36 @@ function getQuotePersonnel(sectionNum, cfg, v) {
       * 근로기준법에 의거한 연장, 심야, 휴일근무 수당 및 퇴직금 등은 발생 시 별도 청구함.<br>
       * 상기 금액은 VAT 별도 기준이며, 실제 금액은 협의에 따라 변동될 수 있음.<br>
       * 계약기간: ${result.contractMonths}개월
-    </p>`;
+    </p>
+
+    ${v.quoteNotes && v.quoteNotes.trim() ? `<div style="font-size:0.72rem;color:var(--gray-500);margin-top:10px;line-height:1.7;">
+      <p style="font-weight:600;margin:0 0 4px 0;color:var(--gray-600);">※ 추가사항</p>
+      <ol style="margin:0;padding-left:1.2em;">
+        ${v.quoteNotes.trim().split('\n').map(line => { const t = line.replace(/^\d+\.\s*/, '').trim(); return t ? '<li>' + escHtml(t) + '</li>' : ''; }).join('')}
+      </ol>
+    </div>` : ''}`;
 
   return html;
+}
+
+// 견적 추가사항 기본 템플릿
+const DEFAULT_QUOTE_NOTES = `1. 위 내용은 예산(안)으로 실제 근무내용 및 근로자 수에 따라 상이할 수 있음.
+2. 최저시급 및 4대보험은 연도별 기준을 반영함.
+3. 귀사에서 식사 미지급 시 식대가 1식/1인 8,000원 청구함. (협의 가능)
+4. 귀사에서 통근버스 지원 불가 시 1인/1일 3,600원 교통비 청구함. (협의 가능)
+5. 연차수당, 퇴직금 등은 발생 시 청구함.
+6. 휴게시간 제공 유무에 따라 연장시간이 1일 2시간 or 1일 3시간으로 상이할 수 있음.
+7. 남녀 업무 강도에 따라 기본 시급은 달라질 수 있음.
+8. 부가세 별도 청구함.`;
+
+function resetQuoteNotes() {
+  const el = document.getElementById('quoteNotes');
+  if (el) { el.value = DEFAULT_QUOTE_NOTES; updatePreview(); }
+}
+
+function initQuoteNotes() {
+  const el = document.getElementById('quoteNotes');
+  if (el && !el.value.trim()) { el.value = DEFAULT_QUOTE_NOTES; }
 }
 
 // 채용대행 수수료 방식 토글
@@ -2643,11 +2693,14 @@ function getFormValues() {
     workLocation: val('workLocation'),
     workDescription: val('workDescription'),
     workerCount: val('workerCount'),
+    workerGender: val('workerGender'),
+    workerAge: val('workerAge'),
     workHours: val('workHours'),
     workShift: val('workShift'),
     startDate: val('startDate'),
     contractPeriod: val('contractPeriod'),
     memo: val('memo'),
+    quoteNotes: val('quoteNotes'),
     proposalDate: val('proposalDate'),
     serviceType: val('serviceType'),
     // 도급/파견 — 그룹
@@ -3190,6 +3243,7 @@ document.addEventListener('DOMContentLoaded', function() {
     personnelGroupCount = 0;
     addPersonnelGroup();
   }
+  initQuoteNotes();
   bindInputListeners();
   // onServiceTypeChange에서 renderQuoteForm 재호출로 그룹이 날아가지 않도록 body만 갱신
   renderBody();
