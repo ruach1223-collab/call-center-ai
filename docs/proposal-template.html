@@ -1175,6 +1175,44 @@ function renderQuoteForm(type) {
               </select>
             </div>
             <div class="rate-item" style="gap:8px;margin-top:6px;">
+              <span style="min-width:68px;font-size:0.75rem;color:var(--gray-600);">연장수당</span>
+              <select id="pOvertimeMode" data-save style="padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.78rem;" onchange="toggleOvertimeHours(); updatePreview(); saveData();">
+                <option value="off">미적용</option>
+                <option value="include">포함</option>
+                <option value="ondemand">발생시 청구</option>
+              </select>
+            </div>
+            <div class="rate-item" id="overtimeHoursGroup" style="gap:8px;margin-top:6px;display:none;">
+              <span style="min-width:68px;font-size:0.75rem;color:var(--gray-600);">일 연장시간</span>
+              <select id="pOvertimeHours" data-save style="padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.78rem;" onchange="toggleOvertimeCustom(); updatePreview(); saveData();">
+                <option value="1">1시간</option>
+                <option value="2" selected>2시간</option>
+                <option value="3">3시간</option>
+                <option value="4">4시간</option>
+                <option value="custom">직접 입력</option>
+              </select>
+              <input type="number" id="pOvertimeHoursCustom" data-save placeholder="시간" min="0.5" max="8" step="0.5" style="width:60px;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.78rem;text-align:right;display:none;" oninput="updatePreview(); saveData();">
+            </div>
+            <div class="rate-item" style="gap:8px;margin-top:6px;">
+              <span style="min-width:68px;font-size:0.75rem;color:var(--gray-600);">심야수당</span>
+              <select id="pNightMode" data-save style="padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.78rem;" onchange="toggleNightHours(); updatePreview(); saveData();">
+                <option value="off">미적용</option>
+                <option value="include">포함</option>
+                <option value="ondemand">발생시 청구</option>
+              </select>
+            </div>
+            <div class="rate-item" id="nightHoursGroup" style="gap:8px;margin-top:6px;display:none;">
+              <span style="min-width:68px;font-size:0.75rem;color:var(--gray-600);">일 심야시간</span>
+              <select id="pNightHours" data-save style="padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.78rem;" onchange="toggleNightCustom(); updatePreview(); saveData();">
+                <option value="1">1시간</option>
+                <option value="2" selected>2시간</option>
+                <option value="3">3시간</option>
+                <option value="4">4시간</option>
+                <option value="custom">직접 입력</option>
+              </select>
+              <input type="number" id="pNightHoursCustom" data-save placeholder="시간" min="0.5" max="8" step="0.5" style="width:60px;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.78rem;text-align:right;display:none;" oninput="updatePreview(); saveData();">
+            </div>
+            <div class="rate-item" style="gap:8px;margin-top:6px;">
               <span style="min-width:68px;font-size:0.75rem;color:var(--gray-600);">통상시급</span>
               <input type="text" id="pOrdinaryWage" data-save placeholder="비워두면 기본시급" style="width:120px;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.78rem;text-align:right;" oninput="formatNumber(this); updatePreview(); saveData();">
             </div>
@@ -1846,6 +1884,30 @@ function getQuoteHTML(type, v) {
   return '';
 }
 
+// 연장수당 UI 토글
+function toggleOvertimeHours() {
+  const mode = document.getElementById('pOvertimeMode')?.value || 'off';
+  const group = document.getElementById('overtimeHoursGroup');
+  if (group) group.style.display = mode === 'off' ? 'none' : 'flex';
+}
+function toggleOvertimeCustom() {
+  const sel = document.getElementById('pOvertimeHours')?.value;
+  const custom = document.getElementById('pOvertimeHoursCustom');
+  if (custom) custom.style.display = sel === 'custom' ? '' : 'none';
+}
+
+// 심야수당 UI 토글
+function toggleNightHours() {
+  const mode = document.getElementById('pNightMode')?.value || 'off';
+  const group = document.getElementById('nightHoursGroup');
+  if (group) group.style.display = mode === 'off' ? 'none' : 'flex';
+}
+function toggleNightCustom() {
+  const sel = document.getElementById('pNightHours')?.value;
+  const custom = document.getElementById('pNightHoursCustom');
+  if (custom) custom.style.display = sel === 'custom' ? '' : 'none';
+}
+
 // 요율 읽기 (0 입력 허용)
 function rateVal(id, def) {
   const el = document.getElementById(id);
@@ -1896,13 +1958,30 @@ function calcPersonnel(v) {
   const customTotal = customAllowances.reduce((s, a) => s + (a.amount || 0), 0);
   const laborSub1 = baseWage + transport + nightPay + customTotal; // ① 직접노무비
 
-  // 연차수당
-  const alMode = v.pAnnualLeaveMode || 'include';
+  // 통상시급
   const ordinaryWageInput = parseNumber(v.pOrdinaryWage);
   const ordinaryWage = ordinaryWageInput || Math.round((baseWage + transport) / 209);
+
+  // 연장수당
+  const otMode = v.pOvertimeMode || 'off';
+  const otHoursSel = v.pOvertimeHours || '2';
+  const otHours = otHoursSel === 'custom' ? (parseFloat(v.pOvertimeHoursCustom) || 2) : parseFloat(otHoursSel);
+  const otWorkDays = 22;
+  const overtimeCalc = Math.round(ordinaryWage * 1.5 * otHours * otWorkDays);
+  const overtime = otMode === 'include' ? overtimeCalc : 0;
+
+  // 심야수당 (22:00~06:00, 통상시급×0.5)
+  const ntMode = v.pNightMode || 'off';
+  const ntHoursSel = v.pNightHours || '2';
+  const ntHours = ntHoursSel === 'custom' ? (parseFloat(v.pNightHoursCustom) || 2) : parseFloat(ntHoursSel);
+  const nightCalc = Math.round(ordinaryWage * 0.5 * ntHours * otWorkDays);
+  const nightAllowance = ntMode === 'include' ? nightCalc : 0;
+
+  // 연차수당
+  const alMode = v.pAnnualLeaveMode || 'include';
   const annualLeaveCalc = ordinaryWage * 8; // 통상시급×8h
   const annualLeave = alMode === 'include' ? annualLeaveCalc : 0;
-  const laborSub2 = annualLeave; // ②
+  const laborSub2 = annualLeave + overtime + nightAllowance; // ②
   const laborTotal = laborSub1 + laborSub2; // ③ = ①+②
 
   // 4대보험 개별 계산
@@ -1955,6 +2034,8 @@ function calcPersonnel(v) {
 
   return {
     workers, hourly, baseWage, transport, nightPay, customAllowances, customTotal, ordinaryWage,
+    otMode, otHours, overtimeCalc, overtime,
+    ntMode, ntHours, nightCalc, nightAllowance,
     laborSub1, annualLeaveCalc, annualLeave, alMode, laborSub2, laborTotal,
     rPension, rHealth, rLongCare, rEmploy, rIndust, rBizTax, rRetire,
     pension, health, longCareAmt, employ, indust, bizTaxAmt, insuranceTotal,
@@ -1988,6 +2069,10 @@ function getQuotePersonnel(sectionNum, cfg, v) {
         <tr><td></td><td>퇴직금</td><td>급여계(①)의 ${(c.rRetire * 100).toFixed(2)}%</td><td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>
         ${c.alMode === 'include' ? `<tr><td></td><td>연차수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×8시간</td><td style="text-align:right;">${numberWithCommas(c.annualLeaveCalc)}</td></tr>` : ''}
         ${c.alMode === 'ondemand' ? `<tr><td></td><td>연차수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×8시간</td><td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>` : ''}
+        ${c.otMode === 'include' ? `<tr><td></td><td>연장수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×1.5×${c.otHours}h×22일</td><td style="text-align:right;">${numberWithCommas(c.overtimeCalc)}</td></tr>` : ''}
+        ${c.otMode === 'ondemand' ? `<tr><td></td><td>연장수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×1.5×${c.otHours}h×22일</td><td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>` : ''}
+        ${c.ntMode === 'include' ? `<tr><td></td><td>심야수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×0.5×${c.ntHours}h×22일</td><td style="text-align:right;">${numberWithCommas(c.nightCalc)}</td></tr>` : ''}
+        ${c.ntMode === 'ondemand' ? `<tr><td></td><td>심야수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×0.5×${c.ntHours}h×22일</td><td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>` : ''}
         ${c.leaderPay > 0 ? `<tr><td></td><td>직책수당 (현장관리자)</td><td>${numberWithCommas(c.leaderPay)}원/월</td><td style="text-align:right;color:var(--gray-500);">해당자 청구</td></tr>` : ''}
         <tr style="border-top:1px solid var(--gray-300);"><td></td><td><strong>② 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${numberWithCommas(c.laborSub2)}</td></tr>
         <tr class="subtotal-row" style="background:var(--blue-light);"><td colspan="2" style="text-align:left;"><strong>③ 합계 (①+②)</strong></td><td></td><td style="text-align:right;font-weight:700;">${numberWithCommas(c.laborTotal)}</td></tr>
@@ -2458,6 +2543,12 @@ function getFormValues() {
     pFeePeriod: val('pFeePeriod'),
     pContractMonths: val('pContractMonths'),
     pAnnualLeaveMode: val('pAnnualLeaveMode'),
+    pOvertimeMode: val('pOvertimeMode'),
+    pOvertimeHours: val('pOvertimeHours'),
+    pOvertimeHoursCustom: val('pOvertimeHoursCustom'),
+    pNightMode: val('pNightMode'),
+    pNightHours: val('pNightHours'),
+    pNightHoursCustom: val('pNightHoursCustom'),
     pOrdinaryWage: val('pOrdinaryWage'),
     customAllowances: getCustomAllowances(),
     // 요율
@@ -2570,6 +2661,12 @@ function loadData() {
         if (fields) fields.style.display = customEl.checked ? 'block' : 'none';
         if (tierSelect) tierSelect.disabled = customEl.checked;
       }
+
+      // 연장수당/심야수당 UI 토글 복원
+      toggleOvertimeHours();
+      toggleOvertimeCustom();
+      toggleNightHours();
+      toggleNightCustom();
     }
     if (data.refs && data.refs.length > 0) {
       const list = document.getElementById('refList');
