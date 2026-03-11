@@ -854,23 +854,14 @@ body {
             <label>업무 내용</label>
             <textarea id="workDescription" placeholder="예: 생산라인 조립, 포장, 검수 등" rows="3" data-save></textarea>
           </div>
-          <div class="form-group">
-            <label>필요 인원</label>
-            <input type="number" id="workerCount" placeholder="예: 20" min="1" data-save>
-          </div>
           <div class="form-row">
             <div class="form-group">
-              <label>성별</label>
-              <select id="workerGender" data-save>
-                <option value="">무관</option>
-                <option value="male">남성</option>
-                <option value="female">여성</option>
-                <option value="both">남녀 모두</option>
-              </select>
+              <label>필요 인원</label>
+              <input type="text" id="workerCount" placeholder="예: 20명 (남10, 여10)" data-save>
             </div>
             <div class="form-group">
-              <label>연령</label>
-              <input type="text" id="workerAge" placeholder="예: 20~40대, 50세 이하" data-save>
+              <label>연령 (선택)</label>
+              <input type="text" id="workerAge" placeholder="예: 20~40대" data-save>
             </div>
           </div>
           <div class="form-row">
@@ -931,10 +922,6 @@ body {
       <div class="form-section" id="sec-memo">
         <div class="form-section-title" onclick="toggleSection('sec-memo')">추가 사항</div>
         <div class="form-section-body">
-          <div class="form-group">
-            <label>특이사항 / 메모</label>
-            <textarea id="memo" placeholder="고객사에 추가로 전달할 내용" rows="4" data-save></textarea>
-          </div>
           <div class="form-group">
             <label>견적 추가사항 <button type="button" onclick="resetQuoteNotes()" style="font-size:0.65rem;padding:1px 6px;margin-left:6px;cursor:pointer;">기본값 복원</button></label>
             <textarea id="quoteNotes" rows="10" data-save style="font-size:0.75rem;line-height:1.6;"></textarea>
@@ -1435,9 +1422,7 @@ function getBodyHTML(type, v) {
   const clientName = escHtml(v.clientName || '-');
   const clientIndustry = escHtml(v.clientIndustry || '-');
   const workDesc = escHtml(v.workDescription || '-');
-  const workerCount = v.workerCount ? v.workerCount + '명' : '-';
-  const genderMap = { male: '남성', female: '여성', both: '남녀 모두' };
-  const workerGender = genderMap[v.workerGender] || '';
+  const workerCount = escHtml(v.workerCount || '-');
   const workerAge = escHtml(v.workerAge || '');
   const workHours = escHtml(v.workHours || '-');
   const workShift = escHtml(v.workShift || '-');
@@ -1451,7 +1436,7 @@ function getBodyHTML(type, v) {
       <div class="overview-item"><span class="overview-label">고객사</span><span class="overview-value">${clientName}</span></div>
       <div class="overview-item"><span class="overview-label">업종</span><span class="overview-value">${clientIndustry}</span></div>
       <div class="overview-item"><span class="overview-label">업무내용</span><span class="overview-value">${workDesc}</span></div>
-      <div class="overview-item"><span class="overview-label">필요인원</span><span class="overview-value">${workerCount}${workerGender ? ' (' + workerGender + ')' : ''}</span></div>
+      <div class="overview-item"><span class="overview-label">필요인원</span><span class="overview-value">${workerCount}</span></div>
       ${workerAge ? `<div class="overview-item"><span class="overview-label">연령</span><span class="overview-value">${workerAge}</span></div>` : ''}
       <div class="overview-item"><span class="overview-label">근무시간</span><span class="overview-value">${workHours}</span></div>
       <div class="overview-item"><span class="overview-label">근무형태</span><span class="overview-value">${workShift}</span></div>
@@ -2693,7 +2678,6 @@ function getFormValues() {
     workLocation: val('workLocation'),
     workDescription: val('workDescription'),
     workerCount: val('workerCount'),
-    workerGender: val('workerGender'),
     workerAge: val('workerAge'),
     workHours: val('workHours'),
     workShift: val('workShift'),
