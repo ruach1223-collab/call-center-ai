@@ -2032,7 +2032,8 @@ function calcGroup(g, v) {
   const customTotal = customAllowances.reduce((s, a) => s + (a.amount || 0), 0);
   const laborSub1 = baseWage + transport + nightPay + customTotal;
 
-  const ordinaryWageInput = parseNumber(v.pOrdinaryWage);
+  const multiGroup = (typeof v._multiGroup !== 'undefined') ? v._multiGroup : (getPersonnelGroups().length > 1);
+  const ordinaryWageInput = multiGroup ? 0 : parseNumber(v.pOrdinaryWage);
   const ordinaryWage = ordinaryWageInput || Math.round((baseWage + transport) / 209);
 
   const otMode = v.pOvertimeMode || 'off';
@@ -2116,6 +2117,7 @@ function calcPersonnel(v) {
     customAllowances: getCustomAllowances(),
   }];
 
+  v._multiGroup = groupList.length > 1;
   const calcs = groupList.map(g => calcGroup(g, v));
   const totalWorkers = calcs.reduce((s, c) => s + c.workers, 0);
   const groupMonthlySum = calcs.reduce((s, c) => s + c.perPerson * c.workers, 0);
