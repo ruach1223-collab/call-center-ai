@@ -642,7 +642,14 @@ body {
 }
 
 @media print {
-  @page { margin: 15mm 12mm; }
+  @page {
+    margin: 15mm 12mm 20mm 12mm;
+    @bottom-center {
+      content: "- " counter(page) " -";
+      font-size: 9px;
+      color: #94a3b8;
+    }
+  }
   body { background: white; }
   .app-header, .sidebar, .mobile-toggle, .no-print, .cloud-overlay { display: none !important; }
   .container { display: block; }
@@ -1107,8 +1114,33 @@ function renderQuoteForm(type) {
         </div>
       </div>
       <div class="form-group">
+        <label>수수료 유형</label>
+        <select id="pFeeType" data-save onchange="updateFeeUI(); recalcProposal();" style="padding:6px 8px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.85rem;">
+          <option value="rate">비율 (%)</option>
+          <option value="daily">인당 일비 (원/일/인)</option>
+        </select>
+      </div>
+      <div id="feeRateGroup" class="form-group">
         <label>관리수수료 (%)</label>
         <input type="number" id="pMgmtRate" placeholder="8" min="0" max="30" step="0.5" value="8" data-save>
+      </div>
+      <div id="feeDailyGroup" class="form-group" style="display:none;">
+        <label>인당 일비 (원/일/인)</label>
+        <input type="text" id="pDailyFee" placeholder="10,000" data-save oninput="formatNumber(this)">
+        <div style="font-size:0.7rem;color:var(--gray-500);margin-top:2px;">근무일수 기준 월 환산</div>
+      </div>
+      <div class="form-row" style="gap:8px;">
+        <div class="form-group" style="flex:1;">
+          <label>청구 기준</label>
+          <select id="pFeePeriod" data-save onchange="recalcProposal();" style="padding:6px 8px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.85rem;">
+            <option value="monthly">월 단위</option>
+            <option value="yearly">연 단위</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>계약 기간 (개월)</label>
+          <input type="number" id="pContractMonths" placeholder="12" min="3" max="12" value="12" data-save>
+        </div>
       </div>
 
       <div style="margin-top:10px;">
@@ -1117,8 +1149,8 @@ function renderQuoteForm(type) {
         <div class="rate-settings" id="rateSettings">
           <div style="font-size:0.7rem;color:var(--gray-500);margin-bottom:6px;">업종/연도에 따라 요율이 다릅니다. 필요 시 수정하세요.</div>
           <div class="rate-grid">
-            <div class="rate-item"><span>국민연금</span><input type="number" id="ratePension" value="4.5" step="0.1" data-save><span class="unit">%</span></div>
-            <div class="rate-item"><span>건강보험</span><input type="number" id="rateHealth" value="3.545" step="0.001" data-save><span class="unit">%</span></div>
+            <div class="rate-item"><span>국민연금</span><input type="number" id="ratePension" value="4.75" step="0.01" data-save><span class="unit">%</span></div>
+            <div class="rate-item"><span>건강보험</span><input type="number" id="rateHealth" value="3.595" step="0.001" data-save><span class="unit">%</span></div>
             <div class="rate-item"><span>장기요양</span><input type="number" id="rateLongCare" value="13.14" step="0.01" data-save><span class="unit">%</span></div>
             <div class="rate-item"><span>고용보험</span><input type="number" id="rateEmploy" value="0.9" step="0.1" data-save><span class="unit">%</span></div>
             <div class="rate-item"><span>산재보험</span><input type="number" id="rateIndust" value="1.5" step="0.1" data-save><span class="unit">%</span></div>
@@ -1133,6 +1165,10 @@ function renderQuoteForm(type) {
                 <option value="ondemand">발생시 청구</option>
                 <option value="off">미적용</option>
               </select>
+            </div>
+            <div class="rate-item" style="gap:8px;margin-top:6px;">
+              <span style="min-width:68px;font-size:0.75rem;color:var(--gray-600);">통상시급</span>
+              <input type="text" id="pOrdinaryWage" data-save placeholder="비워두면 기본시급" style="width:120px;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.78rem;text-align:right;" oninput="formatNumber(this); updatePreview(); saveData();">
             </div>
           </div>
         </div>
@@ -1171,7 +1207,7 @@ function renderQuoteForm(type) {
           <li>생산직/단순직: 5~10%</li>
           <li>사무직/기술직: 10~15%</li>
           <li>전문직/관리직: 15~25%</li>
-          <li>3개월 이내 퇴사 시 무료 재채용</li>
+          <li>보증 기간: 별도 협의</li>
         </ul>
       </div>
     `;
@@ -1268,6 +1304,19 @@ function renderQuoteForm(type) {
 function toggleRateSettings() {
   const el = document.getElementById('rateSettings');
   if (el) el.classList.toggle('open');
+}
+
+function updateFeeUI() {
+  const feeType = document.getElementById('pFeeType')?.value || 'rate';
+  const rateGroup = document.getElementById('feeRateGroup');
+  const dailyGroup = document.getElementById('feeDailyGroup');
+  if (rateGroup) rateGroup.style.display = feeType === 'rate' ? '' : 'none';
+  if (dailyGroup) dailyGroup.style.display = feeType === 'daily' ? '' : 'none';
+}
+
+function recalcProposal() {
+  updatePreview();
+  saveData();
 }
 
 function onCsCallTierChange() {
@@ -1549,7 +1598,7 @@ function getRecruitBody(v) {
         <tr><td><strong>면접 조율</strong></td><td class="danger-cell">직접 일정 조율</td><td class="highlight-cell">워크위드가 조율</td></tr>
         <tr><td><strong>비용 발생 시점</strong></td><td class="danger-cell">공고 즉시 비용</td><td class="highlight-cell">채용 성공 시에만</td></tr>
         <tr><td><strong>채용 실패 시</strong></td><td class="danger-cell">비용 회수 불가</td><td class="highlight-cell">비용 없음</td></tr>
-        <tr><td><strong>보장 기간</strong></td><td>-</td><td class="highlight-cell">3개월 이내 퇴사 시 무료 재채용</td></tr>
+        <tr><td><strong>보증 조건</strong></td><td>-</td><td class="highlight-cell">별도 협의</td></tr>
       </tbody>
     </table>
 
@@ -1580,8 +1629,8 @@ function getRecruitBody(v) {
     <div class="success-box">
       <strong>성공 보수제:</strong> 채용이 확정된 인원에 대해서만 수수료가 발생합니다.<br>
       &#x2714; 채용 성공 전까지 비용 없음<br>
-      &#x2714; 3개월 이내 퇴사 시 무료 재채용 또는 수수료 반환<br>
-      &#x2714; 수수료: 연봉의 일정 비율 (포지션별 협의)
+      &#x2714; 수수료: 연봉의 일정 비율 (포지션별 협의)<br>
+      &#x2714; 보증 조건: 별도 협의
     </div>
 
     <div class="page-break"></div>
@@ -1646,7 +1695,7 @@ function getCallcenterBody(v) {
     <h3>4대보험 전원 가입</h3>
     <div class="success-box">
       <strong>워크위드는 전 상담원 4대보험 가입, 정식 근로계약 체결을 원칙으로 합니다.</strong><br>
-      3.3% 사업소득 처리 업체와 달리, 법적 리스크 없는 안정적 운영을 보장합니다.
+      3.3% 사업소득 처리 업체와 달리, 법적 리스크를 최소화한 안정적 운영 구조입니다.
     </div>
 
     <div class="page-break"></div>
@@ -1754,14 +1803,15 @@ function calcPersonnel(v) {
 
   // 연차수당
   const alMode = v.pAnnualLeaveMode || 'include';
-  const annualLeaveCalc = hourly * 8; // 통상시급×8h
+  const ordinaryWage = parseNumber(v.pOrdinaryWage) || hourly;
+  const annualLeaveCalc = ordinaryWage * 8; // 통상시급×8h
   const annualLeave = alMode === 'include' ? annualLeaveCalc : 0;
   const laborSub2 = annualLeave; // ②
   const laborTotal = laborSub1 + laborSub2; // ③ = ①+②
 
   // 4대보험 개별 계산
-  const rPension = rateVal('ratePension', 4.5) / 100;
-  const rHealth = rateVal('rateHealth', 3.545) / 100;
+  const rPension = rateVal('ratePension', 4.75) / 100;
+  const rHealth = rateVal('rateHealth', 3.595) / 100;
   const rLongCare = rateVal('rateLongCare', 13.14) / 100;
   const rEmploy = rateVal('rateEmploy', 0.9) / 100;
   const rIndust = rateVal('rateIndust', 1.5) / 100;
@@ -1777,28 +1827,45 @@ function calcPersonnel(v) {
   const insuranceTotal = pension + health + longCareAmt + employ + indust + bizTaxAmt; // ④
 
   const subtotal = laborTotal + insuranceTotal; // ⑤ = ③+④
-  const retire = Math.round(baseWage * rRetire); // 퇴직금 (발생시 청구)
+  const retire = Math.round(laborSub1 * rRetire); // 퇴직금 = 급여계(①)의 8.33%
 
-  // 관리수수료
+  // 수수료 계산
+  const feeType = v.pFeeType || 'rate';
   const mgmtRate = parseFloat(v.pMgmtRate) || 8;
-  const mgmtAmount = Math.round(subtotal * mgmtRate / 100);
+  const dailyFee = parseNumber(v.pDailyFee) || 10000;
+  const workDays = 22; // 월 근무일수 기준
+  let mgmtAmount, mgmtLabel;
+  if (feeType === 'daily') {
+    mgmtAmount = dailyFee * workDays;
+    mgmtLabel = numberWithCommas(dailyFee) + '원/일 × ' + workDays + '일';
+  } else {
+    mgmtAmount = Math.round(subtotal * mgmtRate / 100);
+    mgmtLabel = '⑤합계의 ' + mgmtRate + '%';
+  }
   const perPerson = subtotal + mgmtAmount; // 1인 단가
+
+  // 청구/계약 기간
+  const feePeriod = v.pFeePeriod || 'monthly';
+  const contractMonths = parseInt(v.pContractMonths) || 12;
 
   // 직책수당, 기타비용
   const leaderPay = parseNumber(v.pLeaderPay);
   const etcCost = parseNumber(v.pEtcCost);
 
-  // 월 합계 = 1인단가×인원 + 기타비용 (직책수당은 1인단가에 미포함, 월 총액에 별도)
-  const monthlyTotal = perPerson * workers + leaderPay + etcCost;
+  // 월 합계 = 1인단가×인원 + 기타비용
+  const monthlyTotal = perPerson * workers + etcCost;
+  const yearlyTotal = monthlyTotal * 12;
+  const contractTotal = monthlyTotal * contractMonths;
 
   return {
-    workers, hourly, baseWage, transport, nightPay,
+    workers, hourly, baseWage, transport, nightPay, ordinaryWage,
     laborSub1, annualLeaveCalc, annualLeave, alMode, laborSub2, laborTotal,
     rPension, rHealth, rLongCare, rEmploy, rIndust, rBizTax, rRetire,
     pension, health, longCareAmt, employ, indust, bizTaxAmt, insuranceTotal,
     subtotal, retire,
-    mgmtRate, mgmtAmount, perPerson,
-    leaderPay, etcCost, monthlyTotal
+    feeType, mgmtRate, dailyFee, mgmtAmount, mgmtLabel, perPerson,
+    feePeriod, contractMonths,
+    leaderPay, etcCost, monthlyTotal, yearlyTotal, contractTotal
   };
 }
 
@@ -1821,20 +1888,21 @@ function getQuotePersonnel(sectionNum, cfg, v) {
         ${c.transport > 0 ? `<tr><td></td><td>교통비</td><td></td><td style="text-align:right;">${numberWithCommas(c.transport)}</td></tr>` : ''}
         ${c.nightPay > 0 ? `<tr><td></td><td>야간수당</td><td></td><td style="text-align:right;">${numberWithCommas(c.nightPay)}</td></tr>` : ''}
         <tr style="border-top:1px solid var(--gray-300);"><td></td><td><strong>① 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${numberWithCommas(c.laborSub1)}</td></tr>
-        <tr><td></td><td>퇴직금</td><td>${(c.rRetire * 100).toFixed(2)}%</td><td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>
-        ${c.alMode === 'include' ? `<tr><td></td><td>연차수당</td><td>통상시급×8시간</td><td style="text-align:right;">${numberWithCommas(c.annualLeaveCalc)}</td></tr>` : ''}
-        ${c.alMode === 'ondemand' ? `<tr><td></td><td>연차수당</td><td>통상시급×8시간</td><td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>` : ''}
+        <tr><td></td><td>퇴직금</td><td>급여계(①)의 ${(c.rRetire * 100).toFixed(2)}%</td><td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>
+        ${c.alMode === 'include' ? `<tr><td></td><td>연차수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×8시간</td><td style="text-align:right;">${numberWithCommas(c.annualLeaveCalc)}</td></tr>` : ''}
+        ${c.alMode === 'ondemand' ? `<tr><td></td><td>연차수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×8시간</td><td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>` : ''}
+        ${c.leaderPay > 0 ? `<tr><td></td><td>직책수당 (현장관리자)</td><td>${numberWithCommas(c.leaderPay)}원/월</td><td style="text-align:right;color:var(--gray-500);">해당자 청구</td></tr>` : ''}
         <tr style="border-top:1px solid var(--gray-300);"><td></td><td><strong>② 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${numberWithCommas(c.laborSub2)}</td></tr>
         <tr class="subtotal-row" style="background:var(--blue-light);"><td colspan="2" style="text-align:left;"><strong>③ 합계 (①+②)</strong></td><td></td><td style="text-align:right;font-weight:700;">${numberWithCommas(c.laborTotal)}</td></tr>
-        <tr><td style="text-align:left;"><strong>간접노무비</strong></td><td>국민연금</td><td>임금×${(c.rPension * 100).toFixed(2)}%</td><td style="text-align:right;">${numberWithCommas(c.pension)}</td></tr>
-        <tr><td style="text-align:left;color:var(--gray-500);font-size:0.7rem;">(4대보험)</td><td>건강보험</td><td>임금×${(c.rHealth * 100).toFixed(3)}%</td><td style="text-align:right;">${numberWithCommas(c.health)}</td></tr>
+        <tr><td style="text-align:left;"><strong>간접노무비</strong></td><td>국민연금</td><td>③합계×${(c.rPension * 100).toFixed(2)}%</td><td style="text-align:right;">${numberWithCommas(c.pension)}</td></tr>
+        <tr><td style="text-align:left;color:var(--gray-500);font-size:0.7rem;">(4대보험)</td><td>건강보험</td><td>③합계×${(c.rHealth * 100).toFixed(3)}%</td><td style="text-align:right;">${numberWithCommas(c.health)}</td></tr>
         <tr><td></td><td>장기요양보험</td><td>건강보험료×${(c.rLongCare * 100).toFixed(2)}%</td><td style="text-align:right;">${numberWithCommas(c.longCareAmt)}</td></tr>
-        <tr><td></td><td>고용보험</td><td>임금×${(c.rEmploy * 100).toFixed(2)}%</td><td style="text-align:right;">${numberWithCommas(c.employ)}</td></tr>
-        <tr><td></td><td>산재보험</td><td>임금×${(c.rIndust * 100).toFixed(3)}%</td><td style="text-align:right;">${numberWithCommas(c.indust)}</td></tr>
-        <tr><td></td><td>사업소세</td><td>임금×${(c.rBizTax * 100).toFixed(1)}%</td><td style="text-align:right;">${numberWithCommas(c.bizTaxAmt)}</td></tr>
+        <tr><td></td><td>고용보험</td><td>③합계×${(c.rEmploy * 100).toFixed(2)}%</td><td style="text-align:right;">${numberWithCommas(c.employ)}</td></tr>
+        <tr><td></td><td>산재보험</td><td>③합계×${(c.rIndust * 100).toFixed(3)}%</td><td style="text-align:right;">${numberWithCommas(c.indust)}</td></tr>
+        <tr><td></td><td>사업소세</td><td>③합계×${(c.rBizTax * 100).toFixed(1)}%</td><td style="text-align:right;">${numberWithCommas(c.bizTaxAmt)}</td></tr>
         <tr style="border-top:1px solid var(--gray-300);"><td></td><td><strong>④ 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${numberWithCommas(c.insuranceTotal)}</td></tr>
         <tr class="subtotal-row" style="background:var(--blue-light);"><td colspan="2" style="text-align:left;"><strong>⑤ 합계 (③+④)</strong></td><td></td><td style="text-align:right;font-weight:700;">${numberWithCommas(c.subtotal)}</td></tr>
-        <tr><td style="text-align:left;"><strong>수수료</strong></td><td>관리 수수료<br><span style="font-size:0.65rem;color:var(--gray-500);line-height:1.3;">채용 광고비, 급여/4대보험 행정대행,<br>부당해고 등 노무 자문 및 리스크 관리,<br>결원 대응비, 근로자 복리후생비 등<br>제반 간접비 포함</span></td><td>${c.mgmtRate}%</td><td style="text-align:right;">${numberWithCommas(c.mgmtAmount)}</td></tr>
+        <tr><td style="text-align:left;"><strong>수수료</strong></td><td>관리 수수료<br><span style="font-size:0.65rem;color:var(--gray-500);line-height:1.3;">채용 광고비, 급여/4대보험 행정대행,<br>부당해고 등 노무 자문 및 리스크 관리,<br>결원 대응비, 근로자 복리후생비 등<br>제반 간접비 포함</span></td><td>${c.mgmtLabel}</td><td style="text-align:right;">${numberWithCommas(c.mgmtAmount)}</td></tr>
       </tbody>
       <tfoot>
         <tr class="total-row" style="background:var(--navy);color:var(--white);"><td colspan="2" style="text-align:left;"><strong>1인 단가 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;">${numberWithCommas(c.perPerson)}</td></tr>
@@ -1846,18 +1914,20 @@ function getQuotePersonnel(sectionNum, cfg, v) {
       <thead><tr><th style="text-align:left;">항목</th><th>산출내역</th><th style="text-align:right;">금액</th></tr></thead>
       <tbody>
         <tr><td style="text-align:left;">인건비 (${c.workers}명)</td><td>${numberWithCommas(c.perPerson)}원 × ${c.workers}명</td><td style="text-align:right;">${numberWithCommas(c.perPerson * c.workers)}</td></tr>
-        ${c.leaderPay > 0 ? `<tr><td style="text-align:left;">직책수당 (현장관리자)</td><td></td><td style="text-align:right;">${numberWithCommas(c.leaderPay)}</td></tr>` : ''}
         ${c.etcCost > 0 ? `<tr><td style="text-align:left;">기타비용</td><td>유니폼 / 교육 / 채용 등</td><td style="text-align:right;">${numberWithCommas(c.etcCost)}</td></tr>` : ''}
       </tbody>
       <tfoot>
         <tr class="total-row" style="background:var(--navy);color:var(--white);"><td style="text-align:left;"><strong>월 청구 예상액 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;font-size:1rem;">${numberWithCommas(c.monthlyTotal)}</td></tr>
+        ${c.feePeriod === 'yearly' ? `<tr style="background:#1e3a5f;color:var(--white);"><td style="text-align:left;"><strong>연 청구 예상액 (VAT 별도)</strong></td><td>${numberWithCommas(c.monthlyTotal)} × 12개월</td><td style="text-align:right;font-weight:700;font-size:1rem;">${numberWithCommas(c.yearlyTotal)}</td></tr>` : ''}
+        ${c.contractMonths && c.contractMonths !== 12 ? `<tr style="background:#2d4a6f;color:var(--white);"><td style="text-align:left;"><strong>계약기간 합계 (${c.contractMonths}개월)</strong></td><td>${numberWithCommas(c.monthlyTotal)} × ${c.contractMonths}개월</td><td style="text-align:right;font-weight:700;font-size:1rem;">${numberWithCommas(c.contractTotal)}</td></tr>` : ''}
       </tfoot>
     </table>
 
     <p style="text-align:right;font-size:0.72rem;color:var(--gray-500);margin-top:6px;">
       * 최저시급 및 4대보험은 당해연도 법정 기준을 반영함.<br>
       * 근로기준법에 의거한 연장, 심야, 휴일근무 수당 및 퇴직금 등은 발생 시 별도 청구함.<br>
-      * 상기 금액은 VAT 별도 기준이며, 실제 금액은 협의에 따라 변동될 수 있음.
+      * 상기 금액은 VAT 별도 기준이며, 실제 금액은 협의에 따라 변동될 수 있음.<br>
+      * 계약기간: ${c.contractMonths}개월
     </p>
   `;
 }
@@ -1891,7 +1961,7 @@ function getQuoteFeeRate(sectionNum, v) {
     </table>
     <p style="text-align:right;font-size:0.8rem;color:var(--gray-500);">
       * 채용 성공 시에만 수수료 발생 (성공보수제)<br>
-      * 3개월 이내 퇴사 시 무료 재채용 또는 수수료 환불<br>
+      * 보증 조건: 별도 협의<br>
       * VAT 별도
     </p>
   `;
@@ -2025,7 +2095,7 @@ function getFooterHTML(type) {
       <p>본 제안서에 대한 문의사항은 아래로 연락 부탁드립니다.</p>
       <p>주식회사 워크위드 | ${cfg.dept}</p>
       <p style="margin-top:8px; font-size:0.9em;">
-        <strong>대표번호</strong> 1600-9798 &nbsp;|&nbsp; <strong>홈페이지</strong> walkwithyou.co.kr
+        <strong>대표번호</strong> 1600-9878 &nbsp;|&nbsp; <strong>홈페이지</strong> walkwithyou.co.kr
       </p>
     </div>
   `;
@@ -2074,7 +2144,9 @@ function updateDynamicFields(v) {
   let totalSuffix = '<small>VAT 별도</small>';
 
   if (cfg.quoteType === 'personnel') {
-    total = calcPersonnel(v).monthlyTotal;
+    const pc = calcPersonnel(v);
+    total = pc.feePeriod === 'yearly' ? pc.yearlyTotal : pc.monthlyTotal;
+    totalLabel = pc.feePeriod === 'yearly' ? '연 예상 비용' : '월 예상 비용';
   } else if (cfg.quoteType === 'feeRate') {
     const count = parseNumber(v.recruitCount) || parseNumber(v.workerCount);
     const salary = parseNumber(v.recruitSalary);
@@ -2384,7 +2456,19 @@ function importProposal(event) {
 const SERVICE_LABELS = { dogup:'도급', dispatch:'파견', recruit:'채용대행', callcenter:'콜센터', csshare:'CS쉐어링' };
 
 // JSONP 호출 (file:// 에서도 동작)
-function callScript(params) {
+async function callScript(params) {
+  var url = SCRIPT_URL + '?' + params;
+  // fetch 먼저 시도 (HTTPS 환경에서 안정적), 실패 시 JSONP 폴백
+  try {
+    var res = await fetch(url, { redirect: 'follow' });
+    return await res.json();
+  } catch(e) {
+    // file:// 등 fetch 불가 환경 → JSONP 폴백
+    return callScriptJSONP(params);
+  }
+}
+
+function callScriptJSONP(params) {
   return new Promise(function(resolve, reject) {
     var cbName = '_gcb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
     var timeout = setTimeout(function() {

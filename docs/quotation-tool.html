@@ -368,6 +368,29 @@
             .tab-nav { overflow-x: auto; }
             .main { padding: 16px; }
         }
+
+        /* ===== 제안서 생성 탭 ===== */
+        .proposal-type-selector { display: flex; gap: 10px; flex-wrap: wrap; }
+        .proposal-type-selector .type-card { flex: 1; min-width: 120px; }
+        .proposal-section-list { display: flex; flex-direction: column; gap: 8px; }
+        .proposal-section-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+            cursor: pointer; transition: all 0.2s; user-select: none;
+        }
+        .proposal-section-item:hover { background: #f7fafc; border-color: #1a365d; }
+        .proposal-section-item.checked { background: #f0f5ff; border-color: #1a365d; }
+        .proposal-section-item.required { border-left: 3px solid #38a169; }
+        .proposal-section-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: #1a365d; pointer-events: none; }
+        .proposal-section-item .section-label { font-size: 14px; font-weight: 500; flex: 1; }
+        .proposal-section-item .section-badge { font-size: 10px; color: #38a169; font-weight: 600; background: #f0fff4; padding: 2px 8px; border-radius: 10px; }
+        .guideline-group { margin-bottom: 16px; padding: 14px; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .guideline-group h4 { font-size: 13px; font-weight: 600; color: #1a365d; margin-bottom: 8px; }
+        .guideline-group ul { padding-left: 20px; margin: 0; }
+        .guideline-group li { font-size: 13px; color: #4a5568; margin-bottom: 3px; line-height: 1.6; }
+        .guideline-group p { font-size: 13px; color: #4a5568; line-height: 1.7; margin: 0; }
+        #proposalPreview .preview-frame { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+        #proposalPreview iframe { width: 100%; min-height: 600px; border: none; }
     </style>
 </head>
 <body>
@@ -401,6 +424,7 @@
     <button class="tab-btn" onclick="switchTab(3)"><span class="tab-num">4</span>견적시뮬</button>
     <button class="tab-btn" onclick="switchTab(4)"><span class="tab-num">5</span>견적서생성</button>
     <button class="tab-btn" onclick="switchTab(5)"><span class="tab-num">6</span>체크리스트</button>
+    <button class="tab-btn" onclick="switchTab(6)"><span class="tab-num">7</span>제안서생성</button>
 </div>
 
 <!-- ===== 메인 ===== -->
@@ -984,12 +1008,26 @@
                         <input type="number" id="laborLongCare" value="13.14" step="0.01" min="0" onchange="calcCost(); autoSave();">
                     </div>
                     <div class="form-group">
+                        <label class="form-label">퇴직금</label>
+                        <select id="retireMode" onchange="calcCost(); autoSave();">
+                            <option value="ondemand" selected>발생시 청구</option>
+                            <option value="include">포함 (요율 적용)</option>
+                            <option value="off">미적용</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">연차수당</label>
                         <select id="annualLeaveMode" onchange="calcCost(); autoSave();">
                             <option value="include">포함 (통상시급×8h)</option>
                             <option value="ondemand">발생시 청구</option>
                             <option value="off">미적용</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">통상시급 (비워두면 기본시급 사용)</label>
+                        <input type="text" inputmode="numeric" data-money id="ordinaryWage" placeholder="예: 10,780" onchange="calcCost(); autoSave();">
                     </div>
                 </div>
             </div>
@@ -1035,7 +1073,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">시급 (원)</label>
-                    <input type="text" inputmode="numeric" data-money id="hourlyWage" value="10,500" onchange="calcCost(); autoSave();">
+                    <input type="text" inputmode="numeric" data-money id="hourlyWage" value="10,320" onchange="calcCost(); autoSave();">
                     <div style="font-size:11px; color:#a0aec0; margin-top:4px;">2026년 최저시급: 10,320원</div>
                 </div>
                 <div class="form-group">
@@ -1055,12 +1093,12 @@
                     <div class="rate-row">
                         <div class="rate-item">
                             <span>국민연금</span>
-                            <input type="number" id="ratePension" value="4.5" step="0.1" onchange="calcCost(); autoSave();">
+                            <input type="number" id="ratePension" value="4.75" step="0.01" onchange="calcCost(); autoSave();">
                             <span>%</span>
                         </div>
                         <div class="rate-item">
                             <span>건강보험</span>
-                            <input type="number" id="rateHealth" value="3.545" step="0.001" onchange="calcCost(); autoSave();">
+                            <input type="number" id="rateHealth" value="3.595" step="0.001" onchange="calcCost(); autoSave();">
                             <span>%</span>
                         </div>
                         <div class="rate-item">
@@ -1341,6 +1379,96 @@
         </div>
     </div>
 
+    <!-- ==================== 탭7: 제안서생성 ==================== -->
+    <div class="tab-content" id="tab6">
+        <div class="card">
+            <div class="card-title">제안서 유형 선택</div>
+            <div class="proposal-type-selector">
+                <div class="type-card selected" onclick="selectProposalType('dogup', this)">
+                    <div class="type-icon">🏭</div>
+                    <div class="type-name">도급 제안서</div>
+                    <div class="type-desc">도급 운영 전반<br>(가장 상세)</div>
+                </div>
+                <div class="type-card" onclick="selectProposalType('dispatch', this)">
+                    <div class="type-icon">👷</div>
+                    <div class="type-name">파견 제안서</div>
+                    <div class="type-desc">인력 파견<br>급여/보험</div>
+                </div>
+                <div class="type-card" onclick="selectProposalType('recruit', this)">
+                    <div class="type-icon">🤝</div>
+                    <div class="type-name">채용대행</div>
+                    <div class="type-desc">채용 프로세스<br>수수료 구조</div>
+                </div>
+                <div class="type-card" onclick="selectProposalType('callcenter', this)">
+                    <div class="type-icon">📞</div>
+                    <div class="type-name">콜센터</div>
+                    <div class="type-desc">CS대행/쉐어링<br>상담 시스템</div>
+                </div>
+                <div class="type-card" onclick="selectProposalType('integrated', this)">
+                    <div class="type-icon">🔗</div>
+                    <div class="type-name">통합 제안서</div>
+                    <div class="type-desc">복수 서비스<br>맞춤 구성</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">제안서 기본 정보</div>
+            <div class="alert alert-info" style="margin-bottom:16px;">
+                고객정보 탭에 입력한 업체명·업종·인원 등이 자동으로 반영됩니다.
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">제안서 문서번호 <span style="font-weight:400;font-size:11px;color:#a0aec0;">(비우면 자동생성)</span></label>
+                    <input type="text" id="proposalDocNum" placeholder="예: WW-PR-26-03" oninput="autoSave()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">제안 제출일</label>
+                    <input type="text" id="proposalDate" placeholder="2026년 3월" oninput="autoSave()">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">용역 범위 요약</label>
+                    <input type="text" id="proposalScope" placeholder="예: 창고물류·포장라인 도급 운영" oninput="autoSave()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">운영 인원 (요약)</label>
+                    <input type="text" id="proposalStaff" placeholder="예: 현장대리인 1명 + 운용직 15명" oninput="autoSave()">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">제안 배경 <span style="font-weight:400;font-size:11px;color:#a0aec0;">(업종별 자동 가이드라인 제공, 수정 가능)</span></label>
+                <textarea id="proposalBackground" rows="4" placeholder="탭 진입 시 업종에 맞는 가이드라인이 자동 채워집니다..." oninput="autoSave()"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">핵심 강조 포인트 <span style="font-weight:400;font-size:11px;color:#a0aec0;">(한 줄씩 입력)</span></label>
+                <textarea id="proposalKeyPoints" rows="3" placeholder="예:&#10;ISO 9001·ISO 45001 인증 기반 관리 체계&#10;50여 거래처 운영 실적&#10;불법파견 리스크 제로" oninput="autoSave()"></textarea>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">제안서 섹션 구성 <span style="font-weight:400;font-size:12px;color:#718096;">(포함할 섹션을 선택하세요)</span></div>
+            <div class="proposal-section-list" id="proposalSections"></div>
+        </div>
+
+        <div class="card" id="guidelinePreviewCard" style="display:none;">
+            <div class="card-title">업종별 자동 가이드라인 <span style="font-weight:400;font-size:12px;color:#718096;">(참고용)</span></div>
+            <div id="guidelinePreview"></div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-success" onclick="generateProposal()">제안서 생성 및 미리보기</button>
+            <button class="btn btn-primary" onclick="printProposal()">PDF 인쇄 (Ctrl+P)</button>
+        </div>
+
+        <div id="proposalPreview" style="margin-top:20px;"></div>
+
+        <div class="btn-group" style="justify-content:flex-start; margin-top:20px;">
+            <button class="btn btn-secondary" onclick="switchTab(5)">&larr; 체크리스트</button>
+        </div>
+    </div>
+
 </div>
 
 <!-- ===== 이력 모달 ===== -->
@@ -1405,7 +1533,9 @@ let state = {
     quoteType: 'outsource',
     source: '', currentOps: '', opDays: '주7일', shifts: '2교대',
     manager: '1명 배치', result: '',
-    checklist: [false,false,false,false,false,false,false,false,false,false]
+    checklist: [false,false,false,false,false,false,false,false,false,false],
+    proposalType: 'dogup',
+    proposalHTML: null
 };
 
 // ===== 금액 포맷 유틸리티 =====
@@ -1454,6 +1584,7 @@ function switchTab(idx) {
     if (idx === 1) calcPersonnel();
     if (idx === 2) calcCost();
     if (idx === 3) { updateScenarios(); updateItemTotal(); }
+    if (idx === 6) { renderProposalSections(state.proposalType); applyIndustryGuideline(); }
 }
 
 // ===== 옵션 버튼 선택 =====
@@ -1481,12 +1612,12 @@ function switchQuoteType(type, card) {
 
     // 탭 라벨 변경
     const tabLabels = {
-        outsource: ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트'],
-        labor:     ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트'],
-        dispatch:  ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트'],
-        'cs-agent':['고객정보','상담사구성','(건너뜀)','(건너뜀)','견적서생성','체크리스트'],
-        'cs-share':['고객정보','콜조건','(건너뜀)','(건너뜀)','견적서생성','체크리스트'],
-        recruit:   ['고객정보','직무구성','(건너뜀)','(건너뜀)','견적서생성','체크리스트']
+        outsource: ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트','제안서생성'],
+        labor:     ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트','제안서생성'],
+        dispatch:  ['고객정보','인원산출','원가계산','견적시뮬','견적서생성','체크리스트','제안서생성'],
+        'cs-agent':['고객정보','상담사구성','(건너뜀)','(건너뜀)','견적서생성','체크리스트','제안서생성'],
+        'cs-share':['고객정보','콜조건','(건너뜀)','(건너뜀)','견적서생성','체크리스트','제안서생성'],
+        recruit:   ['고객정보','직무구성','(건너뜀)','(건너뜀)','견적서생성','체크리스트','제안서생성']
     };
     const labels = tabLabels[type] || tabLabels.outsource;
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
@@ -2046,8 +2177,8 @@ function calcCost() {
     const etcCost = numVal('etcCost');
 
     // 요율 읽기 (0 입력 시 해당 항목 제외 가능)
-    const rPension = rateVal('ratePension', 4.5) / 100;
-    const rHealth = rateVal('rateHealth', 3.545) / 100;
+    const rPension = rateVal('ratePension', 4.75) / 100;
+    const rHealth = rateVal('rateHealth', 3.595) / 100;
     const rEmploy = rateVal('rateEmploy', 0.9) / 100;
     const rIndust = rateVal('rateIndust', 1.5) / 100;
     const rRetire = rateVal('rateRetire', 8.33) / 100;
@@ -2058,7 +2189,9 @@ function calcCost() {
     const employ = Math.round(baseWage * rEmploy);
     const indust = Math.round(baseWage * rIndust);
     const insurance = pension + health + employ + indust;
-    const retire = Math.round(baseWage * rRetire);
+    const retireCalc = Math.round(baseWage * rRetire);
+    const rtMode = elVal('retireMode') || 'ondemand';
+    const retire = rtMode === 'include' ? retireCalc : 0;
     const perPerson = baseWage + insurance + retire;
     const laborTotal = perPerson * personnel;
     const totalCost = laborTotal + nightPay + etcCost;
@@ -2074,7 +2207,7 @@ function calcCost() {
     const grandTotal = totalCost + mgmtFee;
 
     let html = '';
-    html += '<tr><td>인건비 1인당</td><td class="num">' + fmt(perPerson) + '원</td><td class="num" style="color:#888;">기본급+4대보험+퇴직금</td></tr>';
+    html += '<tr><td>인건비 1인당</td><td class="num">' + fmt(perPerson) + '원</td><td class="num" style="color:#888;">기본급+4대보험' + (rtMode === 'include' ? '+퇴직금' : '') + '</td></tr>';
     html += '<tr><td><strong>인건비 ' + personnel + '명</strong></td><td class="num"><strong>' + fmt(laborTotal) + '원</strong></td><td class="num" style="color:#888;">' + fmt(perPerson) + ' × ' + personnel + '명</td></tr>';
     if (nightPay > 0) html += '<tr><td>야간수당</td><td class="num">' + fmt(nightPay) + '원</td><td></td></tr>';
     if (etcCost > 0) html += '<tr><td>기타비용</td><td class="num">' + fmt(etcCost) + '원</td><td class="num" style="color:#888;">유니폼/교육/채용</td></tr>';
@@ -2299,6 +2432,20 @@ function generateQuoteOutsource() {
     const manage = parseInt(document.getElementById('itemManage').value) || 0;
     const admin = parseInt(document.getElementById('itemAdmin').value) || 0;
     const total = dogup + manage + admin;
+    const etcCost = numVal('etcCost') || 0;
+    const personnel = state.personnel || parseInt(document.getElementById('personnelOverride')?.value) || 0;
+    const wage = numVal('hourlyWage') || 10030;
+    const baseWage = wage * 209;
+    const rPension = rateVal('ratePension', 4.75) / 100;
+    const rHealth = rateVal('rateHealth', 3.595) / 100;
+    const rEmploy = rateVal('rateEmploy', 0.9) / 100;
+    const rIndust = rateVal('rateIndust', 1.5) / 100;
+    const rRetire = rateVal('rateRetire', 8.33) / 100;
+    const osInsurance = Math.round(baseWage * rPension) + Math.round(baseWage * rHealth) + Math.round(baseWage * rEmploy) + Math.round(baseWage * rIndust);
+    const osRetire = Math.round(baseWage * rRetire);
+    const perPersonCost = baseWage + osInsurance + osRetire;
+    const laborCost = perPersonCost * personnel;
+    const monthlyTotal = laborCost + etcCost;
 
     // 교대조에서 시간 범위 도출
     const s1s = document.getElementById('s1Start').value || '08:00';
@@ -2437,12 +2584,23 @@ function generateQuoteOutsource() {
                 </tfoot>
             </table>
 
+            <table class="qt" style="margin-top:20px;">
+                <thead><tr><th style="text-align:left;">항목</th><th>산출내역</th><th style="width:160px;">금액</th></tr></thead>
+                <tbody>
+                    <tr><td style="text-align:left;">인건비 (${personnel}명)</td><td>${fmt(perPersonCost)}원 × ${personnel}명</td><td style="text-align:right;">${fmt(laborCost)}</td></tr>
+                    ${etcCost > 0 ? '<tr><td style="text-align:left;">기타비용</td><td>유니폼 / 교육 / 채용 등</td><td style="text-align:right;">' + fmt(etcCost) + '</td></tr>' : ''}
+                </tbody>
+                <tfoot>
+                    <tr style="background:#1a365d;color:#fff;"><td style="text-align:left;"><strong>월 청구 예상액 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;font-size:15px;">${fmt(monthlyTotal)}</td></tr>
+                </tfoot>
+            </table>
+
             <div class="note-box" style="margin-top:12px;">
                 <p><strong>서비스 보장 기준</strong></p>
                 <p>· 영업시간(${openTime}~${closeStr}) 전 시간대 운영인력 배치 보장</p>
                 <p>· 교대당 최소 <strong>${perShift}명 이상</strong> 현장 배치</p>
                 ${state.manager === '1명 배치' ? '<p>· 현장관리자 <strong>상시 1명</strong> 배치</p>' : ''}
-                <p>· 결원 발생 시 <strong>당일 충원</strong></p>
+                <p>· 결원 발생 시 <strong>신속 충원</strong></p>
                 <p style="margin-top:6px;color:#888;font-size:11px;">※ 인력 배치 규모는 당사가 서비스 품질 기준에 따라 자체 결정합니다.</p>
             </div>
         </div>
@@ -2477,8 +2635,8 @@ function generateQuoteLabor() {
 
     const wage = numVal('hourlyWage') || 10500;
     const baseWage = wage * 209;
-    const rPension = rateVal('ratePension', 4.5) / 100;
-    const rHealth = rateVal('rateHealth', 3.545) / 100;
+    const rPension = rateVal('ratePension', 4.75) / 100;
+    const rHealth = rateVal('rateHealth', 3.595) / 100;
     const rEmploy = rateVal('rateEmploy', 0.9) / 100;
     const rIndust = rateVal('rateIndust', 1.5) / 100;
     const rRetire = rateVal('rateRetire', 8.33) / 100;
@@ -2491,26 +2649,30 @@ function generateQuoteLabor() {
     const mgmtPct = isNaN(laborMgmtRaw) ? 8 : laborMgmtRaw;
 
     // 계산
+    const laborSub1 = baseWage + transport + nightPay;
     const pension = Math.round(baseWage * rPension);
     const health = Math.round(baseWage * rHealth);
     const longCareAmt = Math.round(health * longCare);
     const employ = Math.round(baseWage * rEmploy);
     const indust = Math.round(baseWage * rIndust);
     const bizTaxAmt = Math.round(baseWage * bizTax);
-    const retire = Math.round(baseWage * rRetire); // 발생시 청구
-    const annualLeaveCalc = Math.round(wage * 8); // 연차수당 = 통상시급×8h
+    const retireCalc = Math.round(laborSub1 * rRetire);
+    const rtMode = elVal('retireMode') || 'ondemand';
+    const retire = rtMode === 'include' ? retireCalc : 0;
+    const ordinaryWage = numVal('ordinaryWage') || wage;
+    const annualLeaveCalc = Math.round(ordinaryWage * 8);
     const alMode = elVal('annualLeaveMode') || 'include';
     const annualLeave = alMode === 'include' ? annualLeaveCalc : 0;
 
-    const laborSub1 = baseWage + transport + nightPay;
-    const laborSub2 = annualLeave;
+    const laborSub2 = retire + annualLeave;
     const laborTotal = laborSub1 + laborSub2;
     const insuranceTotal = pension + health + longCareAmt + employ + indust + bizTaxAmt;
     const subtotal = laborTotal + insuranceTotal;
     const mgmtAmt = Math.round(subtotal * mgmtPct / 100);
     const perPersonTotal = subtotal + mgmtAmt;
-    const etcCost = state.etcCost || 0;
-    const monthlyTotal = perPersonTotal * (state.personnel || 0) + etcCost;
+    const etcCost = numVal('etcCost') || 0;
+    const personnel = state.personnel || parseInt(document.getElementById('personnelOverride')?.value) || 0;
+    const monthlyTotal = perPersonTotal * personnel + etcCost;
 
     // 시간 정보
     const s1s = document.getElementById('s1Start').value || '09:00';
@@ -2552,31 +2714,43 @@ ${getQuoteParties(client, site || '-', contact)}
             ${nightPay > 0 ? '<tr><td style="text-align:left;">야간수당</td><td></td><td style="text-align:right;">' + fmt(nightPay) + '</td></tr>' : ''}
             <tr><td style="text-align:left;"><strong>① 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(laborSub1)}</td></tr>
 
-            <tr><td style="text-align:left;" rowspan="${alMode === 'off' ? 2 : 3}"></td>
-                <td style="text-align:left;">퇴직금</td><td></td><td style="text-align:right;color:#888;">발생시 청구</td></tr>
-            ${alMode === 'include' ? '<tr><td style="text-align:left;">연차수당</td><td>통상시급×8시간</td><td style="text-align:right;">' + fmt(annualLeaveCalc) + '</td></tr>' : ''}
-            ${alMode === 'ondemand' ? '<tr><td style="text-align:left;">연차수당</td><td>통상시급×8시간</td><td style="text-align:right;color:#888;">발생시 청구</td></tr>' : ''}
+            <tr><td style="text-align:left;" rowspan="${(rtMode !== 'off' ? 1 : 0) + (alMode !== 'off' ? 1 : 0) + 1}"></td>
+            ${rtMode === 'include' ? '<td style="text-align:left;">퇴직금</td><td>급여계(①)의 ' + (rRetire*100).toFixed(2) + '%</td><td style="text-align:right;">' + fmt(retireCalc) + '</td></tr>' : ''}
+            ${rtMode === 'ondemand' ? '<td style="text-align:left;">퇴직금</td><td>급여계(①)의 ' + (rRetire*100).toFixed(2) + '%</td><td style="text-align:right;color:#888;">발생시 청구</td></tr>' : ''}
+            ${alMode === 'include' ? (rtMode !== 'off' ? '<tr>' : '') + '<td style="text-align:left;">연차수당</td><td>통상시급(' + fmt(ordinaryWage) + '원)×8시간</td><td style="text-align:right;">' + fmt(annualLeaveCalc) + '</td></tr>' : ''}
+            ${alMode === 'ondemand' ? (rtMode !== 'off' ? '<tr>' : '') + '<td style="text-align:left;">연차수당</td><td>통상시급(' + fmt(ordinaryWage) + '원)×8시간</td><td style="text-align:right;color:#888;">발생시 청구</td></tr>' : ''}
+            ${leaderPay > 0 ? '<tr><td style="text-align:left;">직책수당 (현장관리자)</td><td>' + fmt(leaderPay) + '원/월</td><td style="text-align:right;color:#888;">해당자 청구</td></tr>' : ''}
             <tr><td style="text-align:left;"><strong>② 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(laborSub2)}</td></tr>
 
             <tr style="background:#f0f5ff;"><td style="text-align:left;" colspan="2"><strong>③ 합계 (①+②)</strong></td><td></td><td style="text-align:right;font-weight:700;">${fmt(laborTotal)}</td></tr>
 
             <tr><td style="text-align:left;" rowspan="7"><strong>간접노무비</strong><br>(4대보험)</td>
-                <td style="text-align:left;">국민연금</td><td>임금 합계×${(rPension*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(pension)}</td></tr>
-            <tr><td style="text-align:left;">건강보험</td><td>임금 합계×${(rHealth*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(health)}</td></tr>
+                <td style="text-align:left;">국민연금</td><td>③합계×${(rPension*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(pension)}</td></tr>
+            <tr><td style="text-align:left;">건강보험</td><td>③합계×${(rHealth*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(health)}</td></tr>
             <tr><td style="text-align:left;">장기요양보험</td><td>건강보험료×${(longCare*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(longCareAmt)}</td></tr>
-            <tr><td style="text-align:left;">고용보험</td><td>임금 합계×${(rEmploy*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(employ)}</td></tr>
-            <tr><td style="text-align:left;">산재보험</td><td>임금 합계×${(rIndust*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(indust)}</td></tr>
-            <tr><td style="text-align:left;">사업소세</td><td>임금 합계×${(bizTax*100).toFixed(1)}%</td><td style="text-align:right;">${fmt(bizTaxAmt)}</td></tr>
+            <tr><td style="text-align:left;">고용보험</td><td>③합계×${(rEmploy*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(employ)}</td></tr>
+            <tr><td style="text-align:left;">산재보험</td><td>③합계×${(rIndust*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(indust)}</td></tr>
+            <tr><td style="text-align:left;">사업소세</td><td>③합계×${(bizTax*100).toFixed(1)}%</td><td style="text-align:right;">${fmt(bizTaxAmt)}</td></tr>
             <tr><td style="text-align:left;"><strong>④ 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(insuranceTotal)}</td></tr>
 
             <tr style="background:#f0f5ff;"><td style="text-align:left;" colspan="2"><strong>⑤ 합계 (③+④)</strong></td><td></td><td style="text-align:right;font-weight:700;">${fmt(subtotal)}</td></tr>
 
             <tr><td style="text-align:left;"><strong>수수료</strong></td>
-                <td style="text-align:left;">관리 수수료</td><td>${mgmtPct}%</td><td style="text-align:right;">${fmt(mgmtAmt)}</td></tr>
+                <td style="text-align:left;">관리 수수료</td><td>⑤합계의 ${mgmtPct}%</td><td style="text-align:right;">${fmt(mgmtAmt)}</td></tr>
         </tbody>
         <tfoot>
-            <tr><td style="text-align:left;" colspan="2"><strong>1인 단가 합계 (VAT 별도)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(perPersonTotal)}</td></tr>
-            <tr style="background:#1a365d;color:#fff;"><td style="text-align:left;" colspan="2"><strong>월 청구 예상액 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;font-size:15px;">${fmt(state.totalCost || monthlyTotal)}</td></tr>
+            <tr><td style="text-align:left;" colspan="2"><strong>1인 단가 (VAT 별도)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(perPersonTotal)}</td></tr>
+        </tfoot>
+    </table>
+
+    <table class="qt" style="margin-top:20px;">
+        <thead><tr><th style="text-align:left;">항목</th><th>산출내역</th><th style="text-align:right;">금액</th></tr></thead>
+        <tbody>
+            <tr><td style="text-align:left;">인건비 (${personnel}명)</td><td>${fmt(perPersonTotal)}원 × ${personnel}명</td><td style="text-align:right;">${fmt(perPersonTotal * personnel)}</td></tr>
+            ${etcCost > 0 ? '<tr><td style="text-align:left;">기타비용</td><td>유니폼 / 교육 / 채용 등</td><td style="text-align:right;">' + fmt(etcCost) + '</td></tr>' : ''}
+        </tbody>
+        <tfoot>
+            <tr style="background:#1a365d;color:#fff;"><td style="text-align:left;"><strong>월 청구 예상액 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;font-size:15px;">${fmt(monthlyTotal)}</td></tr>
         </tfoot>
     </table>
 </div>
@@ -2608,8 +2782,8 @@ function generateQuoteDispatch() {
 
     const wage = numVal('hourlyWage') || 10500;
     const baseWage = wage * 209;
-    const rPension = rateVal('ratePension', 4.5) / 100;
-    const rHealth = rateVal('rateHealth', 3.545) / 100;
+    const rPension = rateVal('ratePension', 4.75) / 100;
+    const rHealth = rateVal('rateHealth', 3.595) / 100;
     const rEmploy = rateVal('rateEmploy', 0.9) / 100;
     const rIndust = rateVal('rateIndust', 1.5) / 100;
     const rRetire = rateVal('rateRetire', 8.33) / 100;
@@ -2621,26 +2795,30 @@ function generateQuoteDispatch() {
     const laborMgmtRaw = parseFloat(document.getElementById('laborMgmtFee')?.value);
     const mgmtPct = isNaN(laborMgmtRaw) ? 8 : laborMgmtRaw;
 
+    const laborSub1 = baseWage + transport + nightPay;
     const pension = Math.round(baseWage * rPension);
     const health = Math.round(baseWage * rHealth);
     const longCareAmt = Math.round(health * longCare);
     const employ = Math.round(baseWage * rEmploy);
     const indust = Math.round(baseWage * rIndust);
     const bizTaxAmt = Math.round(baseWage * bizTax);
-    const retire = Math.round(baseWage * rRetire);
-    const annualLeaveCalc = Math.round(wage * 8);
+    const retireCalc = Math.round(laborSub1 * rRetire);
+    const rtMode = elVal('retireMode') || 'ondemand';
+    const retire = rtMode === 'include' ? retireCalc : 0;
+    const ordinaryWage = numVal('ordinaryWage') || wage;
+    const annualLeaveCalc = Math.round(ordinaryWage * 8);
     const alMode = elVal('annualLeaveMode') || 'include';
     const annualLeave = alMode === 'include' ? annualLeaveCalc : 0;
 
-    const laborSub1 = baseWage + transport + nightPay;
-    const laborSub2 = annualLeave;
+    const laborSub2 = retire + annualLeave;
     const laborTotal = laborSub1 + laborSub2;
     const insuranceTotal = pension + health + longCareAmt + employ + indust + bizTaxAmt;
     const subtotal = laborTotal + insuranceTotal;
     const mgmtAmt = Math.round(subtotal * mgmtPct / 100);
     const perPersonTotal = subtotal + mgmtAmt;
-    const etcCost = state.etcCost || 0;
-    const monthlyTotal = perPersonTotal * (state.personnel || 0) + etcCost;
+    const etcCost = numVal('etcCost') || 0;
+    const personnel = state.personnel || parseInt(document.getElementById('personnelOverride')?.value) || 0;
+    const monthlyTotal = perPersonTotal * personnel + etcCost;
 
     const s1s = document.getElementById('s1Start').value || '09:00';
     const s1e = document.getElementById('s1End').value || '18:00';
@@ -2681,31 +2859,43 @@ ${getQuoteParties(client, site || '-', contact)}
             ${nightPay > 0 ? '<tr><td style="text-align:left;">야간수당</td><td></td><td style="text-align:right;">' + fmt(nightPay) + '</td></tr>' : ''}
             <tr><td style="text-align:left;"><strong>① 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(laborSub1)}</td></tr>
 
-            <tr><td style="text-align:left;" rowspan="${alMode === 'off' ? 2 : 3}"></td>
-                <td style="text-align:left;">퇴직금</td><td></td><td style="text-align:right;color:#888;">발생시 청구</td></tr>
-            ${alMode === 'include' ? '<tr><td style="text-align:left;">연차수당</td><td>통상시급×8시간</td><td style="text-align:right;">' + fmt(annualLeaveCalc) + '</td></tr>' : ''}
-            ${alMode === 'ondemand' ? '<tr><td style="text-align:left;">연차수당</td><td>통상시급×8시간</td><td style="text-align:right;color:#888;">발생시 청구</td></tr>' : ''}
+            <tr><td style="text-align:left;" rowspan="${(rtMode !== 'off' ? 1 : 0) + (alMode !== 'off' ? 1 : 0) + 1}"></td>
+            ${rtMode === 'include' ? '<td style="text-align:left;">퇴직금</td><td>급여계(①)의 ' + (rRetire*100).toFixed(2) + '%</td><td style="text-align:right;">' + fmt(retireCalc) + '</td></tr>' : ''}
+            ${rtMode === 'ondemand' ? '<td style="text-align:left;">퇴직금</td><td>급여계(①)의 ' + (rRetire*100).toFixed(2) + '%</td><td style="text-align:right;color:#888;">발생시 청구</td></tr>' : ''}
+            ${alMode === 'include' ? (rtMode !== 'off' ? '<tr>' : '') + '<td style="text-align:left;">연차수당</td><td>통상시급(' + fmt(ordinaryWage) + '원)×8시간</td><td style="text-align:right;">' + fmt(annualLeaveCalc) + '</td></tr>' : ''}
+            ${alMode === 'ondemand' ? (rtMode !== 'off' ? '<tr>' : '') + '<td style="text-align:left;">연차수당</td><td>통상시급(' + fmt(ordinaryWage) + '원)×8시간</td><td style="text-align:right;color:#888;">발생시 청구</td></tr>' : ''}
+            ${leaderPay > 0 ? '<tr><td style="text-align:left;">직책수당 (현장관리자)</td><td>' + fmt(leaderPay) + '원/월</td><td style="text-align:right;color:#888;">해당자 청구</td></tr>' : ''}
             <tr><td style="text-align:left;"><strong>② 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(laborSub2)}</td></tr>
 
             <tr style="background:#f0f5ff;"><td style="text-align:left;" colspan="2"><strong>③ 합계 (①+②)</strong></td><td></td><td style="text-align:right;font-weight:700;">${fmt(laborTotal)}</td></tr>
 
             <tr><td style="text-align:left;" rowspan="7"><strong>간접노무비</strong><br>(4대보험)</td>
-                <td style="text-align:left;">국민연금</td><td>임금 합계×${(rPension*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(pension)}</td></tr>
-            <tr><td style="text-align:left;">건강보험</td><td>임금 합계×${(rHealth*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(health)}</td></tr>
+                <td style="text-align:left;">국민연금</td><td>③합계×${(rPension*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(pension)}</td></tr>
+            <tr><td style="text-align:left;">건강보험</td><td>③합계×${(rHealth*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(health)}</td></tr>
             <tr><td style="text-align:left;">장기요양보험</td><td>건강보험료×${(longCare*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(longCareAmt)}</td></tr>
-            <tr><td style="text-align:left;">고용보험</td><td>임금 합계×${(rEmploy*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(employ)}</td></tr>
-            <tr><td style="text-align:left;">산재보험</td><td>임금 합계×${(rIndust*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(indust)}</td></tr>
-            <tr><td style="text-align:left;">사업소세</td><td>임금 합계×${(bizTax*100).toFixed(1)}%</td><td style="text-align:right;">${fmt(bizTaxAmt)}</td></tr>
+            <tr><td style="text-align:left;">고용보험</td><td>③합계×${(rEmploy*100).toFixed(2)}%</td><td style="text-align:right;">${fmt(employ)}</td></tr>
+            <tr><td style="text-align:left;">산재보험</td><td>③합계×${(rIndust*100).toFixed(3)}%</td><td style="text-align:right;">${fmt(indust)}</td></tr>
+            <tr><td style="text-align:left;">사업소세</td><td>③합계×${(bizTax*100).toFixed(1)}%</td><td style="text-align:right;">${fmt(bizTaxAmt)}</td></tr>
             <tr><td style="text-align:left;"><strong>④ 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${fmt(insuranceTotal)}</td></tr>
 
             <tr style="background:#f0f5ff;"><td style="text-align:left;" colspan="2"><strong>⑤ 합계 (③+④)</strong></td><td></td><td style="text-align:right;font-weight:700;">${fmt(subtotal)}</td></tr>
 
             <tr><td style="text-align:left;"><strong>수수료</strong></td>
-                <td style="text-align:left;">파견 수수료</td><td>${mgmtPct}%</td><td style="text-align:right;">${fmt(mgmtAmt)}</td></tr>
+                <td style="text-align:left;">파견 수수료</td><td>⑤합계의 ${mgmtPct}%</td><td style="text-align:right;">${fmt(mgmtAmt)}</td></tr>
         </tbody>
         <tfoot>
-            <tr><td style="text-align:left;" colspan="2"><strong>1인 단가 합계 (VAT 별도)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(perPersonTotal)}</td></tr>
-            <tr style="background:#1a365d;color:#fff;"><td style="text-align:left;" colspan="2"><strong>월 청구 예상액 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;font-size:15px;">${fmt(state.totalCost || monthlyTotal)}</td></tr>
+            <tr><td style="text-align:left;" colspan="2"><strong>1인 단가 (VAT 별도)</strong></td><td></td><td style="text-align:right;" class="highlight">${fmt(perPersonTotal)}</td></tr>
+        </tfoot>
+    </table>
+
+    <table class="qt" style="margin-top:20px;">
+        <thead><tr><th style="text-align:left;">항목</th><th>산출내역</th><th style="text-align:right;">금액</th></tr></thead>
+        <tbody>
+            <tr><td style="text-align:left;">인건비 (${personnel}명)</td><td>${fmt(perPersonTotal)}원 × ${personnel}명</td><td style="text-align:right;">${fmt(perPersonTotal * personnel)}</td></tr>
+            ${etcCost > 0 ? '<tr><td style="text-align:left;">기타비용</td><td>유니폼 / 교육 / 채용 등</td><td style="text-align:right;">' + fmt(etcCost) + '</td></tr>' : ''}
+        </tbody>
+        <tfoot>
+            <tr style="background:#1a365d;color:#fff;"><td style="text-align:left;"><strong>월 청구 예상액 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;font-size:15px;">${fmt(monthlyTotal)}</td></tr>
         </tfoot>
     </table>
 </div>
@@ -2911,7 +3101,7 @@ function getServiceDescription(type) {
                 { name: '자체 인력 채용·배치', desc: '당사 자체 채용 프로세스를 통한 적합 인력 선발 및 배치' },
                 { name: '현장관리자 상시 배치', desc: '품질·근태·안전 관리를 위한 전담 관리자 상주' },
                 { name: '교육·훈련 운영', desc: '신입 교육, 서비스 교육, 정기 직무 교육 자체 실시' },
-                { name: '결원 즉시 충원', desc: '퇴사·결근 발생 시 당일 대체인력 투입 보장' },
+                { name: '결원 신속 충원', desc: '퇴사·결근 발생 시 상시 채용 체계를 통해 신속 대체인력 충원' },
                 { name: '4대보험·급여 관리', desc: '근로자 4대보험 가입, 급여 지급, 노무관리 일체 처리' },
                 { name: '적법 도급 운영', desc: '독립적 지휘체계·공정분리로 불법파견 리스크 원천 차단' }
             ]
@@ -2922,7 +3112,7 @@ function getServiceDescription(type) {
                 { name: '전문 인력 선발', desc: '직무 적합성 평가를 거친 경험 인력 우선 배치' },
                 { name: '현장관리자 상시 배치', desc: '품질·근태·안전 관리를 위한 전담 관리자 상주' },
                 { name: '4대보험 완비', desc: '국민연금, 건강보험, 고용보험, 산재보험 전원 가입' },
-                { name: '결원 즉시 충원', desc: '퇴사·결근 시 당일 대체인력 투입 보장' },
+                { name: '결원 신속 충원', desc: '퇴사·결근 발생 시 상시 채용 체계를 통해 신속 대체인력 충원' },
                 { name: '자체 교육 체계', desc: '안전교육, 직무교육, 서비스 교육 정기 실시' },
                 { name: '적법 도급 운영', desc: '대법원 판례 기준 7대 요소 충족, 8년 무사고 운영' }
             ]
@@ -2966,7 +3156,7 @@ function getServiceDescription(type) {
                 { name: '전문 인력 선발·파견', desc: '직무 적합성 평가를 거친 경험 인력 파견 배치' },
                 { name: '4대보험 완비', desc: '국민연금, 건강보험, 고용보험, 산재보험 전원 가입' },
                 { name: '급여·노무 관리', desc: '파견근로자 급여 지급, 4대보험, 노무관리 일체 처리' },
-                { name: '결원 즉시 충원', desc: '퇴사·결근 시 당일 대체인력 투입 보장' },
+                { name: '결원 신속 충원', desc: '퇴사·결근 발생 시 상시 채용 체계를 통해 신속 대체인력 충원' },
                 { name: '자체 교육 체계', desc: '안전교육, 직무교육, 서비스 교육 정기 실시' },
                 { name: '파견법 준수', desc: '파견근로자보호법에 따른 적법한 운영 체계 보장' }
             ]
@@ -3003,7 +3193,7 @@ function getIndustryPackage() {
         '세차/주차': {
             title: '세차/주차 업종 맞춤 솔루션',
             items: [
-                { pain: '잦은 퇴사로 인력 공백 발생', solution: '자체 인력풀 보유, 당일 대체인력 투입 보장' },
+                { pain: '잦은 퇴사로 인력 공백 발생', solution: '상시 채용 체계 운영, 결원 발생 시 신속 충원' },
                 { pain: '서비스 품질 편차가 큼', solution: '입사 전 서비스 마인드 교육 + 정기 CS교육 실시' },
                 { pain: '직접 고용 시 4대보험·노무 부담', solution: '당사가 4대보험·급여·노무관리 일체 처리' },
                 { pain: '성수기/비수기 인원 조절 어려움', solution: '탄력배치 운영으로 비수기 비용 절감' }
@@ -3022,7 +3212,7 @@ function getIndustryPackage() {
             title: '제조 라인 업종 맞춤 솔루션',
             items: [
                 { pain: '불법파견 판정 리스크', solution: '독립 지휘체계·공정분리로 적법도급 운영 (8년 무사고)' },
-                { pain: '생산라인 중단 시 매출 손실', solution: '결원 발생 당일 대체인력 투입, 라인 중단 최소화' },
+                { pain: '생산라인 중단 시 매출 손실', solution: '상시 대기인력 확보, 결원 시 신속 충원으로 라인 중단 최소화' },
                 { pain: '신규 인력 숙련도 낮음', solution: '자체 직무교육 프로그램으로 투입 전 사전 교육' },
                 { pain: '근로감독 대응 어려움', solution: '적법운영안내서 제공 + 근로감독 공동 대응' }
             ]
@@ -3067,7 +3257,7 @@ function getIndustryPackage() {
             title: '호텔/숙박 업종 맞춤 솔루션',
             items: [
                 { pain: '서비스 품질이 곧 매출에 직결', solution: '호텔 서비스 전문교육 이수 인력 배치' },
-                { pain: '객실 청소·프론트 인력 잦은 이탈', solution: '자체 인력풀 활용 당일 충원 보장' },
+                { pain: '객실 청소·프론트 인력 잦은 이탈', solution: '상시 채용 체계 운영, 결원 시 신속 충원' },
                 { pain: '성수기/비수기 인력 수급 불균형', solution: '시즌별 탄력배치 + 비수기 비용 최적화' },
                 { pain: '외국어 가능 인력 부족', solution: '외국어 가능 인력 우선 매칭 서비스' }
             ]
@@ -3086,7 +3276,7 @@ function getIndustryPackage() {
             items: [
                 { pain: '인력 채용·관리에 시간 소모', solution: '채용부터 관리까지 원스톱 아웃소싱' },
                 { pain: '인건비 외 부수 비용(4대보험 등) 부담', solution: '복리후생비·4대보험 포함 단가, 추가비용 없음' },
-                { pain: '갑작스러운 결원 대응 어려움', solution: '자체 인력풀 활용 당일 대체 투입 보장' },
+                { pain: '갑작스러운 결원 대응 어려움', solution: '상시 채용 체계 운영, 결원 시 신속 충원' },
                 { pain: '노무 리스크(근로감독 등) 부담', solution: '적법 운영 + 노무사 자문 지원' }
             ]
         }
@@ -3332,7 +3522,16 @@ function autoSave() {
         recruitFinalPrice: document.getElementById('recruitFinalPrice')?.value || '',
         // 채용대행 직무 행 데이터
         personnelOverride: document.getElementById('personnelOverride')?.value || '',
+        retireMode: elVal('retireMode') || 'ondemand',
         annualLeaveMode: elVal('annualLeaveMode') || 'include',
+        ordinaryWage: document.getElementById('ordinaryWage')?.value || '',
+        // 제안서 필드
+        proposalDocNum: elVal('proposalDocNum'),
+        proposalDate: elVal('proposalDate'),
+        proposalScope: elVal('proposalScope'),
+        proposalStaff: elVal('proposalStaff'),
+        proposalBackground: elVal('proposalBackground'),
+        proposalKeyPoints: elVal('proposalKeyPoints'),
         // 채용대행 직무 행 데이터
         recruitRowsData: (() => {
             const rows = document.getElementById('recruitRows')?.querySelectorAll('tr') || [];
@@ -3384,7 +3583,8 @@ function loadSaved() {
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice','csShareNotes',
         'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare',
         'recruitOpTime','recruitWorkCond','recruitWorkScope','recruitFeeRate','recruitMinMonth','recruitFinalPrice',
-        'personnelOverride','annualLeaveMode'];
+        'personnelOverride','retireMode','annualLeaveMode','ordinaryWage',
+        'proposalDocNum','proposalDate','proposalScope','proposalStaff','proposalBackground','proposalKeyPoints'];
 
     fields.forEach(id => {
         const el = document.getElementById(id);
@@ -3487,7 +3687,7 @@ function resetAll() {
 
     // 초기화
     document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(el => {
-        if (el.id === 'hourlyWage') el.value = '10,500';
+        if (el.id === 'hourlyWage') el.value = '10,320';
         else if (el.id === 'perShift') el.value = '4';
         else if (el.id === 'etcCost') el.value = '1,000,000';
         else if (el.id === 'ratePension') el.value = '4.5';
@@ -3503,7 +3703,7 @@ function resetAll() {
     document.querySelectorAll('.option-btn.selected').forEach(b => b.classList.remove('selected'));
     document.querySelectorAll('.checklist li.checked').forEach(li => li.classList.remove('checked'));
 
-    state = { quoteType:'outsource', source:'', currentOps:'', opDays:'주7일', shifts:'2교대', manager:'1명 배치', result:'', shiftPreset:'service', shiftCount:2, checklist:[false,false,false,false,false,false,false,false,false,false] };
+    state = { quoteType:'outsource', source:'', currentOps:'', opDays:'주7일', shifts:'2교대', manager:'1명 배치', result:'', shiftPreset:'service', shiftCount:2, checklist:[false,false,false,false,false,false,false,false,false,false], proposalType:'dogup', proposalHTML:null };
     switchQuoteType('outsource', document.querySelector('.type-card'));
 
     // 기본 선택 복원
@@ -3519,6 +3719,7 @@ function resetAll() {
     document.getElementById('progressFill').style.width = '0%';
     document.getElementById('progressText').textContent = '0 / 10 완료';
     document.getElementById('quotePreview').innerHTML = '';
+    document.getElementById('proposalPreview').innerHTML = '';
 
     switchTab(0);
     autoSave();
@@ -3708,7 +3909,8 @@ function loadFromHistory(idx) {
         'shareCallStandard','shareWorkScope','shareServices','csShareFinalPrice','csShareNotes',
         'laborMgmtFee','laborTransport','laborLeaderPay','laborBizTax','laborLongCare',
         'recruitOpTime','recruitWorkCond','recruitWorkScope','recruitFeeRate','recruitMinMonth','recruitFinalPrice',
-        'personnelOverride','annualLeaveMode'];
+        'personnelOverride','retireMode','annualLeaveMode','ordinaryWage',
+        'proposalDocNum','proposalDate','proposalScope','proposalStaff','proposalBackground','proposalKeyPoints'];
 
     fields.forEach(id => {
         const el = document.getElementById(id);
@@ -4274,6 +4476,956 @@ window.addEventListener('DOMContentLoaded', function() {
     calcPersonnel();
     calcCost();
 });
+
+// ===================================================================
+// ===================== 제안서 자동생성 시스템 =====================
+// ===================================================================
+
+// ===== 워크위드 회사 정보 상수 =====
+const WALKWITH_INFO = {
+    name: '주식회사 워크위드',
+    nameShort: '워크위드',
+    nameEn: 'WALKWITH Co., Ltd.',
+    ceo: '한세은',
+    established: '2024. 07. 01.',
+    employees: '45명',
+    type: '중소기업 / 여성기업',
+    hq: '충북 충주시 예성로 392, 롯데프라자 4층 401호',
+    center: '충북 충주시 대소원면 첨단산업1로 21',
+    seoul: '서울 중구 퇴계로 15, 에너지플러스 5층 517호',
+    tel: '043-912-9911',
+    tollfree: '1600-9878',
+    fax: '043-912-9913',
+    email: 'cs@walkwithyou.co.kr',
+    web: 'walkwithyou.co.kr',
+    certifications: [
+        { name: 'ISO 9001', desc: '품질경영시스템 인증' },
+        { name: 'ISO 45001', desc: '안전보건경영시스템 인증' },
+        { name: '여성기업확인서', desc: '중소벤처기업부 인증' }
+    ],
+    services: [
+        { name: 'BPO (도급)', desc: '제조·물류·서비스 현장 도급 운영' },
+        { name: '위드콜 (CS대행)', desc: '전담·쉐어링 콜센터 운영' },
+        { name: '인재파견·채용대행', desc: '파견, 채용 프로세스 대행' },
+        { name: '위드너스 (간병매칭)', desc: '전문 간병인 매칭 서비스' }
+    ],
+    history: [
+        { year: '2017~', desc: '개인사업 기반 아웃소싱 서비스 시작' },
+        { year: '2024. 07.', desc: '법인 설립 (주식회사 워크위드)' },
+        { year: '2024. 08.', desc: 'ISO 9001 · ISO 45001 동시 인증 취득' },
+        { year: '2025~', desc: '서울지사 개설, 50여 거래처 운영' }
+    ],
+    majorClients: ['재세능원', '대동푸드', '인팩이피엠', '강봉석조청', '서울식품', '대성푸드빌'],
+    strengths: [
+        { title: '적법 도급 운영', desc: '파견법·도급법 준수, 불법파견 리스크 원천 차단' },
+        { title: '대규모 인력 운영', desc: '식품 대기업 현장 100~300명 동시 투입 실적' },
+        { title: 'ISO 이중 인증', desc: '품질(9001) + 안전(45001) 동시 인증으로 체계적 관리' },
+        { title: '결원 대응 시스템', desc: '비상 인력풀 운영, 2시간 내 대체 투입' },
+        { title: '전국 운영 네트워크', desc: '충주 본사 + 서울지사 + 전북 거점' }
+    ]
+};
+
+// ===== 제안서 유형별 섹션 정의 =====
+const PROPOSAL_SECTIONS = {
+    dogup: {
+        label: '도급 운영 제안서',
+        coverTitle: '도급 운영 제 안 서',
+        coverCategory: 'OPERATION PROPOSAL',
+        sections: [
+            { id: 'cover', label: '표지', required: true },
+            { id: 'toc', label: '목차', required: false },
+            { id: 'overview', label: '제안 개요 (배경, 목적, 범위)', required: true },
+            { id: 'company', label: '회사 소개 (개요, 인증, 연혁, 실적)', required: true },
+            { id: 'organization', label: '조직 구성 및 인력 운영', required: false },
+            { id: 'workplan', label: '업무 수행 계획', required: false },
+            { id: 'safety', label: '안전 관리 계획', required: false },
+            { id: 'quality', label: '품질 관리 및 KPI', required: false },
+            { id: 'compliance', label: '적법 도급 운영 원칙', required: false },
+            { id: 'effect', label: '기대 효과', required: true }
+        ]
+    },
+    dispatch: {
+        label: '파견 제안서',
+        coverTitle: '인력 파견 제 안 서',
+        coverCategory: 'DISPATCH PROPOSAL',
+        sections: [
+            { id: 'cover', label: '표지', required: true },
+            { id: 'toc', label: '목차', required: false },
+            { id: 'overview', label: '제안 개요', required: true },
+            { id: 'company', label: '회사 소개', required: true },
+            { id: 'staffing', label: '파견 인력 구성 및 역할', required: true },
+            { id: 'payroll', label: '급여 및 4대보험 구조', required: false },
+            { id: 'attendance', label: '근태 관리 및 보고', required: false },
+            { id: 'quality', label: '품질 관리', required: false },
+            { id: 'effect', label: '기대 효과', required: true }
+        ]
+    },
+    recruit: {
+        label: '채용대행 제안서',
+        coverTitle: '채용대행 제 안 서',
+        coverCategory: 'RECRUITMENT PROPOSAL',
+        sections: [
+            { id: 'cover', label: '표지', required: true },
+            { id: 'process', label: '채용 프로세스', required: true },
+            { id: 'company', label: '회사 소개', required: true },
+            { id: 'pricing', label: '수수료 구조', required: true },
+            { id: 'matching', label: '인재 매칭 기준', required: false },
+            { id: 'aftercare', label: '사후 관리', required: false },
+            { id: 'effect', label: '기대 효과', required: true }
+        ]
+    },
+    callcenter: {
+        label: '콜센터 운영 제안서',
+        coverTitle: 'CS 운영 제 안 서',
+        coverCategory: 'CS OPERATION PROPOSAL',
+        sections: [
+            { id: 'cover', label: '표지', required: true },
+            { id: 'overview', label: '서비스 개요', required: true },
+            { id: 'models', label: '운영 형태 (전담/대행/쉐어링)', required: true },
+            { id: 'company', label: '회사 소개', required: true },
+            { id: 'system', label: '상담 시스템 및 품질', required: false },
+            { id: 'reporting', label: '월간 보고 체계', required: false },
+            { id: 'effect', label: '기대 효과', required: true }
+        ]
+    },
+    integrated: {
+        label: '통합 운영 제안서',
+        coverTitle: '통합 운영 제 안 서',
+        coverCategory: 'INTEGRATED PROPOSAL',
+        sections: [
+            { id: 'cover', label: '표지', required: true },
+            { id: 'toc', label: '목차', required: false },
+            { id: 'overview', label: '제안 개요', required: true },
+            { id: 'company', label: '회사 소개', required: true },
+            { id: 'services', label: '서비스별 상세 운영 계획', required: true },
+            { id: 'orgchart', label: '통합 조직도 및 보고 체계', required: false },
+            { id: 'safety', label: '안전·품질 관리', required: false },
+            { id: 'effect', label: '기대 효과', required: true }
+        ]
+    }
+};
+
+// ===== 업종별 자동 가이드라인 =====
+const INDUSTRY_GUIDELINES = {
+    '제조라인': {
+        background: '제조 현장의 인력 운영은 생산성과 안전을 동시에 확보해야 하는 고도의 전문 영역입니다. 직접고용 관리 부담 증가와 인력 수급 난이 상황에서, 전문 도급 업체를 통한 체계적 인력 운영이 최적의 대안입니다.',
+        keyPoints: ['ISO 9001·ISO 45001 인증 기반 품질·안전 관리 체계', '식품 대기업 현장 100~300명 동시 투입 실적', '불법파견 리스크 제로 — 적법도급 운영 원칙 준수', '3조 2교대, 2조 2교대 등 다양한 교대제 운영 경험'],
+        safetyItems: ['작업 전 TBM (위험예지활동)', 'MSDS 교육 및 보호구 착용', 'SOP 기반 표준작업 절차', '위험성 평가 정기 시행', '사고 분석 및 재발 방지'],
+        effects: ['관리 부담 절감 및 핵심 업무 집중', '전문 인력 안정 공급으로 생산성 향상', '노무 리스크 제로 (4대보험·근로기준법 완전 준수)', '산업재해율 감소'],
+        relatedClients: ['재세능원 (창고물류·인프라환경설비)', '대동푸드 (식품 제조)', '인팩이피엠 (제조 도급)']
+    },
+    '물류/택배': {
+        background: '물류·택배 산업은 계절 변동과 야간 작업 비중이 높아 안정적 인력 운영이 핵심 과제입니다. 전문 도급을 통해 인건비 구조를 투명하게 관리하고, 결원 대응 체계를 갖추는 것이 경쟁력입니다.',
+        keyPoints: ['야간·잔업 수당 체계적 관리 노하우', '결원 대응 24시간 비상 인력풀 운영', '물류센터 다수 운영 실적', '근태 관리 시스템 기반 실시간 모니터링'],
+        safetyItems: ['중량물 취급 안전 수칙', '지게차·컨베이어 안전 관리', '야간 작업 안전 조명 및 휴게', '미끄럼·전도 방지'],
+        effects: ['계절 변동 대응 유연성 확보', '야간수당·잔업 관리 투명화', '결원율 최소화', '물류 동선 최적화'],
+        relatedClients: ['재세능원 (창고물류)']
+    },
+    '식품제조': {
+        background: '식품 제조 현장은 HACCP 기반 위생관리와 불법파견 방지가 동시에 요구되는 고규제 분야입니다. 워크위드는 식품 대기업 생산 현장에서 매년 100~300명 동시 투입 실적을 보유하고 있습니다.',
+        keyPoints: ['HACCP 위생 관리 전담 교육·모니터링', '식품 대기업 생산 현장 대규모 투입 실적', '적법 도급 운영으로 불법파견 리스크 원천 차단', '계절 증원(6~8월) 대응 경험 풍부'],
+        safetyItems: ['위생복·위생모·마스크 착용 관리', 'HACCP 기준 청결 유지', '알레르겐 교차오염 방지', '작업장 온도·습도 관리', '이물질 혼입 방지 절차'],
+        effects: ['HACCP 감사 대응 역량 강화', '위생 사고 제로 달성', '계절 증원 안정 확보', '인력 관리 부담 대폭 절감'],
+        relatedClients: ['대동푸드', '강봉석조청', '서울식품', '대성푸드빌']
+    },
+    'CS/콜센터': {
+        background: 'CS 업무는 브랜드 이미지와 직결되는 핵심 기능입니다. 전담 상담사 배치부터 콜 쉐어링까지 고객사의 규모와 예산에 맞는 유연한 운영 모델을 제공합니다.',
+        keyPoints: ['ASP 패키지 (시설·시스템·보안 올인원)', 'AI 답변 시스템 연동으로 응답 품질 향상', '녹취·DB 관리·월간 보고 서비스 포함', '전담/대행/쉐어링 3가지 운영 모델'],
+        safetyItems: [],
+        effects: ['CS 비용 최적화 (콜 단위 과금 가능)', '상담 품질 KPI 기반 관리', '브랜드 이미지 향상', '내부 인력의 핵심 업무 집중'],
+        relatedClients: []
+    },
+    '사무/행정': {
+        background: '사무·행정 분야는 전문성 확보와 안정적 인력 운영이 핵심입니다. 파견 또는 채용대행을 통해 적합 인재를 빠르게 확보하고, 관리 부담을 줄일 수 있습니다.',
+        keyPoints: ['직무별 맞춤 채용 프로세스', '급여·4대보험 행정 일체 대행', '노무 리스크 관리', '전문 인력 DB 보유'],
+        safetyItems: [],
+        effects: ['채용·관리 시간 절감', '적합 인재 빠른 확보', '노무 리스크 제로', '핵심 업무 집중'],
+        relatedClients: []
+    },
+    '호텔/숙박': {
+        background: '호텔·숙박업은 서비스 품질이 곧 경쟁력입니다. 고객 응대, 시설 관리 등 다양한 직무를 통합 관리하면서도 일관된 서비스 수준을 유지하는 것이 중요합니다.',
+        keyPoints: ['서비스 마인드 전문 교육', '다직무 통합 운영', '결원 대응 즉시 교체', '고객 만족도 KPI 관리'],
+        safetyItems: ['객실 청소 시 화학물질 안전', '중량 세탁물 취급 안전', '미끄럼 방지'],
+        effects: ['일관된 서비스 품질', '인력 관리 일원화', '비용 예측 가능', '고객 만족도 향상'],
+        relatedClients: []
+    },
+    '경비/시설': {
+        background: '경비·시설관리는 24시간 운영과 안전이 핵심입니다. 격일근무 체계를 안정적으로 운영하면서 시설 관리 품질을 유지하는 전문성이 필요합니다.',
+        keyPoints: ['24시간 격일근무 안정 운영', '시설 관리 전문 인력 확보', '비상 대응 체계 구축', '결원 대응 시스템'],
+        safetyItems: ['야간 순찰 안전', '화재·재난 대응 매뉴얼', '시설 장비 안전 관리'],
+        effects: ['안정적 24시간 운영', '인력 관리 부담 절감', '시설 관리 품질 향상', '비상 대응 역량 강화'],
+        relatedClients: []
+    }
+};
+// 기본 가이드라인 (업종 미선택 시)
+const DEFAULT_GUIDELINE = {
+    background: '인력 운영의 효율성과 안정성은 기업 경쟁력의 핵심입니다. 전문 아웃소싱 파트너를 통해 관리 부담을 줄이고, 핵심 업무에 집중할 수 있는 환경을 만들어 드립니다.',
+    keyPoints: ['ISO 9001·ISO 45001 이중 인증 기반 관리 체계', '50여 거래처 운영 실적의 노하우', '결원 대응 시스템 구축', '적법 운영으로 노무 리스크 제로'],
+    safetyItems: ['안전 교육 정기 실시', '위험성 평가 시행', '사고 예방 체크리스트', '보호구 착용 관리'],
+    effects: ['관리 부담 절감', '인력 운영 안정화', '비용 예측 가능성 향상', '노무 리스크 제거'],
+    relatedClients: []
+};
+
+// ===== UI 인터랙션 함수 =====
+function selectProposalType(type, card) {
+    document.querySelectorAll('#tab6 .proposal-type-selector .type-card').forEach(c => c.classList.remove('selected'));
+    if (card) card.classList.add('selected');
+    state.proposalType = type;
+    renderProposalSections(type);
+    applyIndustryGuideline();
+    autoSave();
+}
+
+function renderProposalSections(type) {
+    const config = PROPOSAL_SECTIONS[type];
+    if (!config) return;
+    const container = document.getElementById('proposalSections');
+    container.innerHTML = config.sections.map(s => {
+        const checked = s.required ? 'checked' : 'checked';
+        const reqBadge = s.required ? '<span class="section-badge">필수</span>' : '';
+        const reqClass = s.required ? ' required' : '';
+        return `<label class="proposal-section-item checked${reqClass}" onclick="toggleProposalSection(this)">
+            <input type="checkbox" data-section="${s.id}" checked ${s.required ? 'disabled' : ''}>
+            <span class="section-label">${s.label}</span>
+            ${reqBadge}
+        </label>`;
+    }).join('');
+}
+
+function toggleProposalSection(item) {
+    const cb = item.querySelector('input[type="checkbox"]');
+    if (cb.disabled) return;
+    cb.checked = !cb.checked;
+    item.classList.toggle('checked', cb.checked);
+}
+
+function getSelectedProposalSections() {
+    const items = document.querySelectorAll('#proposalSections input[type="checkbox"]:checked');
+    return Array.from(items).map(cb => cb.dataset.section);
+}
+
+function applyIndustryGuideline() {
+    const industry = document.getElementById('industry')?.value || '';
+    const guide = INDUSTRY_GUIDELINES[industry] || DEFAULT_GUIDELINE;
+
+    // 배경 자동 채우기 (비어있을 때만)
+    const bgEl = document.getElementById('proposalBackground');
+    if (bgEl && !bgEl.value.trim()) {
+        bgEl.value = guide.background;
+    }
+    // 핵심 포인트 자동 채우기 (비어있을 때만)
+    const kpEl = document.getElementById('proposalKeyPoints');
+    if (kpEl && !kpEl.value.trim()) {
+        kpEl.value = guide.keyPoints.join('\n');
+    }
+
+    // 가이드라인 미리보기
+    const card = document.getElementById('guidelinePreviewCard');
+    const preview = document.getElementById('guidelinePreview');
+    let html = '';
+    if (guide.safetyItems.length > 0) {
+        html += `<div class="guideline-group"><h4>안전 관리 항목</h4><ul>${guide.safetyItems.map(i => '<li>' + i + '</li>').join('')}</ul></div>`;
+    }
+    html += `<div class="guideline-group"><h4>기대 효과</h4><ul>${guide.effects.map(i => '<li>' + i + '</li>').join('')}</ul></div>`;
+    if (guide.relatedClients.length > 0) {
+        html += `<div class="guideline-group"><h4>유사 실적 (거래처)</h4><ul>${guide.relatedClients.map(i => '<li>' + i + '</li>').join('')}</ul></div>`;
+    }
+    preview.innerHTML = html;
+    card.style.display = html ? 'block' : 'none';
+}
+
+// ===== 제안서 공통 CSS =====
+function getProposalCSS() {
+    return `
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans KR',sans-serif;color:#222;background:#e8e8e8;line-height:1.8;font-size:13px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.document{max-width:210mm;margin:0 auto;background:#fff;}
+@media screen{.document{margin:20px auto;box-shadow:0 2px 20px rgba(0,0,0,0.12);}}
+.page{padding:42px 48px;position:relative;min-height:297mm;page-break-before:always;}
+.page:first-child{page-break-before:auto;}
+.page-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid #ddd;margin-bottom:28px;font-size:10px;color:#999;}
+.page-number{text-align:center;font-size:10px;color:#aaa;position:absolute;bottom:30px;left:0;right:0;}
+/* 표지 */
+.cover{height:297mm;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(135deg,#0d1b2a 0%,#1b3a5c 40%,#1a365d 100%);color:#fff;text-align:center;padding:60px;page-break-after:always;}
+.cover .doc-code{font-size:11px;letter-spacing:3px;color:rgba(255,255,255,0.4);margin-bottom:40px;}
+.cover .category{font-size:13px;letter-spacing:6px;color:rgba(255,255,255,0.6);margin-bottom:16px;text-transform:uppercase;}
+.cover .main-title{font-size:34px;font-weight:700;letter-spacing:4px;margin-bottom:12px;}
+.cover .sub-title{font-size:16px;font-weight:300;color:rgba(255,255,255,0.8);margin-bottom:50px;}
+.cover-table{border-collapse:collapse;margin:30px auto;text-align:left;width:auto;}
+.cover-table th{padding:10px 24px;font-size:12px;font-weight:400;color:rgba(255,255,255,0.5);border-bottom:1px solid rgba(255,255,255,0.15);white-space:nowrap;}
+.cover-table td{padding:10px 24px;font-size:14px;font-weight:500;color:#fff;border-bottom:1px solid rgba(255,255,255,0.15);}
+.cover .company-name{font-size:20px;font-weight:600;letter-spacing:3px;margin-top:50px;}
+.cover .cover-date{font-size:13px;color:rgba(255,255,255,0.5);margin-top:10px;}
+/* 섹션 제목 */
+.section-title{font-size:20px;font-weight:700;color:#1a365d;padding-bottom:10px;border-bottom:2px solid #1a365d;margin-bottom:24px;display:flex;align-items:center;gap:12px;}
+.section-num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#1a365d;color:#fff;border-radius:50%;font-size:15px;font-weight:700;}
+.sub-section{font-size:15px;font-weight:600;color:#1a365d;margin:24px 0 12px;padding-left:14px;border-left:3px solid #1a365d;}
+/* 테이블 */
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:12.5px;}
+th,td{padding:10px 14px;border:1px solid #ddd;text-align:left;vertical-align:top;}
+th{background:#f0f4f8;font-weight:600;color:#1a365d;white-space:nowrap;}
+thead th{background:#1a365d;color:#fff;font-weight:500;text-align:center;}
+tbody tr:nth-child(even){background:#fafbfc;}
+/* 강조 박스 */
+.highlight-box{background:#f0f4f8;border-left:4px solid #1a365d;padding:16px 20px;margin:16px 0;border-radius:0 8px 8px 0;font-size:13px;line-height:1.8;}
+.success-box{background:#f0fff4;border-left:4px solid #38a169;padding:16px 20px;margin:16px 0;border-radius:0 8px 8px 0;}
+.warning-box{background:#fffbeb;border-left:4px solid #d69e2e;padding:16px 20px;margin:16px 0;border-radius:0 8px 8px 0;}
+.danger-box{background:#fff5f5;border-left:4px solid #e53e3e;padding:16px 20px;margin:16px 0;border-radius:0 8px 8px 0;}
+/* 목차 */
+.toc-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dotted #ccc;font-size:14px;}
+.toc-item .toc-num{font-weight:700;color:#1a365d;width:40px;}
+.toc-item .toc-title{flex:1;}
+.toc-item .toc-page{color:#999;text-align:right;}
+/* 조직도 */
+.org-chart{text-align:center;margin:20px 0;}
+.org-box{display:inline-block;padding:10px 20px;border:2px solid #1a365d;border-radius:8px;font-size:12px;font-weight:600;margin:4px;background:#fff;}
+.org-box.top{background:#1a365d;color:#fff;}
+.org-box.mid{background:#2d5a87;color:#fff;}
+.org-box.sub{background:#f0f4f8;color:#1a365d;}
+.org-line{color:#1a365d;font-size:16px;margin:4px 0;}
+/* 플로우 */
+.flow-steps{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin:20px 0;}
+.flow-step{background:#f0f4f8;border:1px solid #1a365d;border-radius:8px;padding:10px 18px;font-size:12px;font-weight:500;text-align:center;}
+.flow-arrow{color:#1a365d;font-size:18px;font-weight:700;}
+/* 비교 카드 */
+.compare-cards{display:flex;gap:20px;margin:20px 0;}
+.compare-card{flex:1;padding:20px;border-radius:10px;border:1px solid #e2e8f0;}
+.compare-card.good{background:#f0fff4;border-color:#38a169;}
+.compare-card.bad{background:#fff5f5;border-color:#e53e3e;}
+.compare-card h4{font-size:14px;margin-bottom:10px;}
+.compare-card ul{padding-left:18px;font-size:12.5px;line-height:2;}
+/* 리스트 */
+.check-list{padding-left:0;list-style:none;}
+.check-list li{padding:6px 0;font-size:13px;padding-left:24px;position:relative;}
+.check-list li::before{content:'✓';position:absolute;left:0;color:#38a169;font-weight:700;}
+p{margin:8px 0;font-size:13px;line-height:1.8;}
+/* 인쇄 */
+@media print{body{margin:0;padding:0;background:#fff;}.document{box-shadow:none;}.page{box-shadow:none;margin:0;min-height:auto;page-break-after:always;}.page:last-child{page-break-after:auto;}.cover{page-break-after:always;}table{page-break-inside:avoid;}.section-title{page-break-after:avoid;}@page{size:A4;margin:15mm 18mm;}}
+`;
+}
+
+// ===== 제안서 공통 빌더 함수 =====
+function getProposalCover(type, data) {
+    const config = PROPOSAL_SECTIONS[type];
+    return `<div class="page cover">
+    <div class="doc-code">${data.docNum}</div>
+    <div class="category">${config.coverCategory}</div>
+    <div class="main-title">${config.coverTitle}</div>
+    <div class="sub-title">${data.scope || ''}</div>
+    <table class="cover-table">
+        <tr><th>발 주 처</th><td>${data.client || '(업체명)'}</td></tr>
+        <tr><th>수 급 업 체</th><td>${WALKWITH_INFO.name}</td></tr>
+        ${data.scope ? '<tr><th>용 역 범 위</th><td>' + data.scope + '</td></tr>' : ''}
+        ${data.staff ? '<tr><th>운 영 인 원</th><td>' + data.staff + '</td></tr>' : ''}
+        <tr><th>담 당 자</th><td>${data.contactName || ''} ${data.contactPhone ? '(' + data.contactPhone + ')' : ''}</td></tr>
+    </table>
+    <div class="company-name">${WALKWITH_INFO.name}</div>
+    <div class="cover-date">${data.dateStr}</div>
+</div>`;
+}
+
+function getProposalTOC(selectedSections, type) {
+    const config = PROPOSAL_SECTIONS[type];
+    let num = 1;
+    let items = '';
+    config.sections.forEach(s => {
+        if (s.id === 'cover' || s.id === 'toc') return;
+        if (!selectedSections.includes(s.id)) return;
+        items += `<div class="toc-item"><span class="toc-num">${String(num).padStart(2, '0')}</span><span class="toc-title">${s.label}</span></div>`;
+        num++;
+    });
+    return `<div class="page">
+    <div class="section-title" style="border:none;justify-content:center;font-size:24px;margin-top:60px;">목 차</div>
+    <div style="max-width:500px;margin:40px auto;">${items}</div>
+    <div class="page-number">- 1 -</div>
+</div>`;
+}
+
+function getProposalCompanySection(sectionNum) {
+    const info = WALKWITH_INFO;
+    return `<div class="page">
+    <div class="section-title"><span class="section-num">${String(sectionNum).padStart(2,'0')}</span> 회사 소개</div>
+    <div class="sub-section">${sectionNum}-1. 회사 개요</div>
+    <table>
+        <tr><th>회사명</th><td>${info.name}</td><th>대표이사</th><td>${info.ceo}</td></tr>
+        <tr><th>설립일</th><td>${info.established}</td><th>사원수</th><td>${info.employees}</td></tr>
+        <tr><th>기업구분</th><td colspan="3">${info.type}</td></tr>
+        <tr><th>본사</th><td colspan="3">${info.hq}</td></tr>
+        <tr><th>충주센터</th><td colspan="3">${info.center}</td></tr>
+        <tr><th>서울지사</th><td colspan="3">${info.seoul}</td></tr>
+        <tr><th>대표전화</th><td>${info.tel}</td><th>이메일</th><td>${info.email}</td></tr>
+    </table>
+    <div class="sub-section">${sectionNum}-2. 인증 현황</div>
+    <table>
+        <thead><tr><th>No.</th><th>인증명</th><th>내용</th></tr></thead>
+        <tbody>${info.certifications.map((c, i) => '<tr><td style="text-align:center;">' + (i + 1) + '</td><td>' + c.name + '</td><td>' + c.desc + '</td></tr>').join('')}</tbody>
+    </table>
+    <div class="sub-section">${sectionNum}-3. 주요 연혁</div>
+    <table>
+        <thead><tr><th>시기</th><th>내용</th></tr></thead>
+        <tbody>${info.history.map(h => '<tr><th>' + h.year + '</th><td>' + h.desc + '</td></tr>').join('')}</tbody>
+    </table>
+    <div class="sub-section">${sectionNum}-4. 핵심 역량</div>
+    <table>
+        <thead><tr><th>역량</th><th>내용</th></tr></thead>
+        <tbody>${info.strengths.map(s => '<tr><th>' + s.title + '</th><td>' + s.desc + '</td></tr>').join('')}</tbody>
+    </table>
+    <div class="sub-section">${sectionNum}-5. 주요 거래처</div>
+    <div class="highlight-box">${info.majorClients.join(', ')} 외 ${info.clients} 운영 중</div>
+</div>`;
+}
+
+function getProposalOverviewSection(sectionNum, data, guide) {
+    const bg = data.background || guide.background;
+    const kp = (data.keyPoints || guide.keyPoints.join('\n')).split('\n').filter(l => l.trim());
+    return `<div class="page">
+    <div class="section-title"><span class="section-num">${String(sectionNum).padStart(2,'0')}</span> 제안 개요</div>
+    <div class="sub-section">${sectionNum}-1. 제안 배경</div>
+    <p>${bg}</p>
+    <div class="sub-section">${sectionNum}-2. 제안 목적</div>
+    <p>${data.client}의 ${data.scope || '인력 운영'} 업무를 전문 아웃소싱 파트너인 워크위드가 수행함으로써, 운영 효율성을 극대화하고 관리 부담을 절감하는 것을 목적으로 합니다.</p>
+    <div class="sub-section">${sectionNum}-3. 제안 범위</div>
+    <table>
+        <tr><th>용역 범위</th><td>${data.scope || '(용역 범위를 입력하세요)'}</td></tr>
+        <tr><th>운영 인원</th><td>${data.staff || '(운영 인원을 입력하세요)'}</td></tr>
+        <tr><th>운영 지역</th><td>${data.site || '(사업장명을 입력하세요)'}</td></tr>
+    </table>
+    <div class="sub-section">${sectionNum}-4. 핵심 강점</div>
+    <ul class="check-list">${kp.map(p => '<li>' + p + '</li>').join('')}</ul>
+</div>`;
+}
+
+function getProposalSafetySection(sectionNum, guide) {
+    if (!guide.safetyItems || guide.safetyItems.length === 0) return '';
+    return `<div class="page">
+    <div class="section-title"><span class="section-num">${String(sectionNum).padStart(2,'0')}</span> 안전 관리 계획</div>
+    <div class="sub-section">${sectionNum}-1. 안전 관리 체계</div>
+    <div class="highlight-box">워크위드는 <strong>ISO 45001 (안전보건경영시스템)</strong> 인증을 기반으로 체계적인 안전 관리를 수행합니다.</div>
+    <div class="sub-section">${sectionNum}-2. 주요 안전 관리 항목</div>
+    <table>
+        <thead><tr><th>No.</th><th>관리 항목</th><th>주기</th></tr></thead>
+        <tbody>${guide.safetyItems.map((item, i) => '<tr><td style="text-align:center;">' + (i + 1) + '</td><td>' + item + '</td><td>상시/정기</td></tr>').join('')}</tbody>
+    </table>
+    <div class="sub-section">${sectionNum}-3. 사고 발생 시 대응 절차</div>
+    <div class="flow-steps">
+        <div class="flow-step">사고 발생<br>즉시 보고</div><span class="flow-arrow">→</span>
+        <div class="flow-step">응급 조치<br>현장 보존</div><span class="flow-arrow">→</span>
+        <div class="flow-step">원인 분석<br>5Why</div><span class="flow-arrow">→</span>
+        <div class="flow-step">재발 방지<br>대책 수립</div><span class="flow-arrow">→</span>
+        <div class="flow-step">결과 보고<br>교육 반영</div>
+    </div>
+</div>`;
+}
+
+function getProposalEffectSection(sectionNum, guide, data) {
+    return `<div class="page">
+    <div class="section-title"><span class="section-num">${String(sectionNum).padStart(2,'0')}</span> 기대 효과</div>
+    <div class="compare-cards">
+        <div class="compare-card bad">
+            <h4 style="color:#e53e3e;">현재 (직접 관리)</h4>
+            <ul>
+                <li>인력 채용·관리 부담 증가</li>
+                <li>결원 시 즉시 대응 어려움</li>
+                <li>노무 리스크 (4대보험, 근로기준법)</li>
+                <li>관리 인력 추가 비용 발생</li>
+            </ul>
+        </div>
+        <div class="compare-card good">
+            <h4 style="color:#38a169;">도입 후 (워크위드)</h4>
+            <ul>${guide.effects.map(e => '<li>' + e + '</li>').join('')}</ul>
+        </div>
+    </div>
+    <div class="success-box">
+        <strong>워크위드와 함께하면</strong><br>
+        ${data.client}은(는) 핵심 업무에 집중하고, 인력 운영은 전문가에게 맡길 수 있습니다.<br>
+        ISO 9001·ISO 45001 이중 인증 기반의 체계적 관리로 안정적인 운영을 약속드립니다.
+    </div>
+    <div style="margin-top:30px;text-align:center;padding:30px;background:#f8fafb;border-radius:10px;">
+        <div style="font-size:16px;font-weight:600;color:#1a365d;margin-bottom:10px;">문의 및 상담</div>
+        <div style="font-size:14px;color:#4a5568;">${WALKWITH_INFO.tel} | ${WALKWITH_INFO.email}</div>
+        <div style="font-size:13px;color:#718096;margin-top:4px;">${WALKWITH_INFO.web}</div>
+    </div>
+</div>`;
+}
+
+function getProposalComplianceSection(sectionNum) {
+    return `<div class="page">
+    <div class="section-title"><span class="section-num">${String(sectionNum).padStart(2,'0')}</span> 적법 도급 운영 원칙</div>
+    <div class="danger-box"><strong>불법파견 판단 기준:</strong> 발주처가 도급 근로자에게 직접 업무 지시·감독을 하면 불법파견으로 판단됩니다.</div>
+    <div class="sub-section">${sectionNum}-1. 도급과 파견의 구분</div>
+    <table>
+        <thead><tr><th>구분</th><th>도급 (적법)</th><th>파견 (위반 시 불법)</th></tr></thead>
+        <tbody>
+            <tr><td>지휘·명령</td><td>수급업체 현장대리인이 수행</td><td>발주처가 직접 지시</td></tr>
+            <tr><td>업무 범위</td><td>도급 계약서에 명시된 범위</td><td>발주처 재량으로 변경</td></tr>
+            <tr><td>근태 관리</td><td>수급업체가 독립 관리</td><td>발주처가 직접 관리</td></tr>
+            <tr><td>평가</td><td>업무 완성도 (결과물)</td><td>근로자 개인 평가</td></tr>
+        </tbody>
+    </table>
+    <div class="sub-section">${sectionNum}-2. 워크위드 적법 도급 4대 원칙</div>
+    <table>
+        <thead><tr><th>원칙</th><th>실행 내용</th></tr></thead>
+        <tbody>
+            <tr><th>지휘체계 분리</th><td>현장대리인이 모든 업무 지시·감독 수행. 발주처 직접 지시 차단</td></tr>
+            <tr><th>독립 공간 운영</th><td>도급 근로자 전용 공간 확보 (사무실, 탈의실, 휴게실 구분)</td></tr>
+            <tr><th>자재·장비 분리</th><td>도급업체 소유 장비 사용 또는 임대차 계약 체결</td></tr>
+            <tr><th>서류 체계 구축</th><td>업무일지·출퇴근기록·교육일지 등 독립 관리 증빙 확보</td></tr>
+        </tbody>
+    </table>
+</div>`;
+}
+
+function getProposalQualitySection(sectionNum) {
+    return `<div class="page">
+    <div class="section-title"><span class="section-num">${String(sectionNum).padStart(2,'0')}</span> 품질 관리 및 KPI</div>
+    <div class="sub-section">${sectionNum}-1. 품질 관리 체계</div>
+    <div class="highlight-box"><strong>ISO 9001 (품질경영시스템)</strong> 인증 기반으로 일관된 서비스 품질을 보장합니다.</div>
+    <div class="sub-section">${sectionNum}-2. 핵심 KPI</div>
+    <table>
+        <thead><tr><th>KPI 항목</th><th>목표</th><th>측정 주기</th></tr></thead>
+        <tbody>
+            <tr><td>결원율</td><td>3% 이하</td><td>월간</td></tr>
+            <tr><td>이직율</td><td>10% 이하</td><td>분기</td></tr>
+            <tr><td>안전사고 발생률</td><td>0건</td><td>월간</td></tr>
+            <tr><td>교육 이수율</td><td>100%</td><td>월간</td></tr>
+            <tr><td>고객 만족도</td><td>90점 이상</td><td>분기</td></tr>
+        </tbody>
+    </table>
+    <div class="sub-section">${sectionNum}-3. 보고 체계</div>
+    <table>
+        <thead><tr><th>보고 유형</th><th>주기</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td>일일 보고</td><td>매일</td><td>출퇴근 현황, 특이사항, 결원 대응</td></tr>
+            <tr><td>주간 보고</td><td>매주</td><td>주간 실적, 이슈 사항, 다음 주 계획</td></tr>
+            <tr><td>월간 보고</td><td>매월</td><td>KPI 실적, 인력 현황, 개선 사항</td></tr>
+        </tbody>
+    </table>
+</div>`;
+}
+
+function getProposalOrganizationSection(sectionNum, data) {
+    return `<div class="page">
+    <div class="section-title"><span class="section-num">${String(sectionNum).padStart(2,'0')}</span> 조직 구성 및 인력 운영</div>
+    <div class="sub-section">${sectionNum}-1. 조직 구성도</div>
+    <div class="org-chart">
+        <div class="org-box top">워크위드 본사<br><span style="font-size:10px;">(경영지원·노무·교육)</span></div>
+        <div class="org-line">│</div>
+        <div class="org-box mid">현장대리인<br><span style="font-size:10px;">(현장 총괄·지휘감독)</span></div>
+        <div class="org-line">┣━━━━━━━━━━━━┓</div>
+        <div style="display:flex;justify-content:center;gap:20px;">
+            <div class="org-box sub">운용직 A조</div>
+            <div class="org-box sub">운용직 B조</div>
+        </div>
+    </div>
+    <div class="sub-section">${sectionNum}-2. 인력 편성</div>
+    <table>
+        <thead><tr><th>구분</th><th>인원</th><th>역할</th></tr></thead>
+        <tbody>
+            <tr><td>현장대리인</td><td>1명</td><td>현장 총괄, 업무 지시·감독, 발주처 커뮤니케이션</td></tr>
+            <tr><td>운용직</td><td>${data.staff || '(인원 입력)'}</td><td>도급 업무 수행</td></tr>
+        </tbody>
+    </table>
+    <div class="sub-section">${sectionNum}-3. 결원 대응 체계</div>
+    <div class="flow-steps">
+        <div class="flow-step">결원 발생<br>즉시 보고</div><span class="flow-arrow">→</span>
+        <div class="flow-step">비상 인력풀<br>투입 (2시간)</div><span class="flow-arrow">→</span>
+        <div class="flow-step">현장 교육<br>즉시 실시</div><span class="flow-arrow">→</span>
+        <div class="flow-step">정상 운영<br>확인</div>
+    </div>
+</div>`;
+}
+
+// ===== 제안서 디스패처 =====
+function generateProposal() {
+    const type = state.proposalType || 'dogup';
+    const selected = getSelectedProposalSections();
+    if (selected.length === 0) { alert('하나 이상의 섹션을 선택하세요.'); return; }
+
+    // 공통 데이터 수집
+    const data = {
+        client: elVal('clientName') || '(업체명)',
+        site: elVal('siteName') || '',
+        industry: elVal('industry') || '',
+        contactName: elVal('contactName') || '',
+        contactPhone: elVal('contactPhone') || '',
+        scope: elVal('proposalScope') || '',
+        staff: elVal('proposalStaff') || '',
+        background: elVal('proposalBackground') || '',
+        keyPoints: elVal('proposalKeyPoints') || '',
+        docNum: elVal('proposalDocNum') || 'WW-PR-' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-01',
+        dateStr: elVal('proposalDate') || new Date().getFullYear() + '년 ' + (new Date().getMonth() + 1) + '월'
+    };
+    const guide = INDUSTRY_GUIDELINES[data.industry] || DEFAULT_GUIDELINE;
+
+    let html;
+    if (type === 'dogup') html = buildProposalDogup(selected, data, guide);
+    else if (type === 'dispatch') html = buildProposalDispatch(selected, data, guide);
+    else if (type === 'recruit') html = buildProposalRecruit(selected, data, guide);
+    else if (type === 'callcenter') html = buildProposalCallcenter(selected, data, guide);
+    else if (type === 'integrated') html = buildProposalIntegrated(selected, data, guide);
+    else html = buildProposalDogup(selected, data, guide);
+
+    showProposalPreview(html);
+}
+
+// ===== 도급 제안서 =====
+function buildProposalDogup(sel, data, guide) {
+    let pages = '';
+    let num = 1;
+    if (sel.includes('cover')) pages += getProposalCover('dogup', data);
+    if (sel.includes('toc')) pages += getProposalTOC(sel, 'dogup');
+    if (sel.includes('overview')) { pages += getProposalOverviewSection(num, data, guide); num++; }
+    if (sel.includes('company')) { pages += getProposalCompanySection(num); num++; }
+    if (sel.includes('organization')) { pages += getProposalOrganizationSection(num, data); num++; }
+    if (sel.includes('workplan')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 업무 수행 계획</div>
+    <div class="sub-section">${num}-1. 일일 업무 흐름</div>
+    <div class="flow-steps">
+        <div class="flow-step">출근·점호<br>TBM</div><span class="flow-arrow">→</span>
+        <div class="flow-step">업무 배분<br>작업 지시</div><span class="flow-arrow">→</span>
+        <div class="flow-step">업무 수행<br>중간 점검</div><span class="flow-arrow">→</span>
+        <div class="flow-step">일일 정리<br>인수인계</div><span class="flow-arrow">→</span>
+        <div class="flow-step">일일 보고<br>특이사항</div>
+    </div>
+    <div class="sub-section">${num}-2. 교대 인수인계</div>
+    <table>
+        <thead><tr><th>항목</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td>인수인계 시점</td><td>교대 30분 전 중복 근무</td></tr>
+            <tr><td>인수인계 내용</td><td>업무 진행 현황, 잔여 업무, 특이사항, 장비 상태</td></tr>
+            <tr><td>기록</td><td>인수인계 일지 작성 (현장대리인 확인)</td></tr>
+        </tbody>
+    </table>
+    <div class="page-number">- ${num + 2} -</div>
+</div>`;
+        num++;
+    }
+    if (sel.includes('safety')) { pages += getProposalSafetySection(num, guide); num++; }
+    if (sel.includes('quality')) { pages += getProposalQualitySection(num); num++; }
+    if (sel.includes('compliance')) { pages += getProposalComplianceSection(num); num++; }
+    if (sel.includes('effect')) { pages += getProposalEffectSection(num, guide, data); num++; }
+
+    return wrapProposalHTML(data.client + ' ' + PROPOSAL_SECTIONS.dogup.label, pages);
+}
+
+// ===== 파견 제안서 =====
+function buildProposalDispatch(sel, data, guide) {
+    let pages = '';
+    let num = 1;
+    if (sel.includes('cover')) pages += getProposalCover('dispatch', data);
+    if (sel.includes('toc')) pages += getProposalTOC(sel, 'dispatch');
+    if (sel.includes('overview')) { pages += getProposalOverviewSection(num, data, guide); num++; }
+    if (sel.includes('company')) { pages += getProposalCompanySection(num); num++; }
+    if (sel.includes('staffing')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 파견 인력 구성 및 역할</div>
+    <div class="sub-section">${num}-1. 인력 구성</div>
+    <table>
+        <thead><tr><th>구분</th><th>인원</th><th>주요 역할</th></tr></thead>
+        <tbody>
+            <tr><td>파견 인력</td><td>${data.staff || '(인원 입력)'}</td><td>${data.scope || '(업무 범위 입력)'}</td></tr>
+        </tbody>
+    </table>
+    <div class="sub-section">${num}-2. 파견 vs 도급 안내</div>
+    <div class="warning-box"><strong>파견 근로:</strong> 파견법에 따라 사용사업주(발주처)가 직접 업무 지시·감독이 가능합니다. 단, 파견 가능 업무(32개 직종)에 해당해야 하며, 제조 직접 생산 공정은 파견이 불가합니다.</div>
+</div>`;
+        num++;
+    }
+    if (sel.includes('payroll')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 급여 및 4대보험 구조</div>
+    <div class="sub-section">${num}-1. 급여 구조</div>
+    <table>
+        <thead><tr><th>항목</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td>기본급</td><td>시급 × 209시간 (월 소정근로)</td></tr>
+            <tr><td>연장·야간·휴일</td><td>근로기준법에 따라 가산 지급</td></tr>
+            <tr><td>4대보험</td><td>국민연금, 건강보험, 고용보험, 산재보험 전액 가입</td></tr>
+            <tr><td>퇴직금</td><td>1년 이상 근속 시 퇴직급여 지급</td></tr>
+        </tbody>
+    </table>
+    <div class="highlight-box">모든 급여·보험은 <strong>워크위드가 직접 관리</strong>하며, 발주처에 투명하게 보고합니다.</div>
+</div>`;
+        num++;
+    }
+    if (sel.includes('attendance')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 근태 관리 및 보고</div>
+    <table>
+        <thead><tr><th>관리 항목</th><th>방법</th><th>주기</th></tr></thead>
+        <tbody>
+            <tr><td>출퇴근</td><td>전자 출퇴근 시스템</td><td>매일</td></tr>
+            <tr><td>결원 관리</td><td>비상 인력풀 → 2시간 내 대체</td><td>발생 시</td></tr>
+            <tr><td>근태 보고</td><td>일일/주간/월간 보고서</td><td>일/주/월</td></tr>
+            <tr><td>연차·휴가</td><td>워크위드 자체 관리</td><td>상시</td></tr>
+        </tbody>
+    </table>
+</div>`;
+        num++;
+    }
+    if (sel.includes('quality')) { pages += getProposalQualitySection(num); num++; }
+    if (sel.includes('effect')) { pages += getProposalEffectSection(num, guide, data); num++; }
+
+    return wrapProposalHTML(data.client + ' ' + PROPOSAL_SECTIONS.dispatch.label, pages);
+}
+
+// ===== 채용대행 제안서 =====
+function buildProposalRecruit(sel, data, guide) {
+    let pages = '';
+    let num = 1;
+    if (sel.includes('cover')) pages += getProposalCover('recruit', data);
+    if (sel.includes('process')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 채용 프로세스</div>
+    <div class="flow-steps">
+        <div class="flow-step">요구 분석<br>직무 정의</div><span class="flow-arrow">→</span>
+        <div class="flow-step">후보자 탐색<br>인력풀·공고</div><span class="flow-arrow">→</span>
+        <div class="flow-step">1차 스크리닝<br>서류·전화</div><span class="flow-arrow">→</span>
+        <div class="flow-step">면접 연결<br>일정 조율</div><span class="flow-arrow">→</span>
+        <div class="flow-step">채용 확정<br>입사 지원</div>
+    </div>
+    <div class="sub-section">${num}-1. 단계별 상세</div>
+    <table>
+        <thead><tr><th>단계</th><th>내용</th><th>소요 기간</th></tr></thead>
+        <tbody>
+            <tr><td>요구 분석</td><td>직무 요건, 자격 조건, 근무 환경 파악</td><td>1~2일</td></tr>
+            <tr><td>후보자 탐색</td><td>내부 인력풀 + 채용 플랫폼 동시 모집</td><td>3~7일</td></tr>
+            <tr><td>스크리닝</td><td>이력서 검토, 전화 인터뷰</td><td>2~3일</td></tr>
+            <tr><td>면접 연결</td><td>최종 후보 3~5배수 추천, 면접 일정 조율</td><td>1~2일</td></tr>
+            <tr><td>채용 확정</td><td>합격 통보, 입사 서류 안내, 오리엔테이션</td><td>1~2일</td></tr>
+        </tbody>
+    </table>
+</div>`;
+        num++;
+    }
+    if (sel.includes('company')) { pages += getProposalCompanySection(num); num++; }
+    if (sel.includes('pricing')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 수수료 구조</div>
+    <div class="sub-section">${num}-1. 수수료 기준</div>
+    <table>
+        <thead><tr><th>항목</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td>수수료 산정</td><td>채용 확정자 연봉 기준 일정 비율 (협의)</td></tr>
+            <tr><td>결제 조건</td><td>채용 확정 후 청구 (최소 근속 기간 적용)</td></tr>
+            <tr><td>보증 기간</td><td>입사 후 3개월 이내 퇴사 시 무상 재추천 1회</td></tr>
+        </tbody>
+    </table>
+    <div class="highlight-box"><strong>성공 보수형:</strong> 채용이 확정되어야만 수수료가 발생합니다. 리스크 없는 구조입니다.</div>
+</div>`;
+        num++;
+    }
+    if (sel.includes('matching')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 인재 매칭 기준</div>
+    <table>
+        <thead><tr><th>매칭 기준</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td>직무 적합성</td><td>요구 직무 경험 및 보유 역량 매칭</td></tr>
+            <tr><td>문화 적합성</td><td>조직 문화 및 팀 분위기와의 궁합</td></tr>
+            <tr><td>근무 조건</td><td>희망 급여, 근무지, 근무 형태 매칭</td></tr>
+            <tr><td>성장 가능성</td><td>장기 근속 가능성 및 성장 의지</td></tr>
+        </tbody>
+    </table>
+</div>`;
+        num++;
+    }
+    if (sel.includes('aftercare')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 사후 관리</div>
+    <table>
+        <thead><tr><th>시기</th><th>관리 항목</th></tr></thead>
+        <tbody>
+            <tr><td>입사 1주</td><td>적응 여부 확인, 불편 사항 청취</td></tr>
+            <tr><td>입사 1개월</td><td>업무 적합성 확인, 양측 만족도 조사</td></tr>
+            <tr><td>입사 3개월</td><td>최종 정착 확인, 보증 기간 종료</td></tr>
+        </tbody>
+    </table>
+</div>`;
+        num++;
+    }
+    if (sel.includes('effect')) { pages += getProposalEffectSection(num, guide, data); num++; }
+
+    return wrapProposalHTML(data.client + ' ' + PROPOSAL_SECTIONS.recruit.label, pages);
+}
+
+// ===== 콜센터 제안서 =====
+function buildProposalCallcenter(sel, data, guide) {
+    const csGuide = INDUSTRY_GUIDELINES['CS/콜센터'] || guide;
+    let pages = '';
+    let num = 1;
+    if (sel.includes('cover')) pages += getProposalCover('callcenter', data);
+    if (sel.includes('overview')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 서비스 개요</div>
+    <p>${csGuide.background}</p>
+    <div class="sub-section">${num}-1. 위드콜 서비스 소개</div>
+    <div class="highlight-box">
+        <strong>위드콜 (WithCall)</strong>은 워크위드의 CS 전문 브랜드로,<br>
+        전담 콜센터부터 콜 쉐어링까지 고객사 규모에 맞는 유연한 CS 솔루션을 제공합니다.
+    </div>
+</div>`;
+        num++;
+    }
+    if (sel.includes('models')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 운영 형태</div>
+    <table>
+        <thead><tr><th>형태</th><th>콜 규모</th><th>월 비용</th><th>특징</th></tr></thead>
+        <tbody>
+            <tr><td><strong>CS쉐어링</strong></td><td>~50콜/일</td><td>50~80만원</td><td>공유 상담사, 소규모 최적</td></tr>
+            <tr><td><strong>CS대행 (반전담)</strong></td><td>~100콜/일</td><td>150만원</td><td>반전담 상담사 배치</td></tr>
+            <tr><td><strong>전담 콜센터</strong></td><td>~200콜/일</td><td>300만원</td><td>전담 상담사 + 전용 라인</td></tr>
+        </tbody>
+    </table>
+    <div class="sub-section">${num}-1. 각 형태별 포함 서비스</div>
+    <table>
+        <thead><tr><th>포함 서비스</th><th>쉐어링</th><th>대행</th><th>전담</th></tr></thead>
+        <tbody>
+            <tr><td>전용 전화번호</td><td style="text-align:center;">-</td><td style="text-align:center;">O</td><td style="text-align:center;">O</td></tr>
+            <tr><td>녹취 제공</td><td style="text-align:center;">O</td><td style="text-align:center;">O</td><td style="text-align:center;">O</td></tr>
+            <tr><td>DB 관리</td><td style="text-align:center;">O</td><td style="text-align:center;">O</td><td style="text-align:center;">O</td></tr>
+            <tr><td>월간 보고서</td><td style="text-align:center;">O</td><td style="text-align:center;">O</td><td style="text-align:center;">O</td></tr>
+            <tr><td>스크립트 커스텀</td><td style="text-align:center;">-</td><td style="text-align:center;">O</td><td style="text-align:center;">O</td></tr>
+            <tr><td>AI 답변 시스템</td><td style="text-align:center;">-</td><td style="text-align:center;">옵션</td><td style="text-align:center;">O</td></tr>
+        </tbody>
+    </table>
+</div>`;
+        num++;
+    }
+    if (sel.includes('company')) { pages += getProposalCompanySection(num); num++; }
+    if (sel.includes('system')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 상담 시스템 및 품질</div>
+    <div class="sub-section">${num}-1. ASP 패키지</div>
+    <table>
+        <thead><tr><th>항목</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td>시설</td><td>전용 상담석, 보안 네트워크, 방음 환경</td></tr>
+            <tr><td>시스템</td><td>CTI, ACD, 녹취, CRM 연동</td></tr>
+            <tr><td>보안</td><td>개인정보 접근 통제, 보안 서약서, 물리적 잠금</td></tr>
+        </tbody>
+    </table>
+    <div class="sub-section">${num}-2. 품질 관리</div>
+    <table>
+        <thead><tr><th>KPI</th><th>목표</th></tr></thead>
+        <tbody>
+            <tr><td>응답률</td><td>95% 이상</td></tr>
+            <tr><td>평균 대기시간</td><td>20초 이내</td></tr>
+            <tr><td>고객 만족도</td><td>90점 이상</td></tr>
+            <tr><td>1차 해결율</td><td>85% 이상</td></tr>
+        </tbody>
+    </table>
+</div>`;
+        num++;
+    }
+    if (sel.includes('reporting')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 월간 보고 체계</div>
+    <table>
+        <thead><tr><th>보고 항목</th><th>내용</th></tr></thead>
+        <tbody>
+            <tr><td>콜 통계</td><td>총 콜수, 응답률, 평균 통화시간, 시간대별 분포</td></tr>
+            <tr><td>유형별 분석</td><td>문의 유형 분류, 주요 이슈, 반복 문의 패턴</td></tr>
+            <tr><td>품질 점수</td><td>KPI 달성률, 모니터링 점수, CS 만족도</td></tr>
+            <tr><td>개선 제안</td><td>VOC 기반 서비스 개선 사항, FAQ 업데이트</td></tr>
+        </tbody>
+    </table>
+</div>`;
+        num++;
+    }
+    if (sel.includes('effect')) { pages += getProposalEffectSection(num, csGuide, data); num++; }
+
+    return wrapProposalHTML(data.client + ' ' + PROPOSAL_SECTIONS.callcenter.label, pages);
+}
+
+// ===== 통합 제안서 =====
+function buildProposalIntegrated(sel, data, guide) {
+    let pages = '';
+    let num = 1;
+    if (sel.includes('cover')) pages += getProposalCover('integrated', data);
+    if (sel.includes('toc')) pages += getProposalTOC(sel, 'integrated');
+    if (sel.includes('overview')) { pages += getProposalOverviewSection(num, data, guide); num++; }
+    if (sel.includes('company')) { pages += getProposalCompanySection(num); num++; }
+    if (sel.includes('services')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 서비스별 상세 운영 계획</div>
+    <p>${data.client}의 다양한 인력 운영 니즈를 워크위드의 통합 서비스로 한번에 해결합니다.</p>
+    ${WALKWITH_INFO.services.map(s => `
+    <div class="sub-section">${s.name}</div>
+    <div class="highlight-box">${s.desc}</div>
+    `).join('')}
+</div>`;
+        num++;
+    }
+    if (sel.includes('orgchart')) {
+        pages += `<div class="page">
+    <div class="section-title"><span class="section-num">${String(num).padStart(2,'0')}</span> 통합 조직도 및 보고 체계</div>
+    <div class="org-chart">
+        <div class="org-box top">워크위드 본사<br><span style="font-size:10px;">(경영지원·노무·교육)</span></div>
+        <div class="org-line">│</div>
+        <div class="org-box mid">${data.client} 담당<br><span style="font-size:10px;">(통합 관리)</span></div>
+        <div class="org-line">┣━━━━━━┳━━━━━━┓</div>
+        <div style="display:flex;justify-content:center;gap:16px;">
+            <div class="org-box sub">도급팀</div>
+            <div class="org-box sub">파견팀</div>
+            <div class="org-box sub">CS팀</div>
+        </div>
+    </div>
+    <div class="sub-section">${num}-1. 보고 체계</div>
+    <table>
+        <thead><tr><th>주기</th><th>보고 내용</th><th>보고 대상</th></tr></thead>
+        <tbody>
+            <tr><td>일일</td><td>인력 출퇴근 현황, 특이사항</td><td>담당자</td></tr>
+            <tr><td>주간</td><td>서비스별 운영 현황, 이슈</td><td>관리자</td></tr>
+            <tr><td>월간</td><td>통합 KPI 보고서, 개선 제안</td><td>임원</td></tr>
+        </tbody>
+    </table>
+</div>`;
+        num++;
+    }
+    if (sel.includes('safety')) { pages += getProposalSafetySection(num, guide); num++; }
+    if (sel.includes('effect')) { pages += getProposalEffectSection(num, guide, data); num++; }
+
+    return wrapProposalHTML(data.client + ' ' + PROPOSAL_SECTIONS.integrated.label, pages);
+}
+
+// ===== HTML 래퍼 =====
+function wrapProposalHTML(title, pages) {
+    return `<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><title>${title} | ${WALKWITH_INFO.name}</title>
+<style>${getProposalCSS()}</style></head>
+<body><div class="document">${pages}</div></body></html>`;
+}
+
+// ===== 미리보기 / 인쇄 =====
+function showProposalPreview(html) {
+    const preview = document.getElementById('proposalPreview');
+    preview.innerHTML = '<div class="preview-frame"><iframe id="proposalFrame"></iframe></div>';
+    const iframe = document.getElementById('proposalFrame');
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+    setTimeout(() => {
+        try { iframe.style.height = doc.body.scrollHeight + 60 + 'px'; } catch(e) {}
+    }, 200);
+    state.proposalHTML = html;
+    autoSave();
+}
+
+function printProposal() {
+    if (!state.proposalHTML) {
+        alert('먼저 제안서를 생성해주세요.');
+        return;
+    }
+    const blob = new Blob([state.proposalHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, '_blank');
+    setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 800);
+}
 </script>
 
 </body>
