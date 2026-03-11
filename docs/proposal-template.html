@@ -1193,15 +1193,68 @@ function renderQuoteForm(type) {
         <input type="number" id="recruitCount" placeholder="3" min="1" data-save>
       </div>
       <div class="form-group">
-        <label>예상 연봉 (원, 1인 기준)</label>
-        <input type="text" id="recruitSalary" placeholder="30,000,000" data-save oninput="formatNumber(this)">
+        <label>수수료 방식</label>
+        <select id="recruitFeeType" data-save onchange="toggleRecruitFeeInputs()">
+          <option value="rate">수수료율 (%) — 급여 대비</option>
+          <option value="conditional">조건별 정액 — 근무일 기준 일당</option>
+        </select>
       </div>
-      <div class="form-group">
-        <label>수수료율 (%)</label>
-        <input type="number" id="recruitFeeRate" placeholder="8" min="1" max="50" step="0.5" value="8" data-save>
+      <div id="recruitRateGroup">
+        <div class="form-group">
+          <label>급여 기준</label>
+          <select id="recruitSalaryType" data-save onchange="toggleRecruitFeeInputs()">
+            <option value="annual">연봉</option>
+            <option value="monthly">월급</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label id="recruitSalaryLabel">예상 연봉 (원, 1인 기준)</label>
+          <input type="text" id="recruitSalary" placeholder="30,000,000" data-save oninput="formatNumber(this)">
+        </div>
+        <div class="form-group">
+          <label>수수료율 (%)</label>
+          <input type="number" id="recruitFeeRate" placeholder="8" min="1" max="50" step="0.5" value="8" data-save>
+        </div>
+        <div class="form-group" id="recruitMonthsGroup" style="display:none;">
+          <label>수수료 청구 기간 (개월)</label>
+          <select id="recruitFeeMonths" data-save onchange="toggleRecruitFeeInputs()">
+            <option value="3">3개월</option>
+            <option value="6">6개월</option>
+            <option value="9">9개월</option>
+            <option value="12" selected>12개월</option>
+            <option value="custom">직접 입력</option>
+          </select>
+          <input type="number" id="recruitFeeMonthsCustom" placeholder="개월 수" min="1" max="36" data-save oninput="updateQuote()" style="display:none;margin-top:6px;">
+        </div>
+      </div>
+      <div id="recruitCondGroup" style="display:none;">
+        <div class="form-group">
+          <label>최소 근무일 조건 (일/주)</label>
+          <input type="number" id="recruitMinDays" placeholder="5" value="5" min="1" max="7" data-save>
+        </div>
+        <div class="form-group">
+          <label>인당 일 수수료 (원)</label>
+          <input type="text" id="recruitDailyFee" placeholder="10,000" data-save oninput="formatNumber(this)">
+        </div>
+        <div class="form-group">
+          <label>월 근무일수 (일)</label>
+          <input type="number" id="recruitWorkDays" placeholder="22" value="22" min="1" max="31" data-save>
+        </div>
+        <div class="form-group">
+          <label>수수료 적용 기간</label>
+          <select id="recruitCondMonths" data-save>
+            <option value="1">1개월</option>
+            <option value="2">2개월</option>
+            <option value="3" selected>3개월</option>
+            <option value="4">4개월</option>
+            <option value="5">5개월</option>
+            <option value="6">6개월</option>
+            <option value="12">12개월</option>
+          </select>
+        </div>
       </div>
       <div class="calculated" id="quoteTotalDisplay">총 수수료 예상: -<small>채용 성공 시에만 발생 · VAT 별도</small></div>
-      <div class="guide-box">
+      <div class="guide-box" id="recruitGuideBox">
         <strong>&#x1F4CC; 수수료율 가이드</strong>
         <ul>
           <li>생산직/단순직: 5~10%</li>
@@ -1932,35 +1985,151 @@ function getQuotePersonnel(sectionNum, cfg, v) {
   `;
 }
 
-function getQuoteFeeRate(sectionNum, v) {
+// 채용대행 수수료 방식 토글
+function toggleRecruitFeeInputs() {
+  const feeType = document.getElementById('recruitFeeType')?.value || 'rate';
+  const salaryType = document.getElementById('recruitSalaryType')?.value || 'annual';
+  const rateGroup = document.getElementById('recruitRateGroup');
+  const condGroup = document.getElementById('recruitCondGroup');
+  const salaryLabel = document.getElementById('recruitSalaryLabel');
+  const salaryInput = document.getElementById('recruitSalary');
+  const guideBox = document.getElementById('recruitGuideBox');
+  if (!rateGroup || !condGroup) return;
+  if (feeType === 'conditional') {
+    rateGroup.style.display = 'none';
+    condGroup.style.display = '';
+    if (guideBox) guideBox.style.display = 'none';
+  } else {
+    rateGroup.style.display = '';
+    condGroup.style.display = 'none';
+    if (guideBox) guideBox.style.display = '';
+    const monthsGroup = document.getElementById('recruitMonthsGroup');
+    if (salaryType === 'monthly') {
+      salaryLabel.textContent = '월급 (원, 1인 기준)';
+      salaryInput.placeholder = '2,500,000';
+      if (monthsGroup) monthsGroup.style.display = '';
+    } else {
+      salaryLabel.textContent = '예상 연봉 (원, 1인 기준)';
+      salaryInput.placeholder = '30,000,000';
+      if (monthsGroup) monthsGroup.style.display = 'none';
+    }
+  }
+  // custom 개월 입력 토글
+  const monthsSelect = document.getElementById('recruitFeeMonths');
+  const monthsCustom = document.getElementById('recruitFeeMonthsCustom');
+  if (monthsSelect && monthsCustom) {
+    monthsCustom.style.display = monthsSelect.value === 'custom' ? '' : 'none';
+  }
+  updateQuote();
+}
+
+// 채용대행 수수료 계산 헬퍼
+function calcRecruitFee(v) {
   const count = parseNumber(v.recruitCount) || parseNumber(v.workerCount);
-  const salary = parseNumber(v.recruitSalary);
+  const feeType = v.recruitFeeType || 'rate';
+  if (feeType === 'conditional') {
+    const minDays = parseInt(v.recruitMinDays) || 5;
+    const dailyFee = parseNumber(v.recruitDailyFee) || 10000;
+    const workDays = parseInt(v.recruitWorkDays) || 22;
+    const months = parseInt(v.recruitCondMonths) || 3;
+    const monthlyPerPerson = dailyFee * workDays;
+    const totalPerPerson = monthlyPerPerson * months;
+    const totalFee = totalPerPerson * count;
+    return {
+      count, feeType, minDays, dailyFee, workDays, months,
+      monthlyPerPerson, totalPerPerson, totalFee,
+      salaryLabel: '-', salaryDisplay: '-', rateDisplay: '-'
+    };
+  }
+  const salaryType = v.recruitSalaryType || 'annual';
+  const rawSalary = parseNumber(v.recruitSalary);
   const rate = parseFloat(v.recruitFeeRate) || 8;
-  const feePerPerson = Math.round(salary * rate / 100);
-  const totalFee = feePerPerson * count;
+  let salaryLabel, salaryDisplay, feeLabel;
+  if (salaryType === 'monthly') {
+    salaryLabel = '월급';
+    salaryDisplay = rawSalary ? numberWithCommas(rawSalary) + '원' : '-';
+    feeLabel = '월급의 ' + rate + '%';
+  } else {
+    salaryLabel = '예상 연봉';
+    salaryDisplay = rawSalary ? numberWithCommas(rawSalary) + '원' : '-';
+    feeLabel = '연봉의 ' + rate + '%';
+  }
+  const feePerPerson = Math.round(rawSalary * rate / 100);
+  const isMonthly = salaryType === 'monthly';
+  let feeMonths = 0;
+  if (isMonthly) {
+    const monthsSel = v.recruitFeeMonths || '12';
+    feeMonths = monthsSel === 'custom' ? (parseInt(v.recruitFeeMonthsCustom) || 12) : parseInt(monthsSel);
+  }
+  const monthlyTotal = feePerPerson * count;
+  const contractTotal = isMonthly ? monthlyTotal * feeMonths : 0;
+  return {
+    count, feeType, feePerPerson, totalFee: isMonthly ? monthlyTotal : feePerPerson * count,
+    salaryLabel, salaryDisplay, rateDisplay: rate + '%', feeLabel, isMonthly,
+    feeMonths, monthlyTotal, contractTotal
+  };
+}
+
+function getQuoteFeeRate(sectionNum, v) {
+  const r = calcRecruitFee(v);
+  if (r.feeType === 'conditional') {
+    return `
+    <h2>${sectionNum}. 수수료 견적</h2>
+    <table class="quote-table">
+      <thead><tr><th>항목</th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td>채용 인원</td><td>${r.count ? r.count + '명' : '-'}</td></tr>
+        <tr><td>적용 조건</td><td>주 ${r.minDays}일 이상 근무 시</td></tr>
+        <tr><td>인당 일 수수료</td><td>${numberWithCommas(r.dailyFee)}원/일</td></tr>
+        <tr><td>월 근무일수</td><td>${r.workDays}일</td></tr>
+        <tr><td>인당 월 수수료</td><td>${numberWithCommas(r.monthlyPerPerson)}원</td></tr>
+        <tr><td>적용 기간</td><td>${r.months}개월</td></tr>
+        <tr><td>인당 총 수수료</td><td>${numberWithCommas(r.totalPerPerson)}원</td></tr>
+      </tbody>
+      <tfoot>
+        <tr class="total-row" style="background:var(--navy);color:var(--white);">
+          <td><strong>총 수수료 (${r.count}명 × ${r.months}개월)</strong></td>
+          <td style="text-align:right;font-weight:700;">${r.totalFee ? numberWithCommas(r.totalFee) + '원' : '-'}</td>
+        </tr>
+      </tfoot>
+    </table>
+    <p style="text-align:right;font-size:0.8rem;color:var(--gray-500);">
+      * 주 ${r.minDays}일 미만 근무 시 수수료 미발생<br>
+      * 적용 기간(${r.months}개월) 종료 후 수수료 없음<br>
+      * VAT 별도
+    </p>
+  `;
+  }
+  const feeUnit = r.isMonthly ? '원/월' : '원';
+  const totalLabel = r.isMonthly ? '월 수수료 합계' : '총 수수료';
   return `
     <h2>${sectionNum}. 수수료 견적</h2>
     <table class="quote-table">
-      <thead><tr><th>항목</th><th>채용 인원</th><th>예상 연봉</th><th>수수료율</th><th>수수료</th></tr></thead>
+      <thead><tr><th>항목</th><th>채용 인원</th><th>${r.salaryLabel}</th><th>수수료율</th><th>${r.isMonthly ? '인당 월 수수료' : '수수료'}</th></tr></thead>
       <tbody>
         <tr>
           <td>채용대행</td>
-          <td>${count ? count + '명' : '-'}</td>
-          <td>${salary ? numberWithCommas(salary) + '원' : '-'}</td>
-          <td>${rate}%</td>
-          <td>${totalFee ? numberWithCommas(totalFee) + '원' : '-'}</td>
-        </tr>
-        <tr>
-          <td><strong>총 수수료</strong></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td class="amount">${totalFee ? numberWithCommas(totalFee) + '원' : '-'}</td>
+          <td>${r.count ? r.count + '명' : '-'}</td>
+          <td>${r.salaryDisplay}</td>
+          <td>${r.feeLabel}</td>
+          <td>${r.feePerPerson ? numberWithCommas(r.feePerPerson) + feeUnit : '-'}</td>
         </tr>
       </tbody>
+      <tfoot>
+        <tr class="total-row" style="background:var(--navy);color:var(--white);">
+          <td colspan="3"><strong>${totalLabel} (${r.count}명)</strong></td>
+          <td></td>
+          <td style="text-align:right;font-weight:700;">${r.totalFee ? numberWithCommas(r.totalFee) + feeUnit : '-'}</td>
+        </tr>
+        ${r.isMonthly && r.feeMonths ? `<tr style="background:#2d4a6f;color:var(--white);">
+          <td colspan="3"><strong>계약기간 합계 (${r.feeMonths}개월)</strong></td>
+          <td>${numberWithCommas(r.monthlyTotal)}원 × ${r.feeMonths}개월</td>
+          <td style="text-align:right;font-weight:700;">${numberWithCommas(r.contractTotal)}원</td>
+        </tr>` : ''}
+      </tfoot>
     </table>
     <p style="text-align:right;font-size:0.8rem;color:var(--gray-500);">
-      * 채용 성공 시에만 수수료 발생 (성공보수제)<br>
+      ${r.isMonthly ? '* 매월 급여 기준으로 수수료 청구 (계약기간: ' + r.feeMonths + '개월)<br>' : '* 채용 성공 시에만 수수료 발생 (성공보수제)<br>'}
       * 보증 조건: 별도 협의<br>
       * VAT 별도
     </p>
@@ -2148,10 +2317,8 @@ function updateDynamicFields(v) {
     total = pc.feePeriod === 'yearly' ? pc.yearlyTotal : pc.monthlyTotal;
     totalLabel = pc.feePeriod === 'yearly' ? '연 예상 비용' : '월 예상 비용';
   } else if (cfg.quoteType === 'feeRate') {
-    const count = parseNumber(v.recruitCount) || parseNumber(v.workerCount);
-    const salary = parseNumber(v.recruitSalary);
-    const rate = parseFloat(v.recruitFeeRate) || 8;
-    total = Math.round(salary * rate / 100) * count;
+    const r = calcRecruitFee(v);
+    total = r.totalFee;
     totalLabel = '총 수수료 예상';
     totalSuffix = '<small>채용 성공 시에만 발생 · VAT 별도</small>';
   } else if (cfg.quoteType === 'tiered') {
@@ -2253,8 +2420,16 @@ function getFormValues() {
     rateBizTax: val('rateBizTax'),
     // 채용대행
     recruitCount: val('recruitCount'),
+    recruitFeeType: val('recruitFeeType'),
+    recruitSalaryType: val('recruitSalaryType'),
     recruitSalary: val('recruitSalary'),
     recruitFeeRate: val('recruitFeeRate'),
+    recruitFeeMonths: val('recruitFeeMonths'),
+    recruitFeeMonthsCustom: val('recruitFeeMonthsCustom'),
+    recruitMinDays: val('recruitMinDays'),
+    recruitDailyFee: val('recruitDailyFee'),
+    recruitWorkDays: val('recruitWorkDays'),
+    recruitCondMonths: val('recruitCondMonths'),
     // 콜센터 전담
     ccLeader: val('ccLeader'),
     ccLeaderPay: val('ccLeaderPay'),
