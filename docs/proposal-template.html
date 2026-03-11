@@ -1079,47 +1079,23 @@ function renderQuoteForm(type) {
   let html = '';
 
   if (cfg.quoteType === 'personnel') {
-    // 도급 / 파견 — 견적시뮬레이터 구조 차용
+    // 도급 / 파견 — 그룹별 단가 입력
     html = `
-      <div class="form-row">
-        <div class="form-group">
-          <label>인원수 (명)</label>
-          <input type="number" id="pWorkers" placeholder="20" min="1" data-save>
-        </div>
-        <div class="form-group">
-          <label>적용시급 (원)</label>
-          <input type="text" id="pHourly" placeholder="10,500" value="10,500" data-save oninput="formatNumber(this)">
-          <div style="font-size:0.7rem;color:var(--gray-500);margin-top:2px;">2026 최저시급: 10,320원</div>
-        </div>
+      <div id="personnelGroupList"></div>
+      <div style="text-align:center;margin:8px 0;">
+        <button type="button" onclick="addPersonnelGroup()" style="font-size:0.78rem;padding:6px 16px;border:1px dashed var(--blue);background:var(--blue-light);color:var(--blue);border-radius:6px;cursor:pointer;font-weight:600;">+ 그룹 추가</button>
+        <div style="font-size:0.65rem;color:var(--gray-500);margin-top:4px;">남/여, 직종별 등 단가가 다른 그룹을 추가하세요</div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>교통비 (인당/월, 원)</label>
-          <input type="text" id="pTransport" placeholder="100,000" value="100,000" data-save oninput="formatNumber(this)">
-        </div>
         <div class="form-group">
           <label>직책수당 (현장관리자)</label>
           <input type="text" id="pLeaderPay" placeholder="100,000" value="100,000" data-save oninput="formatNumber(this)">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>야간수당 (월, 원)</label>
-          <input type="text" id="pNightPay" placeholder="0" data-save oninput="formatNumber(this)">
         </div>
         <div class="form-group">
           <label>기타비용 (월, 원)</label>
           <input type="text" id="pEtcCost" placeholder="0" data-save oninput="formatNumber(this)">
           <div style="font-size:0.7rem;color:var(--gray-500);margin-top:2px;">유니폼/교육/채용 등</div>
         </div>
-      </div>
-      <div style="margin-top:8px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:0.8rem;font-weight:600;color:var(--gray-600);">추가 수당</span>
-          <button type="button" onclick="addCustomAllowance()" style="font-size:0.72rem;padding:3px 10px;border:1px dashed var(--blue);background:var(--blue-light);color:var(--blue);border-radius:4px;cursor:pointer;">+ 수당 추가</button>
-        </div>
-        <div id="customAllowanceList"></div>
-        <div style="font-size:0.65rem;color:var(--gray-500);margin-top:2px;">성과급, 식대, 근속수당 등 자유 추가 (① 소계에 반영)</div>
       </div>
       <div class="form-group">
         <label>수수료 유형</label>
@@ -1916,7 +1892,104 @@ function rateVal(id, def) {
   return isNaN(v) ? def : v;
 }
 
-// ===== 커스텀 수당 =====
+// ===== 인원 그룹 관리 =====
+let personnelGroupCount = 0;
+
+function addPersonnelGroup(data) {
+  const list = document.getElementById('personnelGroupList');
+  if (!list) return;
+  const idx = personnelGroupCount++;
+  const d = data || {};
+  const card = document.createElement('div');
+  card.className = 'pg-card';
+  card.dataset.pgIdx = idx;
+  card.style.cssText = 'border:1px solid var(--gray-300);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--gray-50);position:relative;';
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <input type="text" class="pg-name" placeholder="그룹명 (예: 남자, 포장직)" value="${escHtml(d.name||'')}" style="flex:1;padding:4px 8px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.82rem;font-weight:600;" oninput="updatePreview(); saveData();">
+      <button type="button" onclick="removePersonnelGroup(this)" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:1.1rem;padding:0 6px;margin-left:6px;" title="그룹 삭제">&times;</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:6px;">
+      <div style="flex:1;"><label style="font-size:0.72rem;color:var(--gray-600);">인원 (명)</label><input type="number" class="pg-workers" placeholder="10" min="1" value="${d.workers||''}" style="width:100%;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.82rem;" oninput="updatePreview(); saveData();"></div>
+      <div style="flex:1;"><label style="font-size:0.72rem;color:var(--gray-600);">시급 (원)</label><input type="text" class="pg-hourly" placeholder="10,500" value="${d.hourly ? numberWithCommas(d.hourly) : '10,500'}" style="width:100%;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.82rem;text-align:right;" oninput="formatNumber(this); updatePreview(); saveData();"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:6px;">
+      <div style="flex:1;"><label style="font-size:0.72rem;color:var(--gray-600);">교통비 (월, 원)</label><input type="text" class="pg-transport" placeholder="100,000" value="${d.transport != null ? numberWithCommas(d.transport) : '100,000'}" style="width:100%;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.82rem;text-align:right;" oninput="formatNumber(this); updatePreview(); saveData();"></div>
+      <div style="flex:1;"><label style="font-size:0.72rem;color:var(--gray-600);">야간수당 (월, 원)</label><input type="text" class="pg-nightpay" placeholder="0" value="${d.nightPay ? numberWithCommas(d.nightPay) : ''}" style="width:100%;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.82rem;text-align:right;" oninput="formatNumber(this); updatePreview(); saveData();"></div>
+    </div>
+    <div style="margin-top:4px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:0.7rem;color:var(--gray-600);">추가 수당</span>
+        <button type="button" onclick="addGroupAllowance(this)" style="font-size:0.68rem;padding:2px 8px;border:1px dashed var(--blue);background:var(--blue-light);color:var(--blue);border-radius:4px;cursor:pointer;">+ 추가</button>
+      </div>
+      <div class="pg-allowances"></div>
+    </div>
+  `;
+  list.appendChild(card);
+  // 커스텀 수당 복원
+  if (d.customAllowances && d.customAllowances.length > 0) {
+    const alList = card.querySelector('.pg-allowances');
+    d.customAllowances.forEach(a => {
+      addGroupAllowanceRow(alList, a.name, a.amount);
+    });
+  }
+  updatePreview();
+  saveData();
+}
+
+function removePersonnelGroup(btn) {
+  const card = btn.closest('.pg-card');
+  const list = card.parentElement;
+  card.remove();
+  // 그룹이 0개면 기본 1개 추가
+  if (list.querySelectorAll('.pg-card').length === 0) {
+    addPersonnelGroup();
+  }
+  updatePreview();
+  saveData();
+}
+
+function addGroupAllowance(btn) {
+  const alList = btn.closest('.pg-card').querySelector('.pg-allowances');
+  addGroupAllowanceRow(alList, '', 0);
+}
+
+function addGroupAllowanceRow(container, name, amount) {
+  const row = document.createElement('div');
+  row.className = 'pg-al-row';
+  row.style.cssText = 'display:flex;gap:4px;align-items:center;margin-bottom:3px;';
+  row.innerHTML = `
+    <input type="text" class="pg-al-name" placeholder="수당명" value="${escHtml(name||'')}" style="flex:1;padding:3px 5px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.72rem;" oninput="updatePreview(); saveData();">
+    <input type="text" class="pg-al-amount" placeholder="금액" value="${name ? numberWithCommas(amount||0) : ''}" style="width:90px;padding:3px 5px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.72rem;text-align:right;" oninput="formatNumber(this); updatePreview(); saveData();">
+    <button type="button" onclick="this.closest('.pg-al-row').remove(); updatePreview(); saveData();" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:0.9rem;padding:0 3px;">&times;</button>
+  `;
+  container.appendChild(row);
+}
+
+function getPersonnelGroups() {
+  const cards = document.querySelectorAll('.pg-card');
+  const groups = [];
+  cards.forEach(card => {
+    const allowanceRows = card.querySelectorAll('.pg-al-row');
+    const customAllowances = [];
+    allowanceRows.forEach(row => {
+      const n = row.querySelector('.pg-al-name')?.value || '';
+      const a = parseNumber(row.querySelector('.pg-al-amount')?.value);
+      if (n || a) customAllowances.push({ name: n, amount: a });
+    });
+    groups.push({
+      name: card.querySelector('.pg-name')?.value || '',
+      workers: parseInt(card.querySelector('.pg-workers')?.value) || 0,
+      hourly: parseNumber(card.querySelector('.pg-hourly')?.value),
+      transport: parseNumber(card.querySelector('.pg-transport')?.value),
+      nightPay: parseNumber(card.querySelector('.pg-nightpay')?.value),
+      customAllowances,
+    });
+  });
+  return groups;
+}
+
+// ===== 커스텀 수당 (하위호환) =====
 function addCustomAllowance(name, amount) {
   const list = document.getElementById('customAllowanceList');
   if (!list) return;
@@ -1948,21 +2021,20 @@ function getCustomAllowances() {
   return items;
 }
 
-function calcPersonnel(v) {
-  const workers = parseNumber(v.pWorkers) || parseNumber(v.workerCount);
-  const hourly = parseNumber(v.pHourly) || 10500;
-  const baseWage = hourly * 209; // 시급×209시간
-  const transport = parseNumber(v.pTransport);
-  const nightPay = parseNumber(v.pNightPay);
-  const customAllowances = getCustomAllowances();
+// 그룹 1개의 1인 단가 계산
+function calcGroup(g, v) {
+  const workers = g.workers || 0;
+  const hourly = g.hourly || 10500;
+  const baseWage = hourly * 209;
+  const transport = g.transport || 0;
+  const nightPay = g.nightPay || 0;
+  const customAllowances = g.customAllowances || [];
   const customTotal = customAllowances.reduce((s, a) => s + (a.amount || 0), 0);
-  const laborSub1 = baseWage + transport + nightPay + customTotal; // ① 직접노무비
+  const laborSub1 = baseWage + transport + nightPay + customTotal;
 
-  // 통상시급
   const ordinaryWageInput = parseNumber(v.pOrdinaryWage);
   const ordinaryWage = ordinaryWageInput || Math.round((baseWage + transport) / 209);
 
-  // 연장수당
   const otMode = v.pOvertimeMode || 'off';
   const otHoursSel = v.pOvertimeHours || '2';
   const otHours = otHoursSel === 'custom' ? (parseFloat(v.pOvertimeHoursCustom) || 2) : parseFloat(otHoursSel);
@@ -1970,21 +2042,18 @@ function calcPersonnel(v) {
   const overtimeCalc = Math.round(ordinaryWage * 1.5 * otHours * otWorkDays);
   const overtime = otMode === 'include' ? overtimeCalc : 0;
 
-  // 심야수당 (22:00~06:00, 통상시급×0.5)
   const ntMode = v.pNightMode || 'off';
   const ntHoursSel = v.pNightHours || '2';
   const ntHours = ntHoursSel === 'custom' ? (parseFloat(v.pNightHoursCustom) || 2) : parseFloat(ntHoursSel);
   const nightCalc = Math.round(ordinaryWage * 0.5 * ntHours * otWorkDays);
   const nightAllowance = ntMode === 'include' ? nightCalc : 0;
 
-  // 연차수당
   const alMode = v.pAnnualLeaveMode || 'include';
-  const annualLeaveCalc = ordinaryWage * 8; // 통상시급×8h
+  const annualLeaveCalc = ordinaryWage * 8;
   const annualLeave = alMode === 'include' ? annualLeaveCalc : 0;
-  const laborSub2 = annualLeave + overtime + nightAllowance; // ②
-  const laborTotal = laborSub1 + laborSub2; // ③ = ①+②
+  const laborSub2 = annualLeave + overtime + nightAllowance;
+  const laborTotal = laborSub1 + laborSub2;
 
-  // 4대보험 개별 계산
   const rPension = rateVal('ratePension', 4.75) / 100;
   const rHealth = rateVal('rateHealth', 3.595) / 100;
   const rLongCare = rateVal('rateLongCare', 13.14) / 100;
@@ -1999,16 +2068,15 @@ function calcPersonnel(v) {
   const employ = Math.round(baseWage * rEmploy);
   const indust = Math.round(baseWage * rIndust);
   const bizTaxAmt = Math.round(baseWage * rBizTax);
-  const insuranceTotal = pension + health + longCareAmt + employ + indust + bizTaxAmt; // ④
+  const insuranceTotal = pension + health + longCareAmt + employ + indust + bizTaxAmt;
 
-  const subtotal = laborTotal + insuranceTotal; // ⑤ = ③+④
-  const retire = Math.round(laborSub1 * rRetire); // 퇴직금 = 급여계(①)의 8.33%
+  const subtotal = laborTotal + insuranceTotal;
+  const retire = Math.round(laborSub1 * rRetire);
 
-  // 수수료 계산
   const feeType = v.pFeeType || 'rate';
   const mgmtRate = parseFloat(v.pMgmtRate) || 8;
   const dailyFee = parseNumber(v.pDailyFee) || 10000;
-  const workDays = 22; // 월 근무일수 기준
+  const workDays = 22;
   let mgmtAmount, mgmtLabel;
   if (feeType === 'daily') {
     mgmtAmount = dailyFee * workDays;
@@ -2017,23 +2085,11 @@ function calcPersonnel(v) {
     mgmtAmount = Math.round(subtotal * mgmtRate / 100);
     mgmtLabel = '⑤합계의 ' + mgmtRate + '%';
   }
-  const perPerson = subtotal + mgmtAmount; // 1인 단가
-
-  // 청구/계약 기간
-  const feePeriod = v.pFeePeriod || 'monthly';
-  const contractMonths = parseInt(v.pContractMonths) || 12;
-
-  // 직책수당, 기타비용
-  const leaderPay = parseNumber(v.pLeaderPay);
-  const etcCost = parseNumber(v.pEtcCost);
-
-  // 월 합계 = 1인단가×인원 + 기타비용
-  const monthlyTotal = perPerson * workers + etcCost;
-  const yearlyTotal = monthlyTotal * 12;
-  const contractTotal = monthlyTotal * contractMonths;
+  const perPerson = subtotal + mgmtAmount;
 
   return {
-    workers, hourly, baseWage, transport, nightPay, customAllowances, customTotal, ordinaryWage,
+    groupName: g.name || '', workers, hourly, baseWage, transport, nightPay,
+    customAllowances, customTotal, ordinaryWage,
     otMode, otHours, overtimeCalc, overtime,
     ntMode, ntHours, nightCalc, nightAllowance,
     laborSub1, annualLeaveCalc, annualLeave, alMode, laborSub2, laborTotal,
@@ -2041,22 +2097,42 @@ function calcPersonnel(v) {
     pension, health, longCareAmt, employ, indust, bizTaxAmt, insuranceTotal,
     subtotal, retire,
     feeType, mgmtRate, dailyFee, mgmtAmount, mgmtLabel, perPerson,
-    feePeriod, contractMonths,
-    leaderPay, etcCost, monthlyTotal, yearlyTotal, contractTotal
   };
 }
 
-function getQuotePersonnel(sectionNum, cfg, v) {
-  const c = calcPersonnel(v);
-  if (!c.workers) {
-    return `
-      <h2>${sectionNum}. 운영 예산안</h2>
-      <p style="color:var(--gray-500);">좌측에서 인원과 시급을 입력하세요</p>
-    `;
-  }
+// 전체 그룹 계산 (하위호환: 그룹 없으면 v에서 읽기)
+function calcPersonnel(v) {
+  const groups = getPersonnelGroups();
+  const feePeriod = v.pFeePeriod || 'monthly';
+  const contractMonths = parseInt(v.pContractMonths) || 12;
+  const leaderPay = parseNumber(v.pLeaderPay);
+  const etcCost = parseNumber(v.pEtcCost);
 
-  return `
-    <h2>${sectionNum}. 운영 예산안 <span style="font-size:0.7rem;font-weight:400;color:var(--gray-500);">(적용시급: ${numberWithCommas(c.hourly)}원) (단위: 원)</span></h2>
+  // 그룹이 없으면 (하위호환) 기존 v 값으로 단일 그룹 생성
+  const groupList = groups.length > 0 ? groups : [{
+    name: '', workers: parseNumber(v.pWorkers) || parseNumber(v.workerCount) || 0,
+    hourly: parseNumber(v.pHourly) || 10500,
+    transport: parseNumber(v.pTransport), nightPay: parseNumber(v.pNightPay),
+    customAllowances: getCustomAllowances(),
+  }];
+
+  const calcs = groupList.map(g => calcGroup(g, v));
+  const totalWorkers = calcs.reduce((s, c) => s + c.workers, 0);
+  const groupMonthlySum = calcs.reduce((s, c) => s + c.perPerson * c.workers, 0);
+  const monthlyTotal = groupMonthlySum + etcCost;
+  const yearlyTotal = monthlyTotal * 12;
+  const contractTotal = monthlyTotal * contractMonths;
+
+  return {
+    calcs, totalWorkers, groupMonthlySum,
+    feePeriod, contractMonths, leaderPay, etcCost,
+    monthlyTotal, yearlyTotal, contractTotal,
+  };
+}
+
+function renderGroupTable(c, label) {
+  const groupTitle = label ? `<h3 style="font-size:0.9rem;color:var(--navy);margin:16px 0 8px;border-left:3px solid var(--blue);padding-left:8px;">${escHtml(label)} <span style="font-size:0.7rem;font-weight:400;color:var(--gray-500);">(시급: ${numberWithCommas(c.hourly)}원 / ${c.workers}명)</span></h3>` : '';
+  return `${groupTitle}
     <div class="budget-block">
     <table class="quote-table budget-table">
       <thead><tr><th style="text-align:left;">계정과목</th><th style="text-align:left;">세부내용</th><th>산출내역</th><th style="text-align:right;">합계</th></tr></thead>
@@ -2073,7 +2149,6 @@ function getQuotePersonnel(sectionNum, cfg, v) {
         ${c.otMode === 'ondemand' ? `<tr><td></td><td>연장수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×1.5×${c.otHours}h×22일</td><td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>` : ''}
         ${c.ntMode === 'include' ? `<tr><td></td><td>심야수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×0.5×${c.ntHours}h×22일</td><td style="text-align:right;">${numberWithCommas(c.nightCalc)}</td></tr>` : ''}
         ${c.ntMode === 'ondemand' ? `<tr><td></td><td>심야수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×0.5×${c.ntHours}h×22일</td><td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>` : ''}
-        ${c.leaderPay > 0 ? `<tr><td></td><td>직책수당 (현장관리자)</td><td>${numberWithCommas(c.leaderPay)}원/월</td><td style="text-align:right;color:var(--gray-500);">해당자 청구</td></tr>` : ''}
         <tr style="border-top:1px solid var(--gray-300);"><td></td><td><strong>② 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${numberWithCommas(c.laborSub2)}</td></tr>
         <tr class="subtotal-row" style="background:var(--blue-light);"><td colspan="2" style="text-align:left;"><strong>③ 합계 (①+②)</strong></td><td></td><td style="text-align:right;font-weight:700;">${numberWithCommas(c.laborTotal)}</td></tr>
         <tr><td style="text-align:left;"><strong>간접노무비</strong></td><td>국민연금</td><td>③합계×${(c.rPension * 100).toFixed(2)}%</td><td style="text-align:right;">${numberWithCommas(c.pension)}</td></tr>
@@ -2090,18 +2165,51 @@ function getQuotePersonnel(sectionNum, cfg, v) {
         <tr class="total-row" style="background:var(--navy);color:var(--white);"><td colspan="2" style="text-align:left;"><strong>1인 단가 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;">${numberWithCommas(c.perPerson)}</td></tr>
       </tfoot>
     </table>
-    </div>
+    </div>`;
+}
 
+function getQuotePersonnel(sectionNum, cfg, v) {
+  const result = calcPersonnel(v);
+  if (!result.totalWorkers) {
+    return `
+      <h2>${sectionNum}. 운영 예산안</h2>
+      <p style="color:var(--gray-500);">좌측에서 그룹을 추가하고 인원과 시급을 입력하세요</p>
+    `;
+  }
+
+  const multiGroup = result.calcs.length > 1;
+  let html = `<h2>${sectionNum}. 운영 예산안 <span style="font-size:0.7rem;font-weight:400;color:var(--gray-500);">(단위: 원)</span></h2>`;
+
+  // 그룹별 예산안 테이블
+  result.calcs.forEach((c, i) => {
+    if (!c.workers) return;
+    const label = multiGroup ? (c.groupName || ('그룹 ' + (i + 1))) : '';
+    html += renderGroupTable(c, label);
+  });
+
+  // 직책수당 표시 (공유 설정)
+  if (result.leaderPay > 0) {
+    html += `<p style="font-size:0.75rem;color:var(--gray-600);margin-top:8px;">※ 직책수당 (현장관리자): ${numberWithCommas(result.leaderPay)}원/월 — 해당자 청구</p>`;
+  }
+
+  // 월 청구 합산 테이블
+  html += `
     <table class="quote-table budget-table" style="margin-top:16px;">
       <thead><tr><th style="text-align:left;">항목</th><th>산출내역</th><th style="text-align:right;">금액</th></tr></thead>
-      <tbody>
-        <tr><td style="text-align:left;">인건비 (${c.workers}명)</td><td>${numberWithCommas(c.perPerson)}원 × ${c.workers}명</td><td style="text-align:right;">${numberWithCommas(c.perPerson * c.workers)}</td></tr>
-        ${c.etcCost > 0 ? `<tr><td style="text-align:left;">기타비용</td><td>유니폼 / 교육 / 채용 등</td><td style="text-align:right;">${numberWithCommas(c.etcCost)}</td></tr>` : ''}
-      </tbody>
+      <tbody>`;
+  result.calcs.forEach((c, i) => {
+    if (!c.workers) return;
+    const label = multiGroup ? (c.groupName || ('그룹 ' + (i + 1))) : '인건비';
+    html += `<tr><td style="text-align:left;">${escHtml(label)} (${c.workers}명)</td><td>${numberWithCommas(c.perPerson)}원 × ${c.workers}명</td><td style="text-align:right;">${numberWithCommas(c.perPerson * c.workers)}</td></tr>`;
+  });
+  if (result.etcCost > 0) {
+    html += `<tr><td style="text-align:left;">기타비용</td><td>유니폼 / 교육 / 채용 등</td><td style="text-align:right;">${numberWithCommas(result.etcCost)}</td></tr>`;
+  }
+  html += `</tbody>
       <tfoot>
-        <tr class="total-row" style="background:var(--navy);color:var(--white);"><td style="text-align:left;"><strong>월 청구 예상액 (VAT 별도)</strong></td><td></td><td style="text-align:right;font-weight:700;font-size:1rem;">${numberWithCommas(c.monthlyTotal)}</td></tr>
-        ${c.feePeriod === 'yearly' ? `<tr style="background:#1e3a5f;color:var(--white);"><td style="text-align:left;"><strong>연 청구 예상액 (VAT 별도)</strong></td><td>${numberWithCommas(c.monthlyTotal)} × 12개월</td><td style="text-align:right;font-weight:700;font-size:1rem;">${numberWithCommas(c.yearlyTotal)}</td></tr>` : ''}
-        ${c.contractMonths && c.contractMonths !== 12 ? `<tr style="background:#2d4a6f;color:var(--white);"><td style="text-align:left;"><strong>계약기간 합계 (${c.contractMonths}개월)</strong></td><td>${numberWithCommas(c.monthlyTotal)} × ${c.contractMonths}개월</td><td style="text-align:right;font-weight:700;font-size:1rem;">${numberWithCommas(c.contractTotal)}</td></tr>` : ''}
+        <tr class="total-row" style="background:var(--navy);color:var(--white);"><td style="text-align:left;"><strong>월 청구 예상액 (VAT 별도)</strong></td><td>${multiGroup ? result.totalWorkers + '명' : ''}</td><td style="text-align:right;font-weight:700;font-size:1rem;">${numberWithCommas(result.monthlyTotal)}</td></tr>
+        ${result.feePeriod === 'yearly' ? `<tr style="background:#1e3a5f;color:var(--white);"><td style="text-align:left;"><strong>연 청구 예상액 (VAT 별도)</strong></td><td>${numberWithCommas(result.monthlyTotal)} × 12개월</td><td style="text-align:right;font-weight:700;font-size:1rem;">${numberWithCommas(result.yearlyTotal)}</td></tr>` : ''}
+        ${result.contractMonths && result.contractMonths !== 12 ? `<tr style="background:#2d4a6f;color:var(--white);"><td style="text-align:left;"><strong>계약기간 합계 (${result.contractMonths}개월)</strong></td><td>${numberWithCommas(result.monthlyTotal)} × ${result.contractMonths}개월</td><td style="text-align:right;font-weight:700;font-size:1rem;">${numberWithCommas(result.contractTotal)}</td></tr>` : ''}
       </tfoot>
     </table>
 
@@ -2109,9 +2217,10 @@ function getQuotePersonnel(sectionNum, cfg, v) {
       * 최저시급 및 4대보험은 당해연도 법정 기준을 반영함.<br>
       * 근로기준법에 의거한 연장, 심야, 휴일근무 수당 및 퇴직금 등은 발생 시 별도 청구함.<br>
       * 상기 금액은 VAT 별도 기준이며, 실제 금액은 협의에 따라 변동될 수 있음.<br>
-      * 계약기간: ${c.contractMonths}개월
-    </p>
-  `;
+      * 계약기간: ${result.contractMonths}개월
+    </p>`;
+
+  return html;
 }
 
 // 채용대행 수수료 방식 토글
@@ -2417,6 +2526,15 @@ function onServiceTypeChange() {
   // 견적 폼 유형별 전환
   renderQuoteForm(type);
 
+  // 도급/파견이면 기본 그룹 1개 추가
+  if (cfg.quoteType === 'personnel') {
+    const list = document.getElementById('personnelGroupList');
+    if (list && list.querySelectorAll('.pg-card').length === 0) {
+      personnelGroupCount = 0;
+      addPersonnelGroup();
+    }
+  }
+
   // Re-render body
   renderBody();
   saveData();
@@ -2530,12 +2648,9 @@ function getFormValues() {
     memo: val('memo'),
     proposalDate: val('proposalDate'),
     serviceType: val('serviceType'),
-    // 도급/파견
-    pWorkers: val('pWorkers'),
-    pHourly: val('pHourly'),
-    pTransport: val('pTransport'),
+    // 도급/파견 — 그룹
+    personnelGroups: getPersonnelGroups(),
     pLeaderPay: val('pLeaderPay'),
-    pNightPay: val('pNightPay'),
     pEtcCost: val('pEtcCost'),
     pFeeType: val('pFeeType'),
     pMgmtRate: val('pMgmtRate'),
@@ -2550,7 +2665,6 @@ function getFormValues() {
     pNightHours: val('pNightHours'),
     pNightHoursCustom: val('pNightHoursCustom'),
     pOrdinaryWage: val('pOrdinaryWage'),
-    customAllowances: getCustomAllowances(),
     // 요율
     ratePension: val('ratePension'),
     rateHealth: val('rateHealth'),
@@ -2644,12 +2758,28 @@ function loadData() {
         if (el) el.value = data.form[key] || '';
       });
 
-      // 커스텀 수당 복원
-      if (data.form.customAllowances && data.form.customAllowances.length > 0) {
-        const caList = document.getElementById('customAllowanceList');
-        if (caList) {
-          caList.innerHTML = '';
-          data.form.customAllowances.forEach(a => addCustomAllowance(a.name, a.amount));
+      // 그룹 복원
+      if (data.form.personnelGroups && data.form.personnelGroups.length > 0) {
+        const pgList = document.getElementById('personnelGroupList');
+        if (pgList) {
+          pgList.innerHTML = '';
+          personnelGroupCount = 0;
+          data.form.personnelGroups.forEach(g => addPersonnelGroup(g));
+        }
+      }
+      // 하위호환: 기존 단일 입력 → 그룹으로 변환
+      if (!data.form.personnelGroups && data.form.pWorkers) {
+        const pgList = document.getElementById('personnelGroupList');
+        if (pgList) {
+          pgList.innerHTML = '';
+          personnelGroupCount = 0;
+          addPersonnelGroup({
+            name: '', workers: parseInt(data.form.pWorkers) || 0,
+            hourly: parseNumber(data.form.pHourly),
+            transport: parseNumber(data.form.pTransport),
+            nightPay: parseNumber(data.form.pNightPay),
+            customAllowances: data.form.customAllowances || [],
+          });
         }
       }
 
@@ -2745,12 +2875,26 @@ function importProposal(event) {
         if (el) el.value = data.form[key] || '';
       });
 
-      // 커스텀 수당 복원
-      if (data.form.customAllowances && data.form.customAllowances.length > 0) {
-        const caList = document.getElementById('customAllowanceList');
-        if (caList) {
-          caList.innerHTML = '';
-          data.form.customAllowances.forEach(a => addCustomAllowance(a.name, a.amount));
+      // 그룹 복원
+      if (data.form.personnelGroups && data.form.personnelGroups.length > 0) {
+        const pgList = document.getElementById('personnelGroupList');
+        if (pgList) {
+          pgList.innerHTML = '';
+          personnelGroupCount = 0;
+          data.form.personnelGroups.forEach(g => addPersonnelGroup(g));
+        }
+      } else if (data.form.pWorkers) {
+        const pgList = document.getElementById('personnelGroupList');
+        if (pgList) {
+          pgList.innerHTML = '';
+          personnelGroupCount = 0;
+          addPersonnelGroup({
+            name: '', workers: parseInt(data.form.pWorkers) || 0,
+            hourly: parseNumber(data.form.pHourly),
+            transport: parseNumber(data.form.pTransport),
+            nightPay: parseNumber(data.form.pNightPay),
+            customAllowances: data.form.customAllowances || [],
+          });
         }
       }
 
@@ -2937,12 +3081,26 @@ async function loadFromSheet(id) {
         if (el) el.value = data.form[key] || '';
       });
 
-      // 커스텀 수당 복원
-      if (data.form.customAllowances && data.form.customAllowances.length > 0) {
-        var caList = document.getElementById('customAllowanceList');
-        if (caList) {
-          caList.innerHTML = '';
-          data.form.customAllowances.forEach(function(a) { addCustomAllowance(a.name, a.amount); });
+      // 그룹 복원
+      if (data.form.personnelGroups && data.form.personnelGroups.length > 0) {
+        var pgList = document.getElementById('personnelGroupList');
+        if (pgList) {
+          pgList.innerHTML = '';
+          personnelGroupCount = 0;
+          data.form.personnelGroups.forEach(function(g) { addPersonnelGroup(g); });
+        }
+      } else if (data.form.pWorkers) {
+        var pgList = document.getElementById('personnelGroupList');
+        if (pgList) {
+          pgList.innerHTML = '';
+          personnelGroupCount = 0;
+          addPersonnelGroup({
+            name: '', workers: parseInt(data.form.pWorkers) || 0,
+            hourly: parseNumber(data.form.pHourly),
+            transport: parseNumber(data.form.pTransport),
+            nightPay: parseNumber(data.form.pNightPay),
+            customAllowances: data.form.customAllowances || [],
+          });
         }
       }
 
@@ -3020,11 +3178,19 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!document.getElementById('proposalDate').value) {
     document.getElementById('proposalDate').value = new Date().toISOString().split('T')[0];
   }
-  // 견적 폼 초기 렌더링 (loadData 전)
-  renderQuoteForm(document.getElementById('serviceType').value);
+  // 견적 폼 초기 렌더링
+  const initType = document.getElementById('serviceType').value;
+  renderQuoteForm(initType);
   loadData();
+  // loadData가 그룹 복원 안 했으면 기본 그룹 추가
+  const pgList = document.getElementById('personnelGroupList');
+  if (pgList && pgList.querySelectorAll('.pg-card').length === 0 && SERVICE_CONFIG[initType]?.quoteType === 'personnel') {
+    personnelGroupCount = 0;
+    addPersonnelGroup();
+  }
   bindInputListeners();
-  onServiceTypeChange();
+  // onServiceTypeChange에서 renderQuoteForm 재호출로 그룹이 날아가지 않도록 body만 갱신
+  renderBody();
   updatePreview();
   // 저장자 필드 변경 시 localStorage 저장
   const savedByEl = document.getElementById('savedBy');
