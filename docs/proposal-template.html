@@ -1113,6 +1113,14 @@ function renderQuoteForm(type) {
           <div style="font-size:0.7rem;color:var(--gray-500);margin-top:2px;">유니폼/교육/채용 등</div>
         </div>
       </div>
+      <div style="margin-top:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:0.8rem;font-weight:600;color:var(--gray-600);">추가 수당</span>
+          <button type="button" onclick="addCustomAllowance()" style="font-size:0.72rem;padding:3px 10px;border:1px dashed var(--blue);background:var(--blue-light);color:var(--blue);border-radius:4px;cursor:pointer;">+ 수당 추가</button>
+        </div>
+        <div id="customAllowanceList"></div>
+        <div style="font-size:0.65rem;color:var(--gray-500);margin-top:2px;">성과급, 식대, 근속수당 등 자유 추가 (① 소계에 반영)</div>
+      </div>
       <div class="form-group">
         <label>수수료 유형</label>
         <select id="pFeeType" data-save onchange="updateFeeUI(); recalcProposal();" style="padding:6px 8px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.85rem;">
@@ -1846,17 +1854,52 @@ function rateVal(id, def) {
   return isNaN(v) ? def : v;
 }
 
+// ===== 커스텀 수당 =====
+function addCustomAllowance(name, amount) {
+  const list = document.getElementById('customAllowanceList');
+  if (!list) return;
+  const row = document.createElement('div');
+  row.className = 'custom-allowance-row';
+  row.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:4px;';
+  row.innerHTML = `
+    <input type="text" class="ca-name" placeholder="수당명" value="${escHtml(name||'')}" style="flex:1;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.78rem;" oninput="updatePreview(); saveData();">
+    <input type="text" class="ca-amount" placeholder="금액" value="${name ? numberWithCommas(amount||0) : ''}" style="width:110px;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.78rem;text-align:right;" oninput="formatNumber(this); updatePreview(); saveData();">
+    <button type="button" onclick="removeCustomAllowance(this)" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:1rem;padding:0 4px;" title="삭제">&times;</button>
+  `;
+  list.appendChild(row);
+  updatePreview();
+  saveData();
+}
+function removeCustomAllowance(btn) {
+  btn.closest('.custom-allowance-row').remove();
+  updatePreview();
+  saveData();
+}
+function getCustomAllowances() {
+  const rows = document.querySelectorAll('.custom-allowance-row');
+  const items = [];
+  rows.forEach(row => {
+    const name = row.querySelector('.ca-name')?.value || '';
+    const amount = parseNumber(row.querySelector('.ca-amount')?.value);
+    if (name || amount) items.push({ name, amount });
+  });
+  return items;
+}
+
 function calcPersonnel(v) {
   const workers = parseNumber(v.pWorkers) || parseNumber(v.workerCount);
   const hourly = parseNumber(v.pHourly) || 10500;
   const baseWage = hourly * 209; // 시급×209시간
   const transport = parseNumber(v.pTransport);
   const nightPay = parseNumber(v.pNightPay);
-  const laborSub1 = baseWage + transport + nightPay; // ① 직접노무비
+  const customAllowances = getCustomAllowances();
+  const customTotal = customAllowances.reduce((s, a) => s + (a.amount || 0), 0);
+  const laborSub1 = baseWage + transport + nightPay + customTotal; // ① 직접노무비
 
   // 연차수당
   const alMode = v.pAnnualLeaveMode || 'include';
-  const ordinaryWage = parseNumber(v.pOrdinaryWage) || hourly;
+  const ordinaryWageInput = parseNumber(v.pOrdinaryWage);
+  const ordinaryWage = ordinaryWageInput || Math.round((baseWage + transport) / 209);
   const annualLeaveCalc = ordinaryWage * 8; // 통상시급×8h
   const annualLeave = alMode === 'include' ? annualLeaveCalc : 0;
   const laborSub2 = annualLeave; // ②
@@ -1911,7 +1954,7 @@ function calcPersonnel(v) {
   const contractTotal = monthlyTotal * contractMonths;
 
   return {
-    workers, hourly, baseWage, transport, nightPay, ordinaryWage,
+    workers, hourly, baseWage, transport, nightPay, customAllowances, customTotal, ordinaryWage,
     laborSub1, annualLeaveCalc, annualLeave, alMode, laborSub2, laborTotal,
     rPension, rHealth, rLongCare, rEmploy, rIndust, rBizTax, rRetire,
     pension, health, longCareAmt, employ, indust, bizTaxAmt, insuranceTotal,
@@ -1940,6 +1983,7 @@ function getQuotePersonnel(sectionNum, cfg, v) {
         <tr><td style="text-align:left;"><strong>직접노무비</strong></td><td>기본급</td><td>적용시급×209시간</td><td style="text-align:right;">${numberWithCommas(c.baseWage)}</td></tr>
         ${c.transport > 0 ? `<tr><td></td><td>교통비</td><td></td><td style="text-align:right;">${numberWithCommas(c.transport)}</td></tr>` : ''}
         ${c.nightPay > 0 ? `<tr><td></td><td>야간수당</td><td></td><td style="text-align:right;">${numberWithCommas(c.nightPay)}</td></tr>` : ''}
+        ${c.customAllowances.map(a => a.name || a.amount ? `<tr><td></td><td>${escHtml(a.name) || '추가수당'}</td><td></td><td style="text-align:right;">${numberWithCommas(a.amount)}</td></tr>` : '').join('')}
         <tr style="border-top:1px solid var(--gray-300);"><td></td><td><strong>① 소계</strong></td><td></td><td style="text-align:right;font-weight:600;">${numberWithCommas(c.laborSub1)}</td></tr>
         <tr><td></td><td>퇴직금</td><td>급여계(①)의 ${(c.rRetire * 100).toFixed(2)}%</td><td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>
         ${c.alMode === 'include' ? `<tr><td></td><td>연차수당</td><td>통상시급(${numberWithCommas(c.ordinaryWage)}원)×8시간</td><td style="text-align:right;">${numberWithCommas(c.annualLeaveCalc)}</td></tr>` : ''}
@@ -2408,8 +2452,14 @@ function getFormValues() {
     pLeaderPay: val('pLeaderPay'),
     pNightPay: val('pNightPay'),
     pEtcCost: val('pEtcCost'),
+    pFeeType: val('pFeeType'),
     pMgmtRate: val('pMgmtRate'),
+    pDailyFee: val('pDailyFee'),
+    pFeePeriod: val('pFeePeriod'),
+    pContractMonths: val('pContractMonths'),
     pAnnualLeaveMode: val('pAnnualLeaveMode'),
+    pOrdinaryWage: val('pOrdinaryWage'),
+    customAllowances: getCustomAllowances(),
     // 요율
     ratePension: val('ratePension'),
     rateHealth: val('rateHealth'),
@@ -2503,6 +2553,15 @@ function loadData() {
         if (el) el.value = data.form[key] || '';
       });
 
+      // 커스텀 수당 복원
+      if (data.form.customAllowances && data.form.customAllowances.length > 0) {
+        const caList = document.getElementById('customAllowanceList');
+        if (caList) {
+          caList.innerHTML = '';
+          data.form.customAllowances.forEach(a => addCustomAllowance(a.name, a.amount));
+        }
+      }
+
       // csCustomMode 토글 상태 반영
       const customEl = document.getElementById('csCustomMode');
       if (customEl) {
@@ -2588,6 +2647,15 @@ function importProposal(event) {
         const el = document.getElementById(key);
         if (el) el.value = data.form[key] || '';
       });
+
+      // 커스텀 수당 복원
+      if (data.form.customAllowances && data.form.customAllowances.length > 0) {
+        const caList = document.getElementById('customAllowanceList');
+        if (caList) {
+          caList.innerHTML = '';
+          data.form.customAllowances.forEach(a => addCustomAllowance(a.name, a.amount));
+        }
+      }
 
       // csCustomMode 토글
       const customEl = document.getElementById('csCustomMode');
@@ -2771,6 +2839,15 @@ async function loadFromSheet(id) {
         var el = document.getElementById(key);
         if (el) el.value = data.form[key] || '';
       });
+
+      // 커스텀 수당 복원
+      if (data.form.customAllowances && data.form.customAllowances.length > 0) {
+        var caList = document.getElementById('customAllowanceList');
+        if (caList) {
+          caList.innerHTML = '';
+          data.form.customAllowances.forEach(function(a) { addCustomAllowance(a.name, a.amount); });
+        }
+      }
 
       var customEl = document.getElementById('csCustomMode');
       if (customEl) {
