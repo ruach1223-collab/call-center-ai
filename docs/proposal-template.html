@@ -2823,13 +2823,19 @@ function loadData() {
         }
       }
 
-      // csCustomMode 토글 상태 반영
+      // csCustomMode 강제 복원
       const customEl = document.getElementById('csCustomMode');
-      if (customEl) {
+      if (customEl && data.form.csCustomMode !== undefined) {
+        customEl.checked = data.form.csCustomMode === true || data.form.csCustomMode === 'true' || data.form.csCustomMode === 'on';
         const fields = document.getElementById('csCustomFields');
         const tierSelect = document.getElementById('csCallTier');
         if (fields) fields.style.display = customEl.checked ? 'block' : 'none';
         if (tierSelect) tierSelect.disabled = customEl.checked;
+        if (customEl.checked) {
+          if (data.form.csBaseFee) { const el = document.getElementById('csBaseFee'); if (el) el.value = data.form.csBaseFee; }
+          if (data.form.csPerCall) { const el = document.getElementById('csPerCall'); if (el) el.value = data.form.csPerCall; }
+          if (data.form.csExtraCalls) { const el = document.getElementById('csExtraCalls'); if (el) el.value = data.form.csExtraCalls; }
+        }
       }
 
       // 연장수당/심야수당 UI 토글 복원
@@ -2937,13 +2943,19 @@ function importProposal(event) {
         }
       }
 
-      // csCustomMode 토글
+      // csCustomMode 강제 복원
       const customEl = document.getElementById('csCustomMode');
-      if (customEl) {
+      if (customEl && data.form.csCustomMode !== undefined) {
+        customEl.checked = data.form.csCustomMode === true || data.form.csCustomMode === 'true' || data.form.csCustomMode === 'on';
         const fields = document.getElementById('csCustomFields');
         const tierSelect = document.getElementById('csCallTier');
         if (fields) fields.style.display = customEl.checked ? 'block' : 'none';
         if (tierSelect) tierSelect.disabled = customEl.checked;
+        if (customEl.checked) {
+          if (data.form.csBaseFee) { const el = document.getElementById('csBaseFee'); if (el) el.value = data.form.csBaseFee; }
+          if (data.form.csPerCall) { const el = document.getElementById('csPerCall'); if (el) el.value = data.form.csPerCall; }
+          if (data.form.csExtraCalls) { const el = document.getElementById('csExtraCalls'); if (el) el.value = data.form.csExtraCalls; }
+        }
       }
 
       // 레퍼런스 복원
@@ -3168,12 +3180,20 @@ async function loadFromSheet(id) {
         }
       }
 
+      // csCustomMode 강제 복원 (boolean/문자열 모두 처리)
       var customEl = document.getElementById('csCustomMode');
-      if (customEl) {
+      if (customEl && data.form.csCustomMode !== undefined) {
+        customEl.checked = data.form.csCustomMode === true || data.form.csCustomMode === 'true' || data.form.csCustomMode === 'on';
         var fields = document.getElementById('csCustomFields');
         var tierSelect = document.getElementById('csCallTier');
         if (fields) fields.style.display = customEl.checked ? 'block' : 'none';
         if (tierSelect) tierSelect.disabled = customEl.checked;
+        // 맞춤입력 필드값 재설정 (DOM 렌더 후 값이 날아간 경우 대비)
+        if (customEl.checked) {
+          if (data.form.csBaseFee) { var el = document.getElementById('csBaseFee'); if (el) el.value = data.form.csBaseFee; }
+          if (data.form.csPerCall) { var el = document.getElementById('csPerCall'); if (el) el.value = data.form.csPerCall; }
+          if (data.form.csExtraCalls) { var el = document.getElementById('csExtraCalls'); if (el) el.value = data.form.csExtraCalls; }
+        }
       }
     }
 
