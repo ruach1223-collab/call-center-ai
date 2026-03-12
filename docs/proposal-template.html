@@ -785,7 +785,8 @@ body {
     <button class="btn btn-outline" onclick="exportProposal()" title="JSON 파일로 저장">&#x1F4BE; <span class="desktop-only">저장</span></button>
     <button class="btn btn-outline" onclick="document.getElementById('importFile').click()" title="저장한 파일 불러오기">&#x1F4C2; <span class="desktop-only">불러오기</span></button>
     <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importProposal(event)">
-    <button class="btn btn-outline" onclick="saveToSheet()" title="구글시트에 저장">&#x2601; <span class="desktop-only">클라우드 저장</span></button>
+    <button class="btn btn-outline" onclick="saveToSheet()" title="구글시트에 저장 (덮어쓰기)">&#x2601; <span class="desktop-only">클라우드 저장</span></button>
+    <button class="btn btn-outline" onclick="saveToSheetAsNew()" title="새 제안서로 저장">&#x2601; <span class="desktop-only">새로 저장</span></button>
     <button class="btn btn-outline" onclick="openCloudModal()" title="구글시트에서 불러오기">&#x2601; <span class="desktop-only">클라우드 목록</span></button>
     <button class="btn btn-outline" onclick="resetForm()">&#x21bb; <span class="desktop-only">초기화</span></button>
     <button class="btn btn-primary" onclick="printProposal()">&#x1F5A8; <span class="desktop-only">인쇄 / PDF</span></button>
@@ -2875,9 +2876,8 @@ function exportProposal() {
     form: getFormValues(),
     refs: getRefData(),
   };
-  const clientName = data.form.clientName || '제안서';
-  const typeLabel = SERVICE_CONFIG[data.form.serviceType]?.title || '제안서';
-  const fileName = clientName + '_' + typeLabel + '_' + new Date().toISOString().slice(0,10) + '.json';
+  const clientName = data.form.clientName || '고객사';
+  const fileName = '워크위드_' + clientName + '_제안서.json';
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -3037,6 +3037,31 @@ async function saveToSheet() {
     if (result.success) {
       currentCloudId = result.id;
       alert('클라우드에 저장되었습니다. (' + result.savedAt + ')');
+    } else {
+      alert('저장 실패: ' + (result.error || '알 수 없는 오류'));
+    }
+  } catch (err) {
+    alert('오류: ' + err.message);
+  }
+}
+
+async function saveToSheetAsNew() {
+  if (!SCRIPT_URL) {
+    alert('Apps Script URL이 설정되지 않았습니다.\n관리자에게 문의하세요.');
+    return;
+  }
+  var savedBy = document.getElementById('savedBy') ? document.getElementById('savedBy').value.trim() : '미지정';
+  if (!savedBy) savedBy = '미지정';
+  var data = JSON.stringify({ form: getFormValues(), refs: getRefData() });
+  var params = 'action=save&savedBy=' + encodeURIComponent(savedBy)
+    + '&data=' + encodeURIComponent(data);
+  // id를 보내지 않아 새 행으로 저장됨
+
+  try {
+    var result = await callScript(params);
+    if (result.success) {
+      currentCloudId = result.id;
+      alert('새 제안서로 저장되었습니다. (' + result.savedAt + ')');
     } else {
       alert('저장 실패: ' + (result.error || '알 수 없는 오류'));
     }
