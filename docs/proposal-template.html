@@ -2231,12 +2231,7 @@ function getQuotePersonnel(sectionNum, cfg, v) {
       * 계약기간: ${result.contractMonths}개월
     </p>
 
-    ${v.quoteNotes && v.quoteNotes.trim() ? `<div style="font-size:0.72rem;color:var(--gray-500);margin-top:10px;line-height:1.7;">
-      <p style="font-weight:600;margin:0 0 4px 0;color:var(--gray-600);">※ 추가사항</p>
-      <ol style="margin:0;padding-left:1.2em;">
-        ${v.quoteNotes.trim().split('\n').map(line => { const t = line.replace(/^\d+\.\s*/, '').trim(); return t ? '<li>' + escHtml(t) + '</li>' : ''; }).join('')}
-      </ol>
-    </div>` : ''}`;
+    ${renderQuoteNotes(v)}`;
 
   return html;
 }
@@ -2374,6 +2369,7 @@ function getQuoteFeeRate(sectionNum, v) {
       * 적용 기간(${r.months}개월) 종료 후 수수료 없음<br>
       * VAT 별도
     </p>
+    ${renderQuoteNotes(v)}
   `;
   }
   const feeUnit = r.isMonthly ? '원/월' : '원';
@@ -2409,6 +2405,7 @@ function getQuoteFeeRate(sectionNum, v) {
       * 보증 조건: 별도 협의<br>
       * VAT 별도
     </p>
+    ${renderQuoteNotes(v)}
   `;
 }
 
@@ -2452,6 +2449,7 @@ function getQuoteTiered(sectionNum, v) {
       </tbody>
     </table>
     <p style="text-align:right;font-size:0.8rem;color:var(--gray-500);">* 상기 금액은 VAT 별도 기준입니다.<br>* 실제 금액은 협의에 따라 변동될 수 있습니다.</p>
+    ${renderQuoteNotes(v)}
   `;
 }
 
@@ -2495,8 +2493,20 @@ function getQuoteCallBased(sectionNum, v) {
       * 운영시간: 평일 09:00~18:00 (야간/주말 확장 가능)<br>
       * VAT 별도
     </p>
+    ${renderQuoteNotes(v)}
   `;
   return html;
+}
+
+// 견적 추가사항 공통 렌더링
+function renderQuoteNotes(v) {
+  if (!v.quoteNotes || !v.quoteNotes.trim()) return '';
+  return `<div style="font-size:0.72rem;color:var(--gray-500);margin-top:10px;line-height:1.7;">
+    <p style="font-weight:600;margin:0 0 4px 0;color:var(--gray-600);">※ 추가사항</p>
+    <ol style="margin:0;padding-left:1.2em;">
+      ${v.quoteNotes.trim().split('\n').map(line => { const t = line.replace(/^\d+\.\s*/, '').trim(); return t ? '<li>' + escHtml(t) + '</li>' : ''; }).join('')}
+    </ol>
+  </div>`;
 }
 
 // ===== Common: Reference Section =====
