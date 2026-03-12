@@ -2968,6 +2968,12 @@ function importProposal(event) {
         }
       }
 
+      // 연장수당/심야수당 UI 토글 복원
+      toggleOvertimeHours();
+      toggleOvertimeCustom();
+      toggleNightHours();
+      toggleNightCustom();
+
       // 레퍼런스 복원
       if (data.refs && data.refs.length > 0) {
         const list = document.getElementById('refList');
@@ -3205,6 +3211,12 @@ async function loadFromSheet(id) {
           if (data.form.csExtraCalls) { var el = document.getElementById('csExtraCalls'); if (el) el.value = data.form.csExtraCalls; }
         }
       }
+
+      // 연장수당/심야수당 UI 토글 복원
+      toggleOvertimeHours();
+      toggleOvertimeCustom();
+      toggleNightHours();
+      toggleNightCustom();
     }
 
     // 레퍼런스 복원
