@@ -2992,8 +2992,17 @@ function importProposal(event) {
         });
       }
 
-      onServiceTypeChange();
+      // onServiceTypeChange() 대신 header/cover만 갱신 (renderQuoteForm 재호출 시 복원된 값 날아감)
+      const type = document.getElementById('serviceType').value;
+      const cfg = SERVICE_CONFIG[type];
+      if (cfg) {
+        document.getElementById('headerSubtitle').textContent = cfg.headerSub;
+        document.getElementById('serviceDesc').innerHTML = cfg.desc;
+        document.getElementById('coverTitle').textContent = cfg.title;
+        document.getElementById('coverSubtitle').textContent = cfg.subtitle;
+      }
       bindInputListeners();
+      renderBody();
       updatePreview();
       saveData();
       alert('불러오기 완료: ' + (data.form.clientName || '제안서'));
@@ -3238,8 +3247,17 @@ async function loadFromSheet(id) {
     }
 
     currentCloudId = id;
-    onServiceTypeChange();
+    // onServiceTypeChange() 대신 header/cover만 갱신 (renderQuoteForm 재호출 시 복원된 값 날아감)
+    var type = document.getElementById('serviceType').value;
+    var cfg = SERVICE_CONFIG[type];
+    if (cfg) {
+      document.getElementById('headerSubtitle').textContent = cfg.headerSub;
+      document.getElementById('serviceDesc').innerHTML = cfg.desc;
+      document.getElementById('coverTitle').textContent = cfg.title;
+      document.getElementById('coverSubtitle').textContent = cfg.subtitle;
+    }
     bindInputListeners();
+    renderBody();
     updatePreview();
     saveData();
     closeCloudModal();
