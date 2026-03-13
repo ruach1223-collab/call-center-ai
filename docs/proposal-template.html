@@ -816,6 +816,7 @@ body {
               <option value="recruit">채용대행</option>
               <option value="callcenter">콜센터 전담</option>
               <option value="csshare">CS 쉐어링</option>
+              <option value="perioddogup">기간도급 (프로젝트)</option>
             </select>
           </div>
           <div class="info-box" id="serviceDesc" style="font-size:0.8rem;margin:0;">
@@ -1068,6 +1069,15 @@ const SERVICE_CONFIG = {
     unitLabel: '쉐어링 상담원',
     dept: '콜센터사업부',
     quoteType: 'callBased',
+  },
+  perioddogup: {
+    title: '기간도급 운영 제안서',
+    subtitle: '프로젝트 기반 한시적 도급, 투입부터 철수까지 원스톱',
+    headerSub: '기간도급 제안서 생성기',
+    desc: '기간도급: 프로젝트·물량 기반의 한시적 도급 운영',
+    unitLabel: '기간도급 인력',
+    dept: '도급사업부',
+    quoteType: 'daily',
   },
 };
 
@@ -1377,6 +1387,61 @@ function renderQuoteForm(type) {
         </ul>
       </div>
     `;
+  } else if (cfg.quoteType === 'daily') {
+    // 기간도급 — 커스텀 그룹 (이름+인원+일당)
+    html = `
+      <div id="pdGroupList"></div>
+      <div style="text-align:center;margin:8px 0;">
+        <button type="button" onclick="addPdGroup()" style="font-size:0.78rem;padding:6px 16px;border:1px dashed var(--blue);background:var(--blue-light);color:var(--blue);border-radius:6px;cursor:pointer;font-weight:600;">+ 그룹 추가</button>
+        <div style="font-size:0.65rem;color:var(--gray-500);margin-top:4px;">남자/여자, 직종별 등 단가가 다른 그룹을 추가하세요</div>
+      </div>
+      <div style="margin-top:8px;padding:8px;background:var(--white);border:1px solid var(--gray-200);border-radius:6px;">
+        <div style="font-size:0.78rem;font-weight:600;color:var(--gray-600);margin-bottom:6px;">견적표 표시 옵션</div>
+        <label style="font-size:0.78rem;display:block;margin-bottom:4px;"><input type="checkbox" id="pdShowCount" data-save onchange="updatePreview(); saveData();"> 인원 표시</label>
+        <label style="font-size:0.78rem;display:block;"><input type="checkbox" id="pdShowEstimate" data-save onchange="togglePdEstimate(); updatePreview(); saveData();"> 예상 총액 표시 (일수 × 인원 × 단가)</label>
+      </div>
+      <div id="pdEstimateGroup" style="margin-top:8px;display:none;">
+        <div class="form-group">
+          <label>예상 근무일수 (일)</label>
+          <input type="number" id="pdWorkDays" placeholder="100" min="1" data-save style="padding:6px 8px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.85rem;" oninput="updatePreview(); saveData();">
+          <div style="font-size:0.7rem;color:var(--gray-500);margin-top:2px;">프로젝트 전체 근무일수</div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:8px;">
+        <label>연장수당</label>
+        <select id="pdOvertimeMode" data-save style="padding:6px 8px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.85rem;" onchange="togglePdOvertime(); updatePreview(); saveData();">
+          <option value="off">미적용</option>
+          <option value="include">포함</option>
+          <option value="ondemand">발생시 청구</option>
+        </select>
+      </div>
+      <div id="pdOvertimeGroup" style="display:none;">
+        <div class="form-group">
+          <label>일 연장시간</label>
+          <select id="pdOvertimeHours" data-save style="padding:6px 8px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.85rem;" onchange="updatePreview(); saveData();">
+            <option value="1">1시간</option>
+            <option value="2" selected>2시간</option>
+            <option value="3">3시간</option>
+            <option value="4">4시간</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>연장 시급 (원)</label>
+          <input type="text" id="pdOvertimeRate" placeholder="15,000" data-save style="padding:6px 8px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.85rem;text-align:right;" oninput="formatNumber(this); updatePreview(); saveData();">
+          <div style="font-size:0.7rem;color:var(--gray-500);margin-top:2px;">통상시급의 1.5배 기준</div>
+        </div>
+      </div>
+      <div class="calculated" id="quoteTotalDisplay">일 예상 비용: -<small>VAT 별도</small></div>
+      <div class="guide-box">
+        <strong>&#x1F4CC; 기간도급 안내</strong>
+        <ul>
+          <li>프로젝트·물량 기반 한시적 도급</li>
+          <li>투입~철수까지 워크위드 일괄 관리</li>
+          <li>일당 기준 실 근무일수 정산</li>
+          <li>4대보험·퇴직금 포함 단가</li>
+        </ul>
+      </div>
+    `;
   }
 
   container.innerHTML = html;
@@ -1399,6 +1464,97 @@ function updateFeeUI() {
 function recalcProposal() {
   updatePreview();
   saveData();
+}
+
+// 기간도급 연장수당 토글
+function togglePdOvertime() {
+  const mode = document.getElementById('pdOvertimeMode')?.value || 'off';
+  const group = document.getElementById('pdOvertimeGroup');
+  if (group) group.style.display = mode === 'off' ? 'none' : 'block';
+}
+
+// 기간도급 예상 총액 토글
+function togglePdEstimate() {
+  const chk = document.getElementById('pdShowEstimate');
+  const group = document.getElementById('pdEstimateGroup');
+  if (group) group.style.display = (chk && chk.checked) ? 'block' : 'none';
+}
+
+// ===== 기간도급 그룹 관리 =====
+let pdGroupCount = 0;
+
+function addPdGroup(data) {
+  const list = document.getElementById('pdGroupList');
+  if (!list) return;
+  const idx = pdGroupCount++;
+  const d = data || {};
+  const card = document.createElement('div');
+  card.className = 'pd-card';
+  card.dataset.pdIdx = idx;
+  card.style.cssText = 'border:1px solid var(--gray-300);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--gray-50);position:relative;';
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <input type="text" class="pd-name" placeholder="그룹명 (예: 남자, 포장직)" value="${escHtml(d.name||'')}" style="flex:1;padding:4px 8px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.82rem;font-weight:600;" oninput="updatePreview(); saveData();">
+      <button type="button" onclick="removePdGroup(this)" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:1.1rem;padding:0 6px;margin-left:6px;" title="그룹 삭제">&times;</button>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;"><label style="font-size:0.72rem;color:var(--gray-600);">인원 (명)</label><input type="number" class="pd-count" placeholder="10" min="1" value="${d.count||''}" style="width:100%;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.82rem;" oninput="updatePreview(); saveData();"></div>
+      <div style="flex:1;"><label style="font-size:0.72rem;color:var(--gray-600);">일당 (원)</label><input type="text" class="pd-daily" placeholder="150,000" value="${d.daily ? numberWithCommas(d.daily) : ''}" style="width:100%;padding:4px 6px;border:1px solid var(--gray-300);border-radius:4px;font-size:0.82rem;text-align:right;" oninput="formatNumber(this); updatePreview(); saveData();"></div>
+    </div>
+  `;
+  list.appendChild(card);
+  updatePreview();
+  saveData();
+}
+
+function removePdGroup(btn) {
+  const card = btn.closest('.pd-card');
+  const list = card.parentElement;
+  card.remove();
+  if (list.querySelectorAll('.pd-card').length === 0) {
+    addPdGroup();
+  }
+  updatePreview();
+  saveData();
+}
+
+function getPdGroups() {
+  const cards = document.querySelectorAll('.pd-card');
+  const groups = [];
+  cards.forEach(card => {
+    groups.push({
+      name: card.querySelector('.pd-name')?.value || '',
+      count: parseInt(card.querySelector('.pd-count')?.value) || 0,
+      daily: parseNumber(card.querySelector('.pd-daily')?.value) || 0,
+    });
+  });
+  return groups;
+}
+
+// 기간도급 견적 계산
+function calcPeriodDogup(v) {
+  const groups = v.pdGroups || getPdGroups();
+  const otMode = v.pdOvertimeMode || 'off';
+  const otHours = parseFloat(v.pdOvertimeHours) || 2;
+  const otRate = parseNumber(v.pdOvertimeRate) || 0;
+  const showCount = v.pdShowCount === true || v.pdShowCount === 'true';
+  const showEstimate = v.pdShowEstimate === true || v.pdShowEstimate === 'true';
+  const workDays = parseInt(v.pdWorkDays) || 0;
+
+  const totalWorkers = groups.reduce((s, g) => s + g.count, 0);
+  const dailyLaborCost = groups.reduce((s, g) => s + (g.daily * g.count), 0);
+
+  const dailyOtPerPerson = otRate * otHours;
+  const dailyOtTotal = dailyOtPerPerson * totalWorkers;
+
+  const dailyTotal = dailyLaborCost + (otMode === 'include' ? dailyOtTotal : 0);
+  const projectTotal = dailyTotal * workDays;
+
+  return {
+    groups, totalWorkers, dailyLaborCost,
+    otMode, otHours, otRate, dailyOtPerPerson, dailyOtTotal,
+    dailyTotal, showCount, showEstimate, workDays, projectTotal,
+  };
 }
 
 function onCsCallTierChange() {
@@ -1465,6 +1621,8 @@ function getBodyHTML(type, v) {
     html += getCallcenterBody(v);
   } else if (type === 'csshare') {
     html += getCsShareBody(v);
+  } else if (type === 'perioddogup') {
+    html += getPeriodDogupBody(v);
   }
 
   // Common: Quote (새 페이지) + Reference + Memo + Footer
@@ -1475,6 +1633,186 @@ function getBodyHTML(type, v) {
   html += getFooterHTML(type);
 
   return html;
+}
+
+// ===== 기간도급 Body =====
+function getPeriodDogupBody(v) {
+  const clientLabel = escHtml(v.clientName || '고객사');
+  return `
+    <h2>3. 기간도급 서비스 개요</h2>
+    <h3>기간도급이란?</h3>
+    <p><strong>기간도급</strong>은 특정 프로젝트·물량에 맞춰 한시적으로 인력을 투입하고, 프로젝트 완료 시 체계적으로 철수하는 도급 운영 방식입니다.</p>
+    <div class="info-box">
+      <strong>기간도급의 장점</strong><br>
+      &#x2714; 프로젝트 기간에 맞춘 <strong>유연한 인력 운영</strong><br>
+      &#x2714; 투입부터 철수까지 워크위드가 <strong>일괄 관리</strong><br>
+      &#x2714; 도급 구조로 <strong>불법파견 리스크 원천 차단</strong><br>
+      &#x2714; 물량 변동 시 인원 증감 <strong>탄력 대응</strong>
+    </div>
+
+    <h3>기간도급 vs 직접 채용 비교</h3>
+    <table class="compare-table">
+      <thead><tr><th>구분</th><th>직접 채용</th><th>워크위드 기간도급</th></tr></thead>
+      <tbody>
+        <tr><td><strong>채용 소요</strong></td><td class="danger-cell">2~4주 (단기 채용 어려움)</td><td class="highlight-cell">최단 3일 내 투입</td></tr>
+        <tr><td><strong>프로젝트 종료 시</strong></td><td class="danger-cell">해고 리스크·퇴직금 부담</td><td class="highlight-cell">워크위드가 전원 관리</td></tr>
+        <tr><td><strong>인원 증감</strong></td><td class="danger-cell">추가 채용·해고 반복</td><td class="highlight-cell">물량에 따라 탄력 조절</td></tr>
+        <tr><td><strong>4대보험</strong></td><td class="danger-cell">고객사 직접 처리</td><td class="highlight-cell">워크위드가 전액 처리</td></tr>
+        <tr><td><strong>급여·퇴직금</strong></td><td class="danger-cell">고객사 부담</td><td class="highlight-cell">워크위드가 산정·지급</td></tr>
+        <tr><td><strong>지휘·명령</strong></td><td>고객사 직접</td><td class="highlight-cell">워크위드 관리자 지시 (도급)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4대보험 전원 가입 — 법적 리스크 제로</h3>
+    <p>단기 프로젝트라도 <strong>3.3% 사업소득 신고</strong>는 불법입니다. 워크위드는 기간에 관계없이 전 근로자 4대보험 가입을 원칙으로 합니다.</p>
+    <div class="warning-box">
+      <strong>3.3% 신고 업체의 리스크</strong><br>
+      &#x26A0; 실질적 근로관계임에도 사업소득 처리 → <strong>근로기준법 위반</strong><br>
+      &#x26A0; 산재 발생 시 → <strong>고객사에 손해배상 청구</strong> 가능<br>
+      &#x26A0; 고용노동부 근로감독 시 <strong>원청까지 조사 대상</strong>
+    </div>
+    <div class="success-box">
+      <strong>워크위드는 단기 프로젝트에서도 전 근로자 4대보험 가입, 정식 근로계약 체결을 원칙으로 합니다.</strong>
+    </div>
+
+    <h2>4. 기간도급 운영 구조</h2>
+    <h3>지휘체계 분리 구조</h3>
+    <p>기간도급도 일반 도급과 동일하게 <strong>지휘체계의 완전한 분리</strong>를 원칙으로 합니다.</p>
+    <div class="flow-chart">
+      <div><div class="flow-box client-box">${clientLabel}</div><div class="flow-label">발주</div></div>
+      <div class="flow-arrow">&#x27A1;</div>
+      <div><div class="flow-box ww-box">워크위드<br>현장관리자</div><div class="flow-label">지휘·관리</div></div>
+      <div class="flow-arrow">&#x27A1;</div>
+      <div><div class="flow-box worker-box">기간도급 근로자</div><div class="flow-label">작업 수행</div></div>
+    </div>
+
+    <h3>투입·철수 계획</h3>
+    <table class="compare-table">
+      <thead><tr><th>단계</th><th>내용</th><th>시기</th></tr></thead>
+      <tbody>
+        <tr><td><strong>사전 준비</strong></td><td>인력 선발, 안전교육, 작업 숙지</td><td>투입 1주 전</td></tr>
+        <tr><td><strong>투입</strong></td><td>현장 배치, 관리자 상주, 초기 안정화</td><td>프로젝트 시작일</td></tr>
+        <tr><td><strong>운영</strong></td><td>일일 근태·품질 관리, 물량 변동 대응</td><td>프로젝트 기간 중</td></tr>
+        <tr><td><strong>철수 준비</strong></td><td>업무 인수인계, 잔여 작업 정리</td><td>종료 1주 전</td></tr>
+        <tr><td><strong>철수 완료</strong></td><td>인력 철수, 최종 정산, 결과 보고</td><td>프로젝트 종료일</td></tr>
+      </tbody>
+    </table>
+
+    <h3>인수인계 프로세스</h3>
+    <div class="info-box">
+      <strong>프로젝트 종료 시 인수인계 절차</strong><br>
+      &#x2714; 작업 매뉴얼 및 진행 현황 문서화<br>
+      &#x2714; 잔여 업무 목록 정리 및 고객사 전달<br>
+      &#x2714; 장비·자재 반납 및 현장 정리<br>
+      &#x2714; 최종 정산 및 운영 결과 보고서 제출
+    </div>
+
+    <h2>5. 탄력 운영</h2>
+    <p>프로젝트 진행 중 물량 변동이 발생할 경우, 워크위드가 신속하게 인원을 조절합니다.</p>
+    <table class="compare-table">
+      <thead><tr><th>상황</th><th>대응</th><th>소요 기간</th></tr></thead>
+      <tbody>
+        <tr><td><strong>물량 증가</strong></td><td>예비 인력풀에서 추가 투입</td><td>3일 이내</td></tr>
+        <tr><td><strong>물량 감소</strong></td><td>인원 축소 및 재배치</td><td>협의 후 즉시</td></tr>
+        <tr><td><strong>결근 발생</strong></td><td>예비 인력 당일 대체 투입</td><td>당일</td></tr>
+        <tr><td><strong>인력 교체</strong></td><td>부적합 인력 교체, 재투입</td><td>2일 이내</td></tr>
+      </tbody>
+    </table>
+
+    <div class="page-break"></div>
+    <h2>6. 구인 능력</h2>
+    <div class="info-box">
+      <strong>워크위드 채용 역량 요약</strong><br>
+      &#x2714; 자체 채용 네트워크 보유 (구인 플랫폼, DB, 소개 등)<br>
+      &#x2714; 내국인 + 외국인(E-9, H-2 등) 근로자 풀 확보<br>
+      &#x2714; 평균 충원 기간: <strong>7일 이내</strong><br>
+      &#x2714; 대량 채용 경험: 시즌 <strong>300명 이상</strong> 동시 운영 실적
+    </div>
+    <p>워크위드는 기간 프로젝트에 특화된 빠른 충원 체계를 갖추고 있어, 단기간 내 대규모 인력을 확보할 수 있습니다.</p>
+  `;
+}
+
+// ===== 기간도급 견적표 =====
+function getQuoteDaily(sectionNum, v) {
+  const pd = calcPeriodDogup(v);
+  if (!pd.totalWorkers) {
+    return `
+      <h2>${sectionNum}. 견적 요약</h2>
+      <p style="color:var(--gray-500);">좌측에서 인원과 일당을 입력하세요</p>
+    `;
+  }
+
+  const showCount = pd.showCount;
+  let headerCols = '<th>구분</th>';
+  if (showCount) headerCols += '<th>인원</th>';
+  headerCols += '<th style="text-align:right;">1인 일당 단가</th>';
+
+  let rows = '';
+  pd.groups.forEach(g => {
+    if (!g.count && !g.daily) return;
+    const label = escHtml(g.name || '인력');
+    rows += `<tr><td>${label}</td>`;
+    if (showCount) rows += `<td>${g.count}명</td>`;
+    rows += `<td style="text-align:right;font-weight:600;">${numberWithCommas(g.daily)}원</td></tr>`;
+  });
+
+  if (pd.otMode === 'include') {
+    rows += `<tr><td>연장수당 (${pd.otHours}시간 기준)</td>`;
+    if (showCount) rows += `<td></td>`;
+    rows += `<td style="text-align:right;font-weight:600;">${numberWithCommas(pd.otRate * pd.otHours)}원</td></tr>`;
+  } else if (pd.otMode === 'ondemand') {
+    rows += `<tr><td>연장수당 (${pd.otHours}시간 기준)</td>`;
+    if (showCount) rows += `<td></td>`;
+    rows += `<td style="text-align:right;color:var(--gray-500);">발생시 청구</td></tr>`;
+  }
+
+  // 예상 총액 테이블
+  let estimateHtml = '';
+  if (pd.showEstimate && pd.workDays > 0) {
+    const colSpan = showCount ? 3 : 2;
+    let estRows = '';
+    pd.groups.forEach(g => {
+      if (!g.count || !g.daily) return;
+      const label = escHtml(g.name || '인력');
+      estRows += `<tr><td>${label}</td><td>${numberWithCommas(g.daily)}원 × ${g.count}명 × ${pd.workDays}일</td><td style="text-align:right;">${numberWithCommas(g.daily * g.count * pd.workDays)}원</td></tr>`;
+    });
+    if (pd.otMode === 'include' && pd.dailyOtTotal > 0) {
+      estRows += `<tr><td>연장수당</td><td>${numberWithCommas(pd.otRate * pd.otHours)}원 × ${pd.totalWorkers}명 × ${pd.workDays}일</td><td style="text-align:right;">${numberWithCommas(pd.dailyOtTotal * pd.workDays)}원</td></tr>`;
+    }
+    estimateHtml = `
+      <h3 style="margin-top:20px;">예상 총액</h3>
+      <table class="quote-table">
+        <thead><tr><th>구분</th><th>산출내역</th><th style="text-align:right;">금액</th></tr></thead>
+        <tbody>
+          ${estRows}
+        </tbody>
+        <tfoot>
+          <tr class="total-row" style="background:var(--navy);color:var(--white);">
+            <td><strong>예상 총액 (VAT 별도)</strong></td>
+            <td>${pd.totalWorkers}명 × ${pd.workDays}일</td>
+            <td style="text-align:right;font-weight:700;font-size:1rem;">${numberWithCommas(pd.projectTotal)}원</td>
+          </tr>
+        </tfoot>
+      </table>
+    `;
+  }
+
+  return `
+    <h2>${sectionNum}. 견적 요약</h2>
+    <table class="quote-table">
+      <thead><tr>${headerCols}</tr></thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    <p style="text-align:right;font-size:0.72rem;color:var(--gray-500);margin-top:6px;">
+      * 상기 단가에는 4대보험, 퇴직금 등 제반 비용이 포함되어 있습니다.<br>
+      * 실 근무일수 기준으로 정산합니다.<br>
+      * 상기 금액은 VAT 별도 기준이며, 실제 금액은 협의에 따라 변동될 수 있습니다.
+    </p>
+    ${estimateHtml}
+    ${renderQuoteNotes(v)}
+  `;
 }
 
 // ===== 도급 Body =====
@@ -1855,7 +2193,7 @@ function getCsShareBody(v) {
 // ===== Common: Quote Section (유형별 분리) =====
 function getQuoteHTML(type, v) {
   const cfg = SERVICE_CONFIG[type];
-  const sectionNum = (type === 'dogup' || type === 'dispatch' || type === 'recruit') ? '7' : '6';
+  const sectionNum = (type === 'dogup' || type === 'dispatch' || type === 'recruit' || type === 'perioddogup') ? '7' : '6';
 
   if (cfg.quoteType === 'personnel') {
     return getQuotePersonnel(sectionNum, cfg, v);
@@ -1865,6 +2203,8 @@ function getQuoteHTML(type, v) {
     return getQuoteTiered(sectionNum, v);
   } else if (cfg.quoteType === 'callBased') {
     return getQuoteCallBased(sectionNum, v);
+  } else if (cfg.quoteType === 'daily') {
+    return getQuoteDaily(sectionNum, v);
   }
   return '';
 }
@@ -2514,8 +2854,8 @@ function getRefHTML(type) {
   const showRef = document.getElementById('showRef');
   if (showRef && !showRef.checked) return '';
 
-  const sectionNum = type === 'dogup' ? '8' : type === 'dispatch' ? '8' : type === 'recruit' ? '8' : type === 'callcenter' ? '7' : '7';
-  const serviceLabel = type === 'dogup' ? '도급' : type === 'dispatch' ? '파견' : type === 'recruit' ? '채용대행' : type === 'callcenter' ? '콜센터' : 'CS';
+  const sectionNum = type === 'dogup' ? '8' : type === 'dispatch' ? '8' : type === 'recruit' ? '8' : type === 'perioddogup' ? '8' : type === 'callcenter' ? '7' : '7';
+  const serviceLabel = type === 'dogup' ? '도급' : type === 'dispatch' ? '파견' : type === 'recruit' ? '채용대행' : type === 'perioddogup' ? '기간도급' : type === 'callcenter' ? '콜센터' : 'CS';
   return `
     <h2>${sectionNum}. 주요 레퍼런스</h2>
     <p>워크위드는 다양한 업종의 고객사와 함께 성공적인 ${serviceLabel} 운영 실적을 보유하고 있습니다.</p>
@@ -2583,6 +2923,15 @@ function onServiceTypeChange() {
     }
   }
 
+  // 기간도급이면 기본 그룹 1개 추가
+  if (cfg.quoteType === 'daily') {
+    const list = document.getElementById('pdGroupList');
+    if (list && list.querySelectorAll('.pd-card').length === 0) {
+      pdGroupCount = 0;
+      addPdGroup();
+    }
+  }
+
   // Re-render body
   renderBody();
   saveData();
@@ -2640,6 +2989,11 @@ function updateDynamicFields(v) {
       const tier = CS_SHARE_TIERS[tierIdx] || CS_SHARE_TIERS[0];
       total = tier.monthly;
     }
+  } else if (cfg.quoteType === 'daily') {
+    const pd = calcPeriodDogup(v);
+    total = pd.dailyTotal;
+    totalLabel = '일 예상 비용';
+    totalSuffix = '<small>VAT 별도</small>';
   }
 
   if (el('quoteTotalDisplay')) {
@@ -2752,6 +3106,14 @@ function getFormValues() {
     csBaseFee: val('csBaseFee'),
     csPerCall: val('csPerCall'),
     csExtraCalls: val('csExtraCalls'),
+    // 기간도급
+    pdGroups: getPdGroups(),
+    pdShowCount: chk('pdShowCount'),
+    pdShowEstimate: chk('pdShowEstimate'),
+    pdWorkDays: val('pdWorkDays'),
+    pdOvertimeMode: val('pdOvertimeMode'),
+    pdOvertimeHours: val('pdOvertimeHours'),
+    pdOvertimeRate: val('pdOvertimeRate'),
     // 표시 옵션
     showRef: chk('showRef'),
   };
@@ -2833,6 +3195,16 @@ function loadData() {
         }
       }
 
+      // 기간도급 그룹 복원
+      if (data.form.pdGroups && data.form.pdGroups.length > 0) {
+        const pdList = document.getElementById('pdGroupList');
+        if (pdList) {
+          pdList.innerHTML = '';
+          pdGroupCount = 0;
+          data.form.pdGroups.forEach(g => addPdGroup(g));
+        }
+      }
+
       // csCustomMode 강제 복원
       const customEl = document.getElementById('csCustomMode');
       if (customEl && data.form.csCustomMode !== undefined) {
@@ -2853,6 +3225,8 @@ function loadData() {
       toggleOvertimeCustom();
       toggleNightHours();
       toggleNightCustom();
+      togglePdOvertime();
+      togglePdEstimate();
     }
     if (data.refs && data.refs.length > 0) {
       const list = document.getElementById('refList');
@@ -2955,6 +3329,16 @@ function importProposal(event) {
         }
       }
 
+      // 기간도급 그룹 복원 (파일 불러오기)
+      if (data.form.pdGroups && data.form.pdGroups.length > 0) {
+        const pdList = document.getElementById('pdGroupList');
+        if (pdList) {
+          pdList.innerHTML = '';
+          pdGroupCount = 0;
+          data.form.pdGroups.forEach(g => addPdGroup(g));
+        }
+      }
+
       // csCustomMode 강제 복원
       const customEl = document.getElementById('csCustomMode');
       if (customEl && data.form.csCustomMode !== undefined) {
@@ -2975,6 +3359,8 @@ function importProposal(event) {
       toggleOvertimeCustom();
       toggleNightHours();
       toggleNightCustom();
+      togglePdOvertime();
+      togglePdEstimate();
 
       // 레퍼런스 복원
       if (data.refs && data.refs.length > 0) {
@@ -3207,6 +3593,16 @@ async function loadFromSheet(id) {
         }
       }
 
+      // 기간도급 그룹 복원 (초기 로드)
+      if (data.form.pdGroups && data.form.pdGroups.length > 0) {
+        var pdList = document.getElementById('pdGroupList');
+        if (pdList) {
+          pdList.innerHTML = '';
+          pdGroupCount = 0;
+          data.form.pdGroups.forEach(function(g) { addPdGroup(g); });
+        }
+      }
+
       // csCustomMode 강제 복원 (boolean/문자열 모두 처리)
       var customEl = document.getElementById('csCustomMode');
       if (customEl && data.form.csCustomMode !== undefined) {
@@ -3228,6 +3624,8 @@ async function loadFromSheet(id) {
       toggleOvertimeCustom();
       toggleNightHours();
       toggleNightCustom();
+      togglePdOvertime();
+      togglePdEstimate();
     }
 
     // 레퍼런스 복원
